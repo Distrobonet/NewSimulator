@@ -15,7 +15,7 @@ using namespace std;
 
 
 // global constants
-static const int ID_NO_NBR = ID_BROADCAST;
+static const int ID_NO_NBR = -1;
 
 
 
@@ -64,7 +64,7 @@ struct Relationship
     {
         for (int i = 0; i < (int)rels.size(); ++i)
             if (rels[i].ID == id) return &rels[i];
-        return NULL;
+        return 0;
     }   // relWithID(const LinkedList<Relationship> &, const int)
 };  // Relationship
 
