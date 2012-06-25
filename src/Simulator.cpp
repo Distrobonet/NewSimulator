@@ -20,7 +20,7 @@
 
 #include <ros/ros.h>
 
-#include "../msg_gen/cpp/include/Simulator/FormationMessage.h"
+//#include "../msg_gen/cpp/include/Simulator/FormationMessage.h"
 
 using namespace std;
 
@@ -32,7 +32,7 @@ using namespace std;
 // simulation environment function prototypes
 void terminate(int retVal);
 void displayMenu();
-bool keyboardInput();
+void keyboardInput();
 void clearScreen();
 
 //bool changeFormation(const int index, const Vector gradient = Vector());
@@ -40,25 +40,48 @@ void clearScreen();
 const char  CHAR_ESCAPE             = char(27);    // 'ESCAPE' character key
 
 
+// formation-testing function prototypes
+float  line(const float x);
+float  x(const float x);
+float  absX(const float x);
+float  negHalfX(const float x);
+float  negAbsHalfX(const float x);
+float  negAbsX(const float x);
+float  parabola(const float x);
+float  cubic(const float x);
+float  condSqrt(const float x);
+float  sine(const float x);
+float  xRoot3(const float x);
+float  negXRoot3(const float x);
+//
+//Function formations[] = {line,        x,       absX,     negHalfX,
+//						negAbsHalfX, negAbsX, parabola, cubic,
+//						condSqrt,    sine,    xRoot3,   negXRoot3};
+
+
 // Menu Global variable
 int CURRENT_SELECTION = -1;
 
 // A formation is a vector of Functions, which are functions that take floats and return floats
-//const Formation DEFAULT_FORMATION = Formation(formations[0], 1 , Vector(), 0, 0,  0.0f);
+//const Formation DEFAULT_FORMATION = Formation(formations[0], DEFAULT_ROBOT_RADIUS * FACTOR_COLLISION_RADIUS, Vector(), MIDDLE_CELL, 0,  90.0f);
 
-// Service utility function to set the formation being served based on CURRENT_SELECTION
-bool setFormationMessage(Simulator::CurrentFormation::Request  &req,
-		Simulator::CurrentFormation::Response &res )
-{
-  	res.formation.radius = 1.0f;
-  	res.formation.heading = 0.0f;
-  	res.formation.seed_frp.x = 0;
-  	res.formation.seed_frp.y = 0;
-  	res.formation.seed_id = 0;
-  	res.formation.formation_id = CURRENT_SELECTION;
-	//ROS_INFO("sending back response with formation info");
-	return true;
-}
+//// Service utility function to set the formation being served based on CURRENT_SELECTION
+//bool setFormationMessage(Simulator::CurrentFormation::Request  &req,
+//		Simulator::CurrentFormation::Response &res )
+//{
+//  	res.formation.radius = 1.0f;
+//  	res.formation.heading = 90.0f;
+//  	res.formation.seed_frp.x = 0;
+//  	res.formation.seed_frp.y = 0;
+//  	res.formation.seed_id = 0;
+//  	res.formation.formation_id = CURRENT_SELECTION;
+//	//ROS_INFO("sending back response with formation info");
+//	return true;
+//}
+
+
+
+
 
 
 int main(int argc, char **argv)
@@ -76,20 +99,22 @@ int main(int argc, char **argv)
 	// Formation Service server
 	ros::init(argc, argv, "formation_server");
 	ros::NodeHandle FormationServerNode;
-	ros::ServiceServer formationService = FormationServerNode.advertiseService("formation", setFormationMessage);
+//	ros::ServiceServer formationService = FormationServerNode.advertiseService("formation", setFormationMessage);
 	//cout << "Now serving the formation: " << CURRENT_SELECTION << endl;
 	ros::spinOnce();
 
-	ros::Rate loop_rate(10);
+
+	// create handler for interrupts (i.e., ^C)
+	if (signal(SIGINT, SIG_IGN) != SIG_IGN) signal(SIGINT, terminate);
+	signal(SIGPIPE, SIG_IGN);
 
 	// Simulator infinite loop.
-	while(ros::ok && keyboardInput())
+	while(ros::ok)
 	{
 		ros::spinOnce();
 
-		//keyboardInput();
+		keyboardInput();
 	}
-	cout << "\nNow exiting program\n";
 
   return 0;
 }
@@ -125,7 +150,7 @@ int kbhit(void)
 
 
 // Catches keyboard input and sets CURRENT_SELECTION based on user input, redisplays the menu
-bool keyboardInput()
+void keyboardInput()
 {
 	char keyPressed;
 
@@ -141,14 +166,11 @@ bool keyboardInput()
 			CURRENT_SELECTION = keyPressed-48;	// convert from ascii char to int
 			cout << " - Setting CURRENT_SELECTION to " << CURRENT_SELECTION <<endl;
 		}
-		else if(keyPressed == 'q')
-			return false;
 		else
 			cout << " - Not a valid input.";
 
 		displayMenu();
 	}
-	return true;
 
 }
 
@@ -158,8 +180,6 @@ void displayMenu()
 {
 	clearScreen();
 
-	if(CURRENT_SELECTION != -1)
-		cout << "Current selection: " << CURRENT_SELECTION;
 	cout << endl << endl << "Use the '0-9' keys to "
 		<< "change to a formation seeded at the selected robot."
 		<< endl << endl
@@ -175,7 +195,7 @@ void displayMenu()
 		<< "8) f(x) = {sqrt(x),  x >= 0 | -sqrt|x|, x < 0}"  << endl
 		<< "9) f(x) = 0.05 sin(10 x)"                        << endl << endl
 		<< "Use the mouse to select a robot."                << endl
-		<< "press 'q' to quit"                                << endl << endl
+		<< "Use ctrl+C to exit."                                << endl << endl
 		<< "Please enter your selection: ";
 }
 
@@ -236,3 +256,90 @@ void terminate(int retVal)
 
 
 
+// <test formation functions>
+
+// Returns formation function definition f(x) = 0.
+float line(const float x)
+{
+  return 0.0f;
+}
+
+
+// Returns formation function definition f(x) = x.
+float x(const float x)
+{
+  return x;
+}
+
+
+// Returns formation function definition f(x) = |x|.
+float absX(const float x)
+{
+  return abs(x);
+}
+
+
+// Returns formation function definition f(x) = -0.5 x.
+float negHalfX(const float x)
+{
+  return -0.5f * x;
+}
+
+
+// Returns formation function definition f(x) = -|0.5 x|.
+float negAbsHalfX(const float x)
+{
+  return -abs(0.5f * x);
+}
+
+
+// Returns formation function definition f(x) = -|x|.
+float negAbsX(const float x)
+{
+  return -abs(x);
+}
+
+
+// Returns formation function definition f(x) = x^2.
+float parabola(const float x)
+{
+  return x * x;
+  //return pow(x, 2.0f);
+}
+
+
+// Returns formation function definition f(x) = x^3.
+float cubic(const float x)
+{
+  return x * x * x;
+  //return pow(x, 3.0f);
+}
+
+
+// Returns formation function definition
+// f(x) = {sqrt(x),  x = 0 | -sqrt|x|, x < 0}.
+float condSqrt(const float x)
+{
+  return sqrt(abs(0.5f * x)) * ((x >= 0) ? 1.0f : -1.0f);
+}
+
+
+// Returns formation function definition f(x) = 0.05 sin(10 x).
+float sine(const float x)
+{
+  return 0.2f * sin(10.0f * x);
+}
+
+
+// Returns formation function definition f(x) = x sqrt(3).
+float xRoot3(const float x)
+{
+  return x * sqrt(3.0f);
+}
+
+
+// Returns formation function definition f(x) = -x sqrt(3).
+float negXRoot3(const float x)
+{
+  return -x * sqrt(3.0f);
+}

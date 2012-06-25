@@ -10,7 +10,6 @@
 #define RELATIONSHIP_H
 #include <vector>
 #include <Simulator/Packet.h>
-#include <Simulator/Vector.h>
 using namespace std;
 
 
