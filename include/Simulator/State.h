@@ -1,16 +1,25 @@
 
 #ifndef STATE_H_
 #define STATE_H_
+
 #include <Simulator/Formation.h>
+#include <Simulator/Relationship.h>
+#include <Simulator/Vector.h>
+
 using namespace std;
 
-struct State
+class State
 {
-    Formation formation;
+	public:
+		State(){};
+		virtual ~State(){};
 
-    State(const Formation formation = Formation())
-          : formation(formation){}
-
+		vector<Relationship> desiredRelationship;
+		vector<Relationship> actualRelationship;
+		Vector formationRelativePosition;
+		Vector translationalError;
+		float rotationalError;
+		int tStep;
 };
 
 

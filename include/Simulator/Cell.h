@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "Simulator/State.h"
-//#include "Simulator/Formation.h"
+#include "Simulator/Formation.h"
 
 using namespace std;
 
@@ -17,8 +17,8 @@ class Cell
 
 	protected:
 		State cellState;
-
-	//	vector<int> NeighborhoodList;
+		Formation formation;
+		vector< pair<int,int> > NeighborhoodList;
 		bool update();
 		int cellId;
 	};
