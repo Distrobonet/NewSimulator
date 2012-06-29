@@ -18,9 +18,9 @@ class Cell
 	protected:
 		State cellState;
 		Formation formation;
-		vector< pair<int,int> > NeighborhoodList;
+		vector< pair<int,int> > neighborhoodList;
 		bool update();
 		int cellId;
-	};
+};
 
 #endif

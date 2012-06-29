@@ -1,6 +1,6 @@
-To run the location_driver, do the following in this order:
+To run the NewSimulator, do the following in this order:
 
-rosrun Simulator Simulator
+rosrun NewSimulator Simulator
 rosrun stage stageros `rospack find stage_controllers`/world/distrobo-world-7-robots.world
 roslaunch Simulator simulation.launch
 
