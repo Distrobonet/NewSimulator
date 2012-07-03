@@ -8,13 +8,15 @@
 
 using namespace std;
 
-class Cell
+class Cell: public Formation, public State
 {
 	public:
 		Cell(const int cellId);
 		virtual ~Cell();
 
+		void update();
 		int getCellID();
+		void setCellID(int ID);
 		Formation getFormation();
 		void setFormation(Formation formation);
 		vector<int> getNeighborhood();
@@ -26,7 +28,6 @@ class Cell
 		State cellState;
 		Formation cellFormation;
 		vector<int> neighborhoodList;
-		bool update();
 		int cellID;
 };
 

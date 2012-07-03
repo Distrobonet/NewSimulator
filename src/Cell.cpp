@@ -1,5 +1,7 @@
 #include <iostream>
 #include <Simulator/Cell.h>
+#include <Simulator/Formation.h>
+#include <Simulator/State.h>
 #include <vector>
 
 using namespace std;
@@ -7,7 +9,8 @@ using namespace std;
 Cell::Cell(const int ID)
 {
 	cellID = ID;
-	update();
+	cellState = State();
+	cellFormation = Formation();
 }
 
 Cell::~Cell()
@@ -15,14 +18,17 @@ Cell::~Cell()
 	// TODO Auto-generated destructor stub
 }
 
-bool Cell::update()
+void Cell::update()
 {
 	getFormation();
-	return true;
 }
 
 int Cell::getCellID() {
 	return cellID;
+}
+
+void Cell::setCellID(int newID) {
+	cellID = newID;
 }
 
 Formation Cell::getFormation() {

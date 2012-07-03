@@ -11,8 +11,8 @@ using namespace std;
 class State
 {
 	public:
-		State(){};
-		virtual ~State(){};
+		State();
+		virtual ~State();
 
 		vector<Relationship> desiredRelationship;
 		vector<Relationship> actualRelationship;
