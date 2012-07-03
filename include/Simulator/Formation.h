@@ -5,14 +5,22 @@
 
 using namespace std;
 
-typedef float (*Function)(const float);
-
 class Formation {
 	public:
-		Formation(){};
-		virtual ~Formation(){};
+		Formation();
+		virtual ~Formation();
 
-		Formation fx(int formationId);
+		int getFormation();
+		void setForamation(int formation);
+		int getRadius();
+		void setRadius(int radius);
+		float getformationRelativeOrientation();
+		void setformationRelativeOrientation(float fro);
+		Vector getseedFormationRelativePosition();
+		void setseedFormationRelativePosition(Vector frp);
+
+//		Formation fx(int formationId);
+		int formationID;
 		int radius;
 		float formationRelativeOrientation;
 		Vector seedFormationRelativePosition;
