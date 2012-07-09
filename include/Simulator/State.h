@@ -12,7 +12,7 @@ class State
 {
 	public:
 		State();
-		virtual ~State();
+		virtual ~State(){};
 
 		vector<Relationship> desiredRelationship;
 		vector<Relationship> actualRelationship;
@@ -22,7 +22,10 @@ class State
 		int tStep;
 };
 
-
+State::State()
+{
+//	desiredRelationship = new vector<Relationship>;
+}
 
 
 
