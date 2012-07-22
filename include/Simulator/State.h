@@ -14,12 +14,12 @@ class State
 		State();
 		virtual ~State(){};
 
-		vector<Relationship> desiredRelationship;
-		vector<Relationship> actualRelationship;
+		vector<Relationship> desiredRelationships;		// R^2 = (Vx - Pix)^2 + (f(Vx) - Piy)^2   page 15-16 of thesis
+		vector<Relationship> actualRelationships;		// k | Pk ’ = min({||Pi-1  – Pseed ||, ||Pi+1  – Pseed ||})  page 16-17 of thesis
 		Vector formationRelativePosition;
-		Vector translationalError;
+		Vector translationalError;						// γi  = Γk  + Rk→i,des ' – Rk→i,act
 		float rotationalError;
-		int tStep;
+		int timeStep;
 };
 
 State::State()

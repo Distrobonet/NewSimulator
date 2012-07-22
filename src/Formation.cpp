@@ -3,6 +3,9 @@
 using namespace std;
 
 Formation::Formation() {
+	setRadius(1);
+	setFormation(0);
+	setFormationRelativeOrientation(0);
 
 }
 
@@ -14,7 +17,7 @@ int Formation::getFormation() {
 	return formationID;
 }
 
-void Formation::setForamation(int formation) {
+void Formation::setFormation(int formation) {
 	formationID = formation;
 }
 
@@ -26,17 +29,17 @@ void Formation::setRadius(int newRadius) {
 	radius = newRadius;
 }
 
-float Formation::getformationRelativeOrientation() {
+float Formation::getFormationRelativeOrientation() {
 	return formationRelativeOrientation;
 }
 
-void Formation::setformationRelativeOrientation(float fro) {
+void Formation::setFormationRelativeOrientation(float fro) {
 	formationRelativeOrientation = fro;
 }
-Vector Formation::getseedFormationRelativePosition() {
+Vector Formation::getSeedFormationRelativePosition() {
 	return seedFormationRelativePosition;
 }
 
-void Formation::setseedFormationRelativePosition(Vector frp) {
+void Formation::setSeedFormationRelativePosition(Vector frp) {
 	seedFormationRelativePosition = frp;
 }

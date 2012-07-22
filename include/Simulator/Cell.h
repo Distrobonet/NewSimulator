@@ -5,10 +5,11 @@
 #include "Simulator/State.h"
 #include "Simulator/Formation.h"
 #include <vector>
+#include "Simulator/utils.h"
 
 using namespace std;
 
-class Cell: public Formation, public State
+class Cell//: public Formation, public State
 {
 	public:
 		Cell(const int cellId);
@@ -23,12 +24,15 @@ class Cell: public Formation, public State
 		void setNeighborhood(vector<int> neighborhood);
 		State getState();
 		void setState(State state);
+		void translateRelative(float dx = 0.0f, float dy = 0.0f);
+		void rotateRelative(float theta);
 
 	protected:
 		State cellState;
 		Formation cellFormation;
 		vector<int> neighborhoodList;
 		int cellID;
+		float x, y, z;		// Not yet sure exactly what these are for
 };
 
 #endif

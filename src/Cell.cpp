@@ -18,6 +18,7 @@ Cell::~Cell()
 	// TODO Auto-generated destructor stub
 }
 
+// This is where most of the magic happens
 void Cell::update()
 {
 	getFormation();
@@ -53,3 +54,27 @@ State Cell::getState() {
 void Cell::setState(State state) {
  cellState = state;
 }
+
+// Translates the robot relative to itself based on the parameterized translation vector.
+void Cell::translateRelative(float dx , float dy)
+{
+//	  vector.rotateRelative(getHeading());
+//    x += vector.x;
+//    y += vector.y;
+}
+
+void Cell::rotateRelative(float theta)
+{
+	theta = degreesToRadians(theta);
+	x = x * cos(theta)- y * sin(theta);
+	y = x * sin(theta) + y * cos(theta);
+	//z = z;
+
+}
+
+
+
+
+
+
+
