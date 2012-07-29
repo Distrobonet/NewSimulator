@@ -20,6 +20,8 @@
 
 //#include "../msg_gen/cpp/include/Simulator/FormationMessage.h"
 
+#include "Simulator/Environment.h"
+
 using namespace std;
 
 // define SIGPIPE if not defined (compatibility for win32)
@@ -36,25 +38,6 @@ void clearScreen();
 //bool changeFormation(const int index, const Vector gradient = Vector());
 //bool changeFormationSim(const int index, const Vector gradient = Vector());
 const char  CHAR_ESCAPE             = char(27);    // 'ESCAPE' character key
-
-
-// formation-testing function prototypes
-float  line(const float x);
-float  x(const float x);
-float  absX(const float x);
-float  negHalfX(const float x);
-float  negAbsHalfX(const float x);
-float  negAbsX(const float x);
-float  parabola(const float x);
-float  cubic(const float x);
-float  condSqrt(const float x);
-float  sine(const float x);
-float  xRoot3(const float x);
-float  negXRoot3(const float x);
-//
-//Function formations[] = {line,        x,       absX,     negHalfX,
-//						negAbsHalfX, negAbsX, parabola, cubic,
-//						condSqrt,    sine,    xRoot3,   negXRoot3};
 
 
 // Menu Global variable

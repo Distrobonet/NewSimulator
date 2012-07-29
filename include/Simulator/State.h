@@ -24,7 +24,7 @@ class State
 
 State::State()
 {
-//	desiredRelationship = new vector<Relationship>;
+
 }
 
 

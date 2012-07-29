@@ -33,10 +33,10 @@ class Vector
 {
     public:
 //
-//        // <public data members>
-//        float x,        y,            z;
-//        float translate[3], rotate[3], scale[3];
-//        bool    showLine, showHead;
+        // <public data members>
+        float x,        y,            z;
+        float translate[3], rotate[3], scale[3];
+        bool    showLine, showHead;
         
         // <constructors>
         Vector(const float dx         = 0.0f,

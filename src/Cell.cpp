@@ -14,14 +14,17 @@ Cell::Cell(const int ID)
 }
 
 Cell::~Cell()
-{
-	// TODO Auto-generated destructor stub
-}
+{}
 
 // This is where most of the magic happens
 void Cell::update()
 {
 	getFormation();
+
+//	cmd_vel.linear.x = getTransVel().x;
+//	cmd_vel.linear.y = getTransVel().y;
+//	cmd_vel.angular.z = getAngVel().z;
+
 }
 
 int Cell::getCellID() {
@@ -73,6 +76,79 @@ void Cell::rotateRelative(float theta)
 }
 
 
+// Get a neighbor's state from the State service
+bool Cell::getNeighborState()
+{
+	if(cellID == 0)
+		return true;
+	if(cellID % 2 == 1)
+	{
+		cellFormation.formationID = neighborhoodList[0];
+		return true;
+	}
+	else if(cellID % 2 == 0)
+	{
+		cellFormation.formationID = neighborhoodList[1];
+		return true;
+
+	}
+	else
+		return false;
+
+}
+
+
+
+// Starts the cell's state service server
+void Cell::startStateServiceServer()
+{
+	ros::NodeHandle StateServerNode;
+	string name = "cell_state_";
+	name = name + boost::lexical_cast<std::string>(cellID);	// add the index to the name string
+
+	stateService = StateServerNode.advertiseService(name, &Cell::setStateMessage, this);
+	//cout << "Now serving the " << stateService.getService() << " service!\n";
+
+	ros::spinOnce();
+
+	//StateServerNode.shutdown();
+}
+
+
+// Sets the state message to this state's info.  This is the callback for the state service.
+bool Cell::setStateMessage(NewSimulator::State::Request  &req, NewSimulator::State::Response &res )
+{
+  	res.state.formation.radius = cellFormation.radius;
+  	//res.state.formation.heading = cellFormation.heading;
+  	res.state.formation.seed_frp.x = cellFormation.seedFormationRelativePosition.x;
+  	res.state.formation.seed_frp.y = cellFormation.seedFormationRelativePosition.y;
+  	//res.state.formation.seed_id = cellFormation.seedID;
+  	res.state.formation.formation_id = cellFormation.formationID;
+  	//res.state.in_position = inPosition;
+
+//	res.state.frp.x = frp.x;
+// 	res.state.frp.y = frp.y;
+//
+// 	for(uint i = 0; i < rels.size(); i++)
+// 	{
+//        res.state.actual_relationships[i].id = rels[i].ID;
+//        res.state.actual_relationships[i].actual.x = rels[i].relActual.x;
+//        res.state.actual_relationships[i].actual.y = rels[i].relActual.y;
+//        res.state.desired_relationships[i].desired.x = rels[i].relDesired.x;
+//        res.state.desired_relationships[i].desired.y = rels[i].relDesired.y;
+// 	}
+//
+//	res.state.linear_error.x = transError.x;
+//	res.state.linear_error.y = transError.y;
+//	res.state.angular_error = rotError;
+//	res.state.timestep = tStep;
+//	res.state.reference_id = refID;
+//	res.state.temperature = temperature;
+//	res.state.heat = heat;
+
+	ROS_INFO("sending back response with state info");
+	return true;
+}
 
 
 
