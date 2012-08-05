@@ -75,6 +75,29 @@ void Cell::rotateRelative(float theta)
 
 }
 
+// create correct string for state subscriber
+string Cell::generateSubMessage(int cellID)
+{
+	stringstream ss;//create a stringstream
+	ss << (cellID);//add number to the stream
+	string  nbrID = ss.str();
+	string subString = "/robot_/state";
+
+	subString.insert(7, nbrID);
+	return subString;
+}
+
+
+string Cell::generatePubMessage(int cellID)
+{
+	stringstream ss;//create a stringstream
+	ss << (cellID);//add number to the stream
+	string  nbrID = ss.str();
+	string subString = "/robot_/cmd_vel";
+
+	subString.insert(7, nbrID);
+	return subString;
+}
 
 // Get a neighbor's state from the State service
 bool Cell::getNeighborState()

@@ -46,6 +46,19 @@ class Cell//: public Formation, public State
 		void translateRelative(float dx = 0.0f, float dy = 0.0f);
 		void rotateRelative(float theta);
 
+		ros::NodeHandle stateNode;
+		ros::Publisher state_pub;
+		geometry_msgs::Twist commandVelocity;
+		ros::Publisher cmd_velPub;
+		ros::Subscriber leftNeighborStateSubscriber;
+		ros::Subscriber rightNeighborStateSubscriber;
+
+
+
+
+		void stateCallback(const NewSimulator::StateMessage & state);
+		string generateSubMessage(int cellID);
+		string generatePubMessage(int cellID);
 
 		// State service client
 		bool getNeighborState();
