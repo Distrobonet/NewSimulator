@@ -22,12 +22,6 @@ class State
 		int timeStep;
 };
 
-//State::State()
-//{
-//
-//}
-
-
 
 
 #endif

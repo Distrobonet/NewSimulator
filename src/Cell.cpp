@@ -11,6 +11,14 @@ Cell::Cell(const int ID)
 	cellID = ID;
 	cellState = State();
 	cellFormation = Formation();
+
+	commandVelocity.linear.x = 0;
+	commandVelocity.linear.y = 0;
+	commandVelocity.linear.z = 0;
+
+	commandVelocity.angular.x = 0;
+	commandVelocity.angular.y = 0;
+	commandVelocity.angular.z = 0;
 }
 
 Cell::~Cell()
@@ -19,11 +27,32 @@ Cell::~Cell()
 // This is where most of the magic happens
 void Cell::update()
 {
-	getFormation();
 
-//	cmd_vel.linear.x = getTransVel().x;
-//	cmd_vel.linear.y = getTransVel().y;
-//	cmd_vel.angular.z = getAngVel().z;
+	ros::Rate loop_rate(10);
+
+
+	while(ros::ok)
+	{
+		getFormation();
+
+		// Just setting some sample junk values to show that command velocity publishing is working.
+		commandVelocity.linear.x = 10;
+		commandVelocity.linear.y = 5;
+
+		commandVelocity.angular.x = 1.1;
+
+		cmd_velPub.publish(commandVelocity);
+
+
+		// Stuff from Ross' simulator to mimic eventually:
+	//	cmd_vel.linear.x = getTransVel().x;
+	//	cmd_vel.linear.y = getTransVel().y;
+	//	cmd_vel.angular.z = getAngVel().z;
+
+
+		ros::spinOnce();
+		loop_rate.sleep();
+	}
 
 }
 
