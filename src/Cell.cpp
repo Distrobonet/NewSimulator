@@ -38,8 +38,11 @@ void Cell::update()
 		// Just setting some sample junk values to show that command velocity publishing is working.
 		commandVelocity.linear.x = 10;
 		commandVelocity.linear.y = 5;
+		commandVelocity.linear.z = 2;
 
-		commandVelocity.angular.x = 1.1;
+		commandVelocity.angular.x = 2;
+		commandVelocity.angular.y = 5;
+		commandVelocity.angular.z = 10;
 
 		cmd_velPub.publish(commandVelocity);
 
