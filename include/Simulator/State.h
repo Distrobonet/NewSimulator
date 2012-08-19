@@ -11,7 +11,7 @@ using namespace std;
 class State
 {
 	public:
-		State();
+		State(){};
 		virtual ~State(){};
 
 		vector<Relationship> desiredRelationships;		// R^2 = (Vx - Pix)^2 + (f(Vx) - Piy)^2   page 15-16 of thesis
@@ -22,10 +22,10 @@ class State
 		int timeStep;
 };
 
-State::State()
-{
-
-}
+//State::State()
+//{
+//
+//}
 
 
 

@@ -6,8 +6,9 @@ roslaunch NewSimulator simulation.launch
 
 *If running ROS Fuerte
 	rosrun NewSimulator Simulator
-	rosrun stage stageros `rospack find stage_controllers`/world/NewWorld.world
 	roslaunch NewSimulator newSimulation.launch
+	rosrun stage stageros `rospack find stage_controllers`/world/NewWorld.world
+	
 
 *This has to have been built before it will work or there are no binaries to run against
 
