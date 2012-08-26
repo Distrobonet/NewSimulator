@@ -1,8 +1,8 @@
 To run the NewSimulator, do the following in this order:
 
+roslaunch NewSimulator simulation.launch
 rosrun NewSimulator Simulator
 rosrun stage stageros `rospack find stage_controllers`/world/distrobo-world-7-robots.world
-roslaunch NewSimulator simulation.launch
 
 *If running ROS Fuerte
 	rosrun NewSimulator Simulator
