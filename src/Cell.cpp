@@ -4,6 +4,7 @@
 #include <Simulator/State.h>
 #include <vector>
 
+
 using namespace std;
 
 Cell::Cell(const int ID)
@@ -78,8 +79,38 @@ void Cell::setFormation(Formation formation) {
 vector<int> Cell::getNeighborhood() {
 	return neighborhoodList;
 }
-void Cell::setNeighborhood(vector<int> neighborhood) {
-	neighborhoodList = neighborhood;
+
+// temp setNeighbohood - HARDCODED
+void Cell::setNeighborhood() {
+	setLeftNeighbor(cellID - 1);
+	setRightNeighbor(cellID + 1);
+}
+
+// temp setLeftNeighbor - HARDCODED
+void Cell::setLeftNeighbor(const int nbr) {
+	if (cellID == 0)
+		neighborhoodList.insert(neighborhoodList.begin() + 0, NULL);
+	else {
+		neighborhoodList.insert(neighborhoodList.begin() + 0, nbr);
+		leftNeighborStateSubscriber = stateNode.subscribe(generateSubMessage(nbr), 1000, &Cell::setStateMessage, this);
+	}
+}
+
+// temp setRightNeighbor - HARDCODED
+void Cell::setRightNeighbor(const int nbr) {
+	// Temp max number of cells (6)
+	if (cellID == 6)
+		neighborhoodList.insert(neighborhoodList.begin() + 1, NULL);
+	else {
+		neighborhoodList.insert(neighborhoodList.begin() + 1, nbr);
+		rightNeighborStateSubscriber = stateNode.subscribe(generateSubMessage(nbr), 1000, &Cell::setStateMessage, this);
+	}
+}
+
+void Cell::establishNeighborhoodCom() {
+	for (int i = 0; i < neighborhoodList.size(); i++) {
+		stateNode.subscribe(generateSubMessage(neighborhoodList.at(i)), 1000, &Cell::setStateMessage, this);
+	}
 }
 
 State Cell::getState() {

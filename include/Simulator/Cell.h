@@ -40,7 +40,10 @@ class Cell//: public Formation, public State
 		Formation getFormation();
 		void setFormation(Formation formation);
 		vector<int> getNeighborhood();
-		void setNeighborhood(vector<int> neighborhood);
+		void setNeighborhood();
+		void setLeftNeighbor(const int nbr);
+		void setRightNeighbor(const int nbr);
+		void establishNeighborhoodCom();
 		State getState();
 		void setState(State state);
 		void translateRelative(float dx = 0.0f, float dy = 0.0f);
