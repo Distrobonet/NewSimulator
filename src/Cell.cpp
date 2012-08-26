@@ -35,6 +35,7 @@ void Cell::update()
 	while(ros::ok)
 	{
 		getFormation();
+		setNeighborhood();
 
 		// Just setting some sample junk values to show that command velocity publishing is working.
 		commandVelocity.linear.x = 10;
@@ -92,7 +93,8 @@ void Cell::setLeftNeighbor(const int nbr) {
 		neighborhoodList.insert(neighborhoodList.begin() + 0, NULL);
 	else {
 		neighborhoodList.insert(neighborhoodList.begin() + 0, nbr);
-		leftNeighborStateSubscriber = stateNode.subscribe(generateSubMessage(nbr), 1000, &Cell::setStateMessage, this);
+		//leftNeighborStateSubscriber = stateNode.subscribe(generateSubMessage(nbr), 1000, &Cell::setStateMessage);
+		leftNeighborStateSubscriber = stateNode.subscribe(generateSubMessage(nbr), 1000, &Cell::stateCallback, this);
 	}
 }
 
@@ -103,13 +105,13 @@ void Cell::setRightNeighbor(const int nbr) {
 		neighborhoodList.insert(neighborhoodList.begin() + 1, NULL);
 	else {
 		neighborhoodList.insert(neighborhoodList.begin() + 1, nbr);
-		rightNeighborStateSubscriber = stateNode.subscribe(generateSubMessage(nbr), 1000, &Cell::setStateMessage, this);
+		rightNeighborStateSubscriber = stateNode.subscribe(generateSubMessage(nbr), 1000, &Cell::stateCallback, this);
 	}
 }
 
 void Cell::establishNeighborhoodCom() {
 	for (int i = 0; i < neighborhoodList.size(); i++) {
-		stateNode.subscribe(generateSubMessage(neighborhoodList.at(i)), 1000, &Cell::setStateMessage, this);
+		stateNode.subscribe(generateSubMessage(neighborhoodList.at(i)), 1000, &Cell::stateCallback, this);
 	}
 }
 
@@ -202,7 +204,7 @@ void Cell::startStateServiceServer()
 
 
 // Sets the state message to this state's info.  This is the callback for the state service.
-bool Cell::setStateMessage(NewSimulator::State::Request  &req, NewSimulator::State::Response &res )
+bool Cell::setStateMessage(NewSimulator::State::Request &req, NewSimulator::State::Response &res )
 {
   	res.state.formation.radius = cellFormation.radius;
   	//res.state.formation.heading = cellFormation.heading;
@@ -236,6 +238,37 @@ bool Cell::setStateMessage(NewSimulator::State::Request  &req, NewSimulator::Sta
 	return true;
 }
 
+void Cell::stateCallback(const NewSimulator::StateMessage &incomingState)
+{
+//		res.state.formation.radius = incomingState.formation.radius;
+//		res.state.formation.heading = incomingState.formation.heading;
+//		res.state.formation.seedFrp.x = incomingState.formation.seed_frp.x;
+//		res.state.formation.seedFrp.y = incomingState.formation.seed_frp.y;
+//		res.state.formation.seedID = incomingState.formation.seed_id;
+//		res.state.formation.formationID = incomingState.formation.formation_id;
+//		rightNbr.formation.radius = incomingState.formation.radius;
+//		rightNbr.formation.heading = incomingState.formation.heading;
+//		rightNbr.formation.seedFrp.x = incomingState.formation.seed_frp.x;
+//		rightNbr.formation.seedFrp.y = incomingState.formation.seed_frp.y;
+//		rightNbr.formation.seedID = incomingState.formation.seed_id;
+//		rightNbr.formation.formationID = incomingState.formation.formation_id;
+
+//
+//			changeFormation(formations[formation.formationID], rels[0].ID);
+//			Vector r = formation.calculateDesiredRelationship(formations[formation.formationID], 1.0f, frp, 0.0f);
+//			rels[0].relDesired.x = r.x;
+//			rels[0].relDesired.y = r.y;
+//			rels[0].relDesired.z = r.z;
+//			cout<<r.x<<endl;
+//			cout<<r.y<<endl;
+//		if((incomingState.in_position == true) && (inPosition == false) && (startMoving != true) && formation.formationID != -1)
+//		{
+//			startMoving = true;
+//			stateChanged = true;
+//		}
+//	}
+//	updateState();
+}
 
 
 
