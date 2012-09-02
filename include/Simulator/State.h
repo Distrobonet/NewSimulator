@@ -4,7 +4,7 @@
 
 #include <Simulator/Formation.h>
 #include <Simulator/Relationship.h>
-#include <Simulator/Vector.h>
+#include <Simulator/PhysicsVector.h>
 
 using namespace std;
 
@@ -16,8 +16,8 @@ class State
 
 		vector<Relationship> desiredRelationships;		// R^2 = (Vx - Pix)^2 + (f(Vx) - Piy)^2   page 15-16 of thesis
 		vector<Relationship> actualRelationships;		// k | Pk ’ = min({||Pi-1  – Pseed ||, ||Pi+1  – Pseed ||})  page 16-17 of thesis
-		Vector formationRelativePosition;
-		Vector translationalError;						// γi  = Γk  + Rk→i,des ' – Rk→i,act
+//		PhysicsVector formationRelativePosition;
+//		PhysicsVector translationalError;						// γi  = Γk  + Rk→i,des ' – Rk→i,act
 		float rotationalError;
 		int timeStep;
 };

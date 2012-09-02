@@ -9,7 +9,7 @@
 #ifndef RELATIONSHIP_H
 #define RELATIONSHIP_H
 #include <vector>
-#include <Simulator/Vector.h>
+#include <Simulator/PhysicsVector.h>
 
 using namespace std;
 

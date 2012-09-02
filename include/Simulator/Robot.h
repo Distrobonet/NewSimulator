@@ -13,14 +13,14 @@ class Robot: public Cell
 		int ID;
 		int leftNeighborId;
 		int rightNeighborId;
-		Vector actualPosition;
-		Vector desiredPosition;
+		PhysicsVector actualPosition;
+		PhysicsVector desiredPosition;
 		State currentState;
 
 		void findNeighbors();
 		void gotUpdate();
-		bool move(Vector desiredPosition, Vector actualPosition);
-		Vector getPosition();
+		bool move(PhysicsVector desiredPosition, PhysicsVector actualPosition);
+		PhysicsVector getPosition();
 
 		void updateFormation();
 		void updateDesiredPosition();

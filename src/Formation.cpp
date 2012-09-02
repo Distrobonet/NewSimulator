@@ -36,10 +36,10 @@ float Formation::getFormationRelativeOrientation() {
 void Formation::setFormationRelativeOrientation(float fro) {
 	formationRelativeOrientation = fro;
 }
-Vector Formation::getSeedFormationRelativePosition() {
-	return seedFormationRelativePosition;
-}
-
-void Formation::setSeedFormationRelativePosition(Vector frp) {
-	seedFormationRelativePosition = frp;
-}
+//Vector Formation::getSeedFormationRelativePosition() {
+//	return seedFormationRelativePosition;
+//}
+//
+//void Formation::setSeedFormationRelativePosition(Vector frp) {
+//	seedFormationRelativePosition = frp;
+//}

@@ -38,22 +38,16 @@ void Cell::update()
 		setNeighborhood();
 
 		// Just setting some sample junk values to show that command velocity publishing is working.
-		commandVelocity.linear.x = 10;
-		commandVelocity.linear.y = 5;
-		commandVelocity.linear.z = 2;
 
-		commandVelocity.angular.x = 2;
-		commandVelocity.angular.y = 5;
-		commandVelocity.angular.z = 10;
 
-		cmd_velPub.publish(commandVelocity);
 
 
 		// Stuff from Ross' simulator to mimic eventually:
-	//	cmd_vel.linear.x = getTransVel().x;
-	//	cmd_vel.linear.y = getTransVel().y;
-	//	cmd_vel.angular.z = getAngVel().z;
+//		commandVelocity.linear.x = getTransVel().x;
+//		commandVelocity.linear.y = getTransVel().y;
+//		commandVelocity.angular.z = getAngVel().z;
 
+		cmd_velPub.publish(commandVelocity);
 
 		ros::spinOnce();
 		loop_rate.sleep();
@@ -126,9 +120,9 @@ void Cell::setState(State state) {
 // Translates the robot relative to itself based on the parameterized translation vector.
 void Cell::translateRelative(float dx , float dy)
 {
-//	  vector.rotateRelative(getHeading());
-//    x += vector.x;
-//    y += vector.y;
+	rotateRelative(0);
+    x += dx;
+    y += dy;
 }
 
 void Cell::rotateRelative(float theta)
@@ -208,15 +202,15 @@ bool Cell::setStateMessage(NewSimulator::State::Request &req, NewSimulator::Stat
 {
   	res.state.formation.radius = cellFormation.radius;
   	//res.state.formation.heading = cellFormation.heading;
-  	res.state.formation.seed_frp.x = cellFormation.seedFormationRelativePosition.x;
-  	res.state.formation.seed_frp.y = cellFormation.seedFormationRelativePosition.y;
+	res.state.formation.seed_frp.x = cellFormation.seedFormationRelativePosition.x;
+	res.state.formation.seed_frp.y = cellFormation.seedFormationRelativePosition.y;
   	//res.state.formation.seed_id = cellFormation.seedID;
   	res.state.formation.formation_id = cellFormation.formationID;
   	//res.state.in_position = inPosition;
 
-//	res.state.frp.x = frp.x;
-// 	res.state.frp.y = frp.y;
-//
+	res.state.frp.x = frp.x;
+ 	res.state.frp.y = frp.y;
+
 // 	for(uint i = 0; i < rels.size(); i++)
 // 	{
 //        res.state.actual_relationships[i].id = rels[i].ID;
@@ -225,7 +219,7 @@ bool Cell::setStateMessage(NewSimulator::State::Request &req, NewSimulator::Stat
 //        res.state.desired_relationships[i].desired.x = rels[i].relDesired.x;
 //        res.state.desired_relationships[i].desired.y = rels[i].relDesired.y;
 // 	}
-//
+
 //	res.state.linear_error.x = transError.x;
 //	res.state.linear_error.y = transError.y;
 //	res.state.angular_error = rotError;

@@ -1,7 +1,7 @@
 
 #ifndef FORMATION_H_
 #define FORMATION_H_
-#include <Simulator/Vector.h>
+#include <Simulator/PhysicsVector.h>
 
 using namespace std;
 
@@ -16,14 +16,14 @@ class Formation {
 		void setRadius(int radius);
 		float getFormationRelativeOrientation();
 		void setFormationRelativeOrientation(float fro);
-		Vector getSeedFormationRelativePosition();
-		void setSeedFormationRelativePosition(Vector frp);
+		PhysicsVector getSeedFormationRelativePosition();
+		void setSeedFormationRelativePosition(PhysicsVector frp);
 
-//		Formation fx(int formationId);
+		Formation fx(int formationId);
 		int formationID;
 		int radius;									// The desired distance between neighbors
 		float formationRelativeOrientation;			// Orientation of each robot relative to the formation
-		Vector seedFormationRelativePosition;		// FRP that serves as starting point from which formation and
+		PhysicsVector seedFormationRelativePosition;		// FRP that serves as starting point from which formation and
 													// relationships will propagate
 
 		// <test formation functions>
