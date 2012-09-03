@@ -21,10 +21,9 @@ class Formation {
 
 		Formation fx(int formationId);
 		int formationID;
-		int radius;									// The desired distance between neighbors
-		float formationRelativeOrientation;			// Orientation of each robot relative to the formation
-		PhysicsVector seedFormationRelativePosition;		// FRP that serves as starting point from which formation and
-													// relationships will propagate
+		int radius;											// The desired distance between neighbors
+		float formationRelativeOrientation;					// Orientation of each robot relative to the formation
+		PhysicsVector seedFormationRelativePosition;		// FRP that serves as starting point from which formation and relationships will propagate
 
 		// <test formation functions>
 

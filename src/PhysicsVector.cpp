@@ -197,8 +197,6 @@ float PhysicsVector::magnitude() const
     return sqrt(x * x + y * y + z * z);
 }   // magnitude()
 
-
-
 // Returns the perpendicular vector of this vector.
 PhysicsVector PhysicsVector::perp()
 {
@@ -219,7 +217,6 @@ float PhysicsVector::perpDot(const PhysicsVector &v) const
 PhysicsVector& PhysicsVector::operator =(const PhysicsVector &v)
 {
     set(v.x, v.y, v.z);
-    //setColor(v.color);
     for (int i = 0; i < 3; ++i)
     {
         translate[i] = v.translate[i];
@@ -229,9 +226,7 @@ PhysicsVector& PhysicsVector::operator =(const PhysicsVector &v)
     showLine         = v.showLine;
     showHead         = v.showHead;
     return *this;
-}   // =(const Vector &)
-
-
+}
 
 // Calculates the sum of the contents of the parameterized vector and this vector.
 PhysicsVector PhysicsVector::operator +(const PhysicsVector &v)

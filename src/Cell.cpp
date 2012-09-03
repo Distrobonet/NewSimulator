@@ -11,7 +11,7 @@ Cell::Cell(const int ID)
 {
 	cellID = ID;
 	cellState = State();
-	cellFormation = Formation();
+	//cellFormation = Formation();
 
 	commandVelocity.linear.x = 0;
 	commandVelocity.linear.y = 0;
@@ -55,34 +55,41 @@ void Cell::update()
 
 }
 
-int Cell::getCellID() {
+int Cell::getCellID()
+{
 	return cellID;
 }
 
-void Cell::setCellID(int newID) {
+void Cell::setCellID(int newID)
+{
 	cellID = newID;
 }
 
-Formation Cell::getFormation() {
+Formation Cell::getFormation()
+{
 	return cellFormation;
 }
 
-void Cell::setFormation(Formation formation) {
-	cellFormation = formation;
+void Cell::setFormation(Formation formation)
+{
+	//cellFormation = formation;
 }
 
-vector<int> Cell::getNeighborhood() {
+vector<int> Cell::getNeighborhood()
+{
 	return neighborhoodList;
 }
 
 // temp setNeighbohood - HARDCODED
-void Cell::setNeighborhood() {
+void Cell::setNeighborhood()
+{
 	setLeftNeighbor(cellID - 1);
 	setRightNeighbor(cellID + 1);
 }
 
 // temp setLeftNeighbor - HARDCODED
-void Cell::setLeftNeighbor(const int nbr) {
+void Cell::setLeftNeighbor(const int nbr)
+{
 	if (cellID == 0)
 		neighborhoodList.insert(neighborhoodList.begin() + 0, NULL);
 	else {
@@ -93,28 +100,34 @@ void Cell::setLeftNeighbor(const int nbr) {
 }
 
 // temp setRightNeighbor - HARDCODED
-void Cell::setRightNeighbor(const int nbr) {
+void Cell::setRightNeighbor(const int nbr)
+{
 	// Temp max number of cells (6)
 	if (cellID == 6)
 		neighborhoodList.insert(neighborhoodList.begin() + 1, NULL);
-	else {
+	else
+	{
 		neighborhoodList.insert(neighborhoodList.begin() + 1, nbr);
 		rightNeighborStateSubscriber = stateNode.subscribe(generateSubMessage(nbr), 1000, &Cell::stateCallback, this);
 	}
 }
 
-void Cell::establishNeighborhoodCom() {
-	for (int i = 0; i < neighborhoodList.size(); i++) {
+void Cell::establishNeighborhoodCom()
+{
+	for (int i = 0; i < neighborhoodList.size(); i++)
+	{
 		stateNode.subscribe(generateSubMessage(neighborhoodList.at(i)), 1000, &Cell::stateCallback, this);
 	}
 }
 
-State Cell::getState() {
- return cellState;
+State Cell::getState()
+{
+	return cellState;
 }
 
-void Cell::setState(State state) {
- cellState = state;
+void Cell::setState(State state)
+{
+	cellState = state;
 }
 
 // Translates the robot relative to itself based on the parameterized translation vector.
@@ -137,8 +150,8 @@ void Cell::rotateRelative(float theta)
 // create correct string for state subscriber
 string Cell::generateSubMessage(int cellID)
 {
-	stringstream ss;//create a stringstream
-	ss << (cellID);//add number to the stream
+	stringstream ss;					//create a stringstream
+	ss << (cellID);						//add number to the stream
 	string  nbrID = ss.str();
 	string subString = "/robot_/state";
 
@@ -176,10 +189,7 @@ bool Cell::getNeighborState()
 	}
 	else
 		return false;
-
 }
-
-
 
 // Starts the cell's state service server
 void Cell::startStateServiceServer()
@@ -208,8 +218,8 @@ bool Cell::setStateMessage(NewSimulator::State::Request &req, NewSimulator::Stat
   	res.state.formation.formation_id = cellFormation.formationID;
   	//res.state.in_position = inPosition;
 
-	res.state.frp.x = frp.x;
- 	res.state.frp.y = frp.y;
+//	res.state.frp.x = frp.x;
+// 	res.state.frp.y = frp.y;
 
 // 	for(uint i = 0; i < rels.size(); i++)
 // 	{
