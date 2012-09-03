@@ -50,7 +50,7 @@ inline float radiansToDegrees(float theta) {
 
 
 inline float frand(const float min = 0.0f, const float max = 1.0f) {
-	return min + (max - min) * (float)rand() / (float)(RAND_MAX + 1);
+	return min + (max - min) * (float)rand() / (float)(RAND_MAX + (float)1);
 } // frand()
 
 

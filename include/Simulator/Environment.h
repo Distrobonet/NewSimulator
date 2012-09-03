@@ -19,7 +19,6 @@
 
 #include <queue>
 #include <vector>
-//#include <Simulator/Cell.h>
 
 using namespace std;
 
@@ -28,7 +27,7 @@ using namespace std;
 
 
 
-// describes a robot cell environment
+// Describes a robot cell environment
 class Environment
 {
     public:
@@ -53,7 +52,7 @@ class Environment
         void update(bool doSpin);
 
 
-        //functions for the subscribers for all robots
+        // Functions for the subscribers for all robots
         string generateSubMessage(int cellID);
 		void callBackRobot(const nav_msgs::Odometry::ConstPtr& odom);
 
@@ -64,7 +63,7 @@ class Environment
         // Relationship service server
 //		ros::ServiceServer relationshipService;
 //		bool setRelationshipMessage(NewSimulator::Relationship::Request  &req, NewSimulator::Relationship::Response &res );
-//        void startRelationshipServiceServer();
+//      void startRelationshipServiceServer();
 
     protected:
 

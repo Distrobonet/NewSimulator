@@ -15,8 +15,7 @@
 Environment::Environment()
 {}
 
-// Default constructor that initializes
-// this environment to the parameterized values.
+// Default constructor that initializes this environment to the parameterized values.
 Environment::Environment(int numRobots)
 {
 	//startRelationshipServiceServer();
@@ -82,8 +81,7 @@ void Environment::callBackRobot(const nav_msgs::Odometry::ConstPtr& odom)
 	ros::spinOnce();
 }
 
-// Copy constructor that copies the contents of
-// the parameterized environment into this environment.
+// Copy constructor that copies the contents of  the parameterized environment into this environment.
   Environment::Environment(const Environment &env)
 {}
 

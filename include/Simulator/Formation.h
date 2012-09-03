@@ -5,13 +5,18 @@
 
 using namespace std;
 
+typedef float (*Function)(const float);
+
+
 class Formation {
 	public:
 		Formation();
+		Formation(const float radius, const PhysicsVector frp,
+				const int formationID, const float formationRelativeOrientation);
 		virtual ~Formation();
 
 		int getFormation();
-		void setFormation(int formation);
+		void setFormationID(int formationID);
 		int getRadius();
 		void setRadius(int radius);
 		float getFormationRelativeOrientation();
@@ -20,10 +25,11 @@ class Formation {
 		void setSeedFormationRelativePosition(PhysicsVector frp);
 
 		Formation fx(int formationId);
-		int formationID;
+		int formationID;									// The identifier for the current formation function
 		int radius;											// The desired distance between neighbors
 		float formationRelativeOrientation;					// Orientation of each robot relative to the formation
 		PhysicsVector seedFormationRelativePosition;		// FRP that serves as starting point from which formation and relationships will propagate
+
 
 		// <test formation functions>
 
@@ -90,7 +96,6 @@ class Formation {
 		{
 		  return -x * sqrt(3.0f);
 		}
-
 };
 
 #endif

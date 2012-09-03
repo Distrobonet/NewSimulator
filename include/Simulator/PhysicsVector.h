@@ -1,11 +1,6 @@
-//
-// Filename:        "Vector.h"
-//
-// Programmer:      Ross Mead
-// Last modified:   30Nov2009
-//
+
 // Description:     This class describes a 3-dimensional vector.
-//
+
 
 // preprocessor directives
 #ifndef VECTOR_H
@@ -51,14 +46,14 @@ class PhysicsVector
         bool set(const float dx = 0.0f,
                          const float dy = 0.0f,
                          const float dz = 0.0f);
-          bool set(const PhysicsVector &v);
-          void translated(const float dx,
+        bool set(const PhysicsVector &v);
+        void translated(const float dx,
                                 const float dy,
                                 const float dz);
-          void translated(const PhysicsVector &v);
-          void rotated(float theta);
-          void rotateRelative(float theta);
-          void scaled(float s);
+        void translated(const PhysicsVector &v);
+        void rotated(float theta);
+        void rotateRelative(float theta);
+        void scaled(float s);
 
         // <public mutator functions>
         bool setPolar(float magnitude = 1.0f,
@@ -80,14 +75,14 @@ class PhysicsVector
         float perpDot(const PhysicsVector &v) const;
 
         // <  overloaded operators>
-          PhysicsVector& operator  =(const PhysicsVector &v);
-          PhysicsVector  operator  +(const PhysicsVector &v);
-          PhysicsVector  operator  -(const PhysicsVector &v);
-          PhysicsVector& operator +=(const PhysicsVector &v);
-          PhysicsVector& operator -=(const PhysicsVector &v);
-          PhysicsVector& operator *=(const float scalar);
-          bool    operator ==(const PhysicsVector &v);
-          bool    operator !=(const PhysicsVector &v);
+        PhysicsVector& operator  =(const PhysicsVector &v);
+        PhysicsVector  operator  +(const PhysicsVector &v);
+        PhysicsVector  operator  -(const PhysicsVector &v);
+        PhysicsVector& operator +=(const PhysicsVector &v);
+        PhysicsVector& operator -=(const PhysicsVector &v);
+        PhysicsVector& operator *=(const float scalar);
+        bool    operator ==(const PhysicsVector &v);
+        bool    operator !=(const PhysicsVector &v);
 
         // <friend functions>
         friend bool operator ==(const PhysicsVector &v, const PhysicsVector &v1);

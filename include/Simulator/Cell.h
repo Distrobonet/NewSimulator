@@ -57,8 +57,6 @@ class Cell//: public Formation, public State
 		ros::Subscriber rightNeighborStateSubscriber;
 
 
-
-
 		void stateCallback(const NewSimulator::StateMessage & state);
 		string generateSubMessage(int cellID);
 		string generatePubMessage(int cellID);

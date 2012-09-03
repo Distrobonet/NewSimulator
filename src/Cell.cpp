@@ -37,11 +37,6 @@ void Cell::update()
 		getFormation();
 		setNeighborhood();
 
-		// Just setting some sample junk values to show that command velocity publishing is working.
-
-
-
-
 		// Stuff from Ross' simulator to mimic eventually:
 //		commandVelocity.linear.x = getTransVel().x;
 //		commandVelocity.linear.y = getTransVel().y;
@@ -52,7 +47,6 @@ void Cell::update()
 		ros::spinOnce();
 		loop_rate.sleep();
 	}
-
 }
 
 int Cell::getCellID()
@@ -114,7 +108,7 @@ void Cell::setRightNeighbor(const int nbr)
 
 void Cell::establishNeighborhoodCom()
 {
-	for (int i = 0; i < neighborhoodList.size(); i++)
+	for (int i = 0; i < (int)neighborhoodList.size(); i++)
 	{
 		stateNode.subscribe(generateSubMessage(neighborhoodList.at(i)), 1000, &Cell::stateCallback, this);
 	}
