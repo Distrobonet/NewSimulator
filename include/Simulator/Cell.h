@@ -48,6 +48,7 @@ class Cell//: public Formation, public State
 		void setState(State state);
 		void translateRelative(float dx = 0.0f, float dy = 0.0f);
 		void rotateRelative(float theta);
+		void updateState();
 
 		ros::NodeHandle stateNode;
 		ros::Publisher state_pub;
@@ -78,6 +79,9 @@ class Cell//: public Formation, public State
 		vector<int> neighborhoodList;
 		int cellID;
 		float x, y, z;		// Not yet sure exactly what these are for
+
+    private:
+		void publishState();
 };
 
 #endif

@@ -30,12 +30,13 @@ void Cell::update()
 {
 
 	ros::Rate loop_rate(10);
-
+	setNeighborhood();
 
 	while(ros::ok)
 	{
 		getFormation();
-		setNeighborhood();
+		updateState();
+		publishState();
 
 		// Stuff from Ross' simulator to mimic eventually:
 //		commandVelocity.linear.x = getTransVel().x;
@@ -238,6 +239,9 @@ bool Cell::setStateMessage(NewSimulator::State::Request &req, NewSimulator::Stat
 
 void Cell::stateCallback(const NewSimulator::StateMessage &incomingState)
 {
+	//Proof of concept for cell communication
+//	cout << "Cell " << cellID << " hears Cell " << incomingState.formation.seed_id << " as is its neighbor" << endl;
+
 //		res.state.formation.radius = incomingState.formation.radius;
 //		res.state.formation.heading = incomingState.formation.heading;
 //		res.state.formation.seedFrp.x = incomingState.formation.seed_frp.x;
@@ -268,6 +272,25 @@ void Cell::stateCallback(const NewSimulator::StateMessage &incomingState)
 //	updateState();
 }
 
+void Cell::updateState()
+{
 
+}
 
+void Cell::publishState()
+{
+	NewSimulator::StateMessage state;
+//    state.formation.radius = formation.heading;
+//    state.formation.heading = formation.heading;
+//    state.formation.seed_frp.x = formation.seedFrp.x;
+//    state.formation.seed_frp.y = formation.seedFrp.y;
+//    state.formation.seed_id = formation.seedID;
+//    state.formation.formation_id = formation.formationID;
+//    state.in_position = inPosition;
 
+	//Proof of Concept
+	state.formation.seed_id = cellID;
+
+    state_pub.publish(state);
+//    stateChanged = false;
+}
