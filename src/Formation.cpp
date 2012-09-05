@@ -1,10 +1,8 @@
 
-
-
 #include <Simulator/Formation.h>
 
-#include <Simulator/PhysicsVector.h>
 using namespace std;
+
 
 Formation::Formation()
 {
@@ -25,6 +23,19 @@ Formation::Formation(const float radius, const PhysicsVector frp,
 	setSeedFormationRelativePosition(frp);
 	setFormationID(formationID);
 	setFormationRelativeOrientation(formationRelativeOrientation);
+}
+
+Formation::Formation(const Formation &f) {
+	*this = f;
+}
+
+Formation& Formation::operator=(const Formation &f) {
+	radius = f.radius;
+	formationID = f.formationID;
+	formationRelativeOrientation = f.formationRelativeOrientation;
+	setSeedFormationRelativePosition(f.seedFormationRelativePosition);
+
+	return *this;
 }
 
 Formation::~Formation()
@@ -68,8 +79,16 @@ PhysicsVector Formation::getSeedFormationRelativePosition()
 
 void Formation::setSeedFormationRelativePosition(PhysicsVector frp)
 {
-//	seedFormationRelativePosition = frp;
 	seedFormationRelativePosition.x = frp.x;
 	seedFormationRelativePosition.y = frp.y;
 	seedFormationRelativePosition.z = frp.z;
+
+    for (int i = 0; i < 3; ++i)
+    {
+    	seedFormationRelativePosition.translate[i]  = frp.translate[i];
+    	seedFormationRelativePosition.rotate[i]     = frp.rotate[i];
+    	seedFormationRelativePosition. scale[i]     = frp.scale[i];
+    }
+    seedFormationRelativePosition. showLine         = frp.showLine;
+    seedFormationRelativePosition.showHead          = frp.showHead;
 }

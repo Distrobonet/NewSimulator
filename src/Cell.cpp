@@ -11,7 +11,7 @@ Cell::Cell(const int ID)
 {
 	cellID = ID;
 	cellState = State();
-	//cellFormation = Formation();
+	cellFormation = Formation();
 
 	commandVelocity.linear.x = 0;
 	commandVelocity.linear.y = 0;
@@ -67,7 +67,7 @@ Formation Cell::getFormation()
 
 void Cell::setFormation(Formation formation)
 {
-	//cellFormation = formation;
+	cellFormation = formation;
 }
 
 vector<int> Cell::getNeighborhood()

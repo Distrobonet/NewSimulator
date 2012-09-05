@@ -13,7 +13,9 @@ class Formation {
 		Formation();
 		Formation(const float radius, const PhysicsVector frp,
 				const int formationID, const float formationRelativeOrientation);
+		Formation(const Formation &f);
 		virtual ~Formation();
+		Formation& operator=(const Formation &f);
 
 		int getFormation();
 		void setFormationID(int formationID);
