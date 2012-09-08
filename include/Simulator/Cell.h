@@ -74,6 +74,8 @@ class Cell//: public Formation, public State
 
 
 	protected:
+//		PhysicsVector actualPosition;
+//		PhysicsVector desiredPosition;	// todo: These came from Robot.  Are they needed?
 		State cellState;
 		Formation cellFormation;
 		vector<int> neighborhoodList;
