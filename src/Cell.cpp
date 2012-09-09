@@ -46,7 +46,7 @@ void Cell::update()
 			//receiveFormationFromSimulator();
 		}
 
-
+		getNeighborState();
 		updateState();
 		publishState();
 
@@ -186,16 +186,33 @@ string Cell::generatePubMessage(int cellID)
 // Get a neighbor's state from the State service
 void Cell::getNeighborState()
 {
-	if(cellID == 0)
-		return;
-	if(cellID % 2 == 1)
-	{
-		cellFormation.formationID = neighborhoodList[0];
-	}
-	else if(cellID % 2 == 0)
-	{
-		cellFormation.formationID = neighborhoodList[1];
 
+	//Calls the service and gets the state of the neighbor that is closest to the seed cell.
+	//This should prevent cells from getting conflicting states
+
+	stringstream leftSS;//create a stringstream
+	leftSS << (neighborhoodList[1]);//add number to the stream
+	string  leftNeighborID = leftSS.str();
+
+	stringstream rightSS;//create a stringstream
+	rightSS << (neighborhoodList[0]);//add number to the stream
+	string  rightNeighborID = rightSS.str();
+
+	if(cellID > 3)
+	{
+		NewSimulator::State::Request req;
+		NewSimulator::State::Response resp;
+
+		ros::service::call("cell_state_"+ rightNeighborID, req, resp);
+		cout<<cellID<<" Got response from right cell "<<leftNeighborID<<" formation is "<<resp.state.formation<<endl;
+	}
+	else if(cellID < 3)
+	{
+		NewSimulator::State::Request req;
+		NewSimulator::State::Response resp;
+
+		ros::service::call("cell_state_"+ leftNeighborID, req, resp);
+		cout<<cellID<<" Got response from the left cell "<<rightNeighborID<<" formation is "<<resp.state.formation<<endl;
 	}
 }
 
