@@ -24,6 +24,26 @@ Environment::Environment(int numRobots)
 	initOverlordSubscribers();
 }
 
+// Copy constructor that copies the contents of  the parameterized environment into this environment.
+  Environment::Environment(const Environment &env)
+{}
+
+// Destructor
+Environment::~Environment()
+{}
+
+
+void Environment::update(bool doSpin)
+{
+	ros::NodeHandle rosNode;
+	ros::Rate loop_rate(10);
+
+	while(ros::ok())
+	{
+		ros::spinOnce();
+	}
+}
+
 void Environment::initOverlordSubscribers()
 {
 	ros::NodeHandle overLordNode;
@@ -79,27 +99,6 @@ void Environment::callBackRobot(const nav_msgs::Odometry::ConstPtr& odom)
 	subRobotPoses.at(IDNumber).at(2) = currentTheta;
 
 	ros::spinOnce();
-}
-
-// Copy constructor that copies the contents of  the parameterized environment into this environment.
-  Environment::Environment(const Environment &env)
-{}
-
-
-// Destructor
-Environment::~Environment()
-{}
-
-
-void Environment::update(bool doSpin)
-{
-	ros::NodeHandle rosNode;
-	ros::Rate loop_rate(10);
-
-	while(ros::ok())
-	{
-		ros::spinOnce();
-	}
 }
 
 

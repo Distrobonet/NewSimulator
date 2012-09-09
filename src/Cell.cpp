@@ -20,6 +20,11 @@ Cell::Cell(const int ID)
 	commandVelocity.angular.x = 0;
 	commandVelocity.angular.y = 0;
 	commandVelocity.angular.z = 0;
+
+	if(cellID == cellFormation.seedID)
+	{
+		//formationClient = formationNodeHandle.serviceClient<NewSimulator::FormationMessage>("formation");
+	}
 }
 
 Cell::~Cell()
@@ -34,7 +39,14 @@ void Cell::update()
 
 	while(ros::ok)
 	{
-		getFormation();
+		// If the cell's ID is the seedID set in Formation, then get the formation ID set by Simulator
+		if(cellID == cellFormation.seedID)
+		{
+			//currentFormationMessage.request = cellFormation;
+			//receiveFormationFromSimulator();
+		}
+
+
 		updateState();
 		publishState();
 
@@ -48,6 +60,11 @@ void Cell::update()
 		ros::spinOnce();
 		loop_rate.sleep();
 	}
+}
+
+void Cell::receiveFormationFromSimulator(const NewSimulator::FormationMessage &incomingFormation)
+{
+	cellFormation.setFormationID(incomingFormation.formation_id);
 }
 
 int Cell::getCellID()
@@ -167,23 +184,19 @@ string Cell::generatePubMessage(int cellID)
 }
 
 // Get a neighbor's state from the State service
-bool Cell::getNeighborState()
+void Cell::getNeighborState()
 {
 	if(cellID == 0)
-		return true;
+		return;
 	if(cellID % 2 == 1)
 	{
 		cellFormation.formationID = neighborhoodList[0];
-		return true;
 	}
 	else if(cellID % 2 == 0)
 	{
 		cellFormation.formationID = neighborhoodList[1];
-		return true;
 
 	}
-	else
-		return false;
 }
 
 // Starts the cell's state service server

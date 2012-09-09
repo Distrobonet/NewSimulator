@@ -2,7 +2,6 @@
 // Description:     This program tests the robot cell simulator.
 //------------------------------------------------------------------
 
-// preprocessor directives
 #include <signal.h>
 #include <stdio.h>
 #include <string.h>
@@ -17,10 +16,14 @@
 #include <stdlib.h>
 
 #include <ros/ros.h>
+#include "Simulator/Formation.h"
 
-//#include "../msg_gen/cpp/include/Simulator/FormationMessage.h"
 
-#include "Simulator/Environment.h"
+// Formation service - Simulator serves the formation to the seed cell, the ID of which is
+// determined by Formation.seedID (set to global variable in Formation for now)
+//#include "../msg_gen/cpp/include/NewSimulator/FormationMessage.h"
+#include "../srv_gen/cpp/include/NewSimulator/CurrentFormation.h"
+
 
 using namespace std;
 
@@ -29,41 +32,34 @@ using namespace std;
 #define SIGPIPE 13
 #endif
 
-// simulation environment function prototypes
+// Prototypes
 void terminate(int retVal);
 void displayMenu();
 void keyboardInput();
 void clearScreen();
 
-//bool changeFormation(const int index, const Vector gradient = Vector());
-//bool changeFormationSim(const int index, const Vector gradient = Vector());
-const char  CHAR_ESCAPE             = char(27);    // 'ESCAPE' character key
+const char  CHAR_ESCAPE = char(27);    // 'ESCAPE' character key
 
 
 // Menu Global variable
 int CURRENT_SELECTION = -1;
 
 // A formation is a vector of Functions, which are functions that take floats and return floats
-//const Formation DEFAULT_FORMATION = Formation(formations[0], DEFAULT_ROBOT_RADIUS * FACTOR_COLLISION_RADIUS, Vector(), MIDDLE_CELL, 0,  90.0f);
+const Formation DEFAULT_FORMATION = Formation();// = Formation(line, 1, PhysicsVector(), MIDDLE_CELL, 0,  90.0f);
 
-//// Service utility function to set the formation being served based on CURRENT_SELECTION
-//bool setFormationMessage(Simulator::CurrentFormation::Request  &req,
-//		Simulator::CurrentFormation::Response &res )
-//{
-//  	res.formation.radius = 1.0f;
-//  	res.formation.heading = 90.0f;
-//  	res.formation.seed_frp.x = 0;
-//  	res.formation.seed_frp.y = 0;
-//  	res.formation.seed_id = 0;
-//  	res.formation.formation_id = CURRENT_SELECTION;
-//	//ROS_INFO("sending back response with formation info");
-//	return true;
-//}
-
-
-
-
-
+// Service utility function to set the formation being served based on CURRENT_SELECTION
+bool setFormationMessage(NewSimulator::CurrentFormation::Request  &req,
+						 NewSimulator::CurrentFormation::Response &res )
+{
+  	res.formation.radius = 1.0f;
+  	res.formation.heading = 90.0f;
+  	res.formation.seed_frp.x = 0;
+  	res.formation.seed_frp.y = 0;
+  	res.formation.seed_id = 0;
+  	res.formation.formation_id = CURRENT_SELECTION;
+	ROS_INFO("sending back response with formation info");
+	return true;
+}
 
 int main(int argc, char **argv)
 {
@@ -80,12 +76,12 @@ int main(int argc, char **argv)
 	// Formation Service server
 	ros::init(argc, argv, "formation_server");
 	ros::NodeHandle FormationServerNode;
-//	ros::ServiceServer formationService = FormationServerNode.advertiseService("formation", setFormationMessage);
-	//cout << "Now serving the formation: " << CURRENT_SELECTION << endl;
+	ros::ServiceServer formationService = FormationServerNode.advertiseService("formation", setFormationMessage);
+	cout << "Now serving the formation: " << CURRENT_SELECTION << endl;
 	ros::spinOnce();
 
 
-	// create handler for interrupts (i.e., ^C)
+	// Create handler for interrupts (i.e., ^C)
 	if (signal(SIGINT, SIG_IGN) != SIG_IGN) signal(SIGINT, terminate);
 	signal(SIGPIPE, SIG_IGN);
 
@@ -99,6 +95,7 @@ int main(int argc, char **argv)
 
   return 0;
 }
+
 
 
 // Used by keyboardInput() to catch keystrokes without blocking
@@ -194,46 +191,4 @@ void terminate(int retVal)
   signal(SIGINT, SIG_DFL);
   exit(retVal);
 }
-
-// Attempts to change the current formation,
-// returning true if successful, false otherwise.
-//
-// Parameters:
-//      index   in      the index of the formation to change to
-//bool changeFormation(const int index, const Vector frp)
-//{
-//
-//  g_formationIndex = index;
-//  if (!g_environment->startFormation)
-//  {
-//    g_environment->startFormation = true;
-//  }
-//  // determine if a new seed has been selected
-//  if (g_selectedIndex != -1)
-//  {
-//    g_environment->getCell(g_seedID)->setColor(DEFAULT_CELL_COLOR);
-//    g_seedID = g_selectedIndex;
-//  }
-//  Formation f(formations[index], g_formationRadius,     frp,
-//      g_seedID,           ++g_environment->formationID, g_formationHeading);
-//
-//  return g_environment->changeFormation(f);
-//}
-
-
-// called by environment, passes the location of a new calculated cell index.
-// parameters:   index in the index of the formation to change to
-//bool changeFormationSim(const int index, const Vector frp)
-//{
-//  if(g_selectedIndex > -1)
-//  {
-//    g_environment->getCell(g_seedID)->setColor(DEFAULT_CELL_COLOR);
-//    g_selectedIndex = index;
-//    return changeFormation(g_formationIndex,frp);
-//  }
-//  else return false;
-//}
-
-
-
 

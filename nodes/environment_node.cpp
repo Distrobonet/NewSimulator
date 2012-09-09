@@ -8,8 +8,8 @@ int main(int argc, char **argv)
 
 	// Initialize Environment
 	int numOfRobots = atoi(argv[1]);
-	Environment env(numOfRobots);
-	env.update(argv[2]);
+	Environment environmentNode(numOfRobots);
+	environmentNode.update(argv[2]);
 
 	// Relationship Service
 	//env.startRelationshipServiceServer();
@@ -18,7 +18,7 @@ int main(int argc, char **argv)
 }
 
 
-//void envCallBack(const nav_msgs::OdometryConstPtr &odom)
+//void environmentCallBack(const nav_msgs::OdometryConstPtr &odom)
 //{
 //  g_by = odom->pose.pose.position.x;
 //  g_bx = -odom->pose.pose.position.y;

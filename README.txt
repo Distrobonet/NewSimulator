@@ -8,7 +8,7 @@ rosrun stage stageros `rospack find stage_controllers`/world/distrobo-world-7-ro
 	rosrun NewSimulator Simulator
 	roslaunch NewSimulator newSimulation.launch
 	rosrun stage stageros `rospack find stage_controllers`/world/NewWorld.world
-	
+
 
 *This has to have been built before it will work or there are no binaries to run against
 

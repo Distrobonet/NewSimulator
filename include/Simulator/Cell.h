@@ -28,7 +28,7 @@
 
 using namespace std;
 
-class Cell//: public Formation, public State
+class Cell
 {
 	public:
 		Cell(const int cellId);
@@ -62,8 +62,16 @@ class Cell//: public Formation, public State
 		string generateSubMessage(int cellID);
 		string generatePubMessage(int cellID);
 
+		// Formation service client - only used by seed cell
+		NewSimulator::FormationMessage formationMessage;
+		NewSimulator::CurrentFormation currentFormationMessage;
+		ros::NodeHandle formationNodeHandle;
+		ros::ServiceClient formationClient;
+		void receiveFormationFromSimulator(const NewSimulator::FormationMessage &incomingFormation);
+
+
 		// State service client
-		bool getNeighborState();
+		void getNeighborState();
 		ros::ServiceClient stateClient;
 		State stateSrv;
 
