@@ -1,14 +1,13 @@
 
 // Description:     This class describes a 3-dimensional vector.
 
-
 // preprocessor directives
 #ifndef VECTOR_H
 #define VECTOR_H
 #include <cmath>
 #include <iostream>
+#include "Simulator/utils.h"
 using namespace std;
-
 
 
 // global constants
@@ -20,7 +19,6 @@ static const bool  DEFAULT_VECTOR_SHOW_HEAD    = true;
 static const float VECTOR_LINE_WIDTH           = 1.0f;
 static const float VECTOR_HEAD_HEIGHT          = 0.015f;
 static const float VECTOR_HEAD_WIDTH           = 0.5f * VECTOR_HEAD_HEIGHT;
-
 
 
 // describes a 3-dimensional vector
@@ -35,12 +33,12 @@ class PhysicsVector
         
         // <constructors>
         PhysicsVector(const float dx         = 0.0f,
-               const float dy         = 0.0f,
-               const float dz         = 0.0f){};
-        PhysicsVector(const PhysicsVector &v){};
+        			  const float dy         = 0.0f,
+        			  const float dz         = 0.0f);
+        PhysicsVector(const PhysicsVector &v);
 
         // <destructors>
-          ~PhysicsVector(){};
+        ~PhysicsVector();
 
 //        // <  public mutator functions>
         bool set(const float dx = 0.0f,
@@ -104,5 +102,4 @@ class PhysicsVector
                           const float dy         = 0.0f,
                           const float dz         = 0.0f);
 };  // Vector
-
 #endif
