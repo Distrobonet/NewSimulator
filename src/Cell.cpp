@@ -23,7 +23,7 @@ Cell::Cell(const int ID)
 
 	if(cellID == cellFormation.seedID)
 	{
-		//formationClient = formationNodeHandle.serviceClient<NewSimulator::FormationMessage>("formation");
+		receiveFormationFromSimulator();
 	}
 }
 
@@ -42,11 +42,13 @@ void Cell::update()
 		// If the cell's ID is the seedID set in Formation, then get the formation ID set by Simulator
 		if(cellID == cellFormation.seedID)
 		{
-			//currentFormationMessage.request = cellFormation;
-			//receiveFormationFromSimulator();
+			//currentFormationService.request = cellFormation;
+			receiveFormationFromSimulator();
 		}
+		//cout << "*** Continuing.  cellID = " << cellID << " / " << cellFormation.seedID << ", FormationID = " << cellFormation.formationID << " ***\n";
 
-		getNeighborState();
+
+		receiveNeighborState();
 		updateState();
 		publishState();
 
@@ -62,9 +64,38 @@ void Cell::update()
 	}
 }
 
-void Cell::receiveFormationFromSimulator(const NewSimulator::FormationMessage &incomingFormation)
+// Uses a service client to get the formation from Simulator
+void Cell::receiveFormationFromSimulator()
 {
-	cellFormation.setFormationID(incomingFormation.formation_id);
+//	ROS_INFO("Trying to access the formation message");
+//	cout << "Cell " << toString(cellID) << " trying to access the formation message\n";
+
+	ros::AsyncSpinner spinner(1);	// Uses an asynchronous spinner to account for the blocking service client call
+	spinner.start();
+
+	//ros::NodeHandle clientNode;
+	formationClient = formationNodeHandle.serviceClient<NewSimulator::CurrentFormation>("formation");
+
+	if (formationClient.call(currentFormationService))
+	{
+		//cout << "*** Success - Formation ID is " << currentFormationService.response.formation.formation_id << " ***\n";
+
+		cellFormation.setFormationID(currentFormationService.response.formation.formation_id);
+
+		cellFormation.radius = currentFormationService.response.formation.radius;
+		cellFormation.seedID = currentFormationService.response.formation.seed_id;
+
+		formationNodeHandle.shutdown();
+		spinner.stop();
+		return;
+
+	}
+
+//	ROS_INFO("Shutting down client node for Formation service...");
+	formationNodeHandle.shutdown();
+	spinner.stop();
+	return;
+
 }
 
 int Cell::getCellID()
@@ -184,9 +215,8 @@ string Cell::generatePubMessage(int cellID)
 }
 
 // Get a neighbor's state from the State service
-void Cell::getNeighborState()
+void Cell::receiveNeighborState()
 {
-
 	//Calls the service and gets the state of the neighbor that is closest to the seed cell.
 	//This should prevent cells from getting conflicting states
 
@@ -198,21 +228,21 @@ void Cell::getNeighborState()
 	rightSS << (neighborhoodList[0]);//add number to the stream
 	string  rightNeighborID = rightSS.str();
 
-	if(cellID > 3)
+	if(cellID > cellFormation.getSeedID())
 	{
-		NewSimulator::State::Request req;
-		NewSimulator::State::Response resp;
+		NewSimulator::State::Request request;
+		NewSimulator::State::Response response;
 
-		ros::service::call("cell_state_"+ rightNeighborID, req, resp);
-		cout<<cellID<<" Got response from right cell "<<leftNeighborID<<" formation is "<<resp.state.formation<<endl;
+		ros::service::call("cell_state_"+ rightNeighborID, request, response);
+		//cout<<cellID<<" Got response from right cell "<<leftNeighborID<<" formation is "<<resp.state.formation<<endl;
 	}
-	else if(cellID < 3)
+	else if(cellID < cellFormation.getSeedID())
 	{
-		NewSimulator::State::Request req;
-		NewSimulator::State::Response resp;
+		NewSimulator::State::Request request;
+		NewSimulator::State::Response response;
 
-		ros::service::call("cell_state_"+ leftNeighborID, req, resp);
-		cout<<cellID<<" Got response from the left cell "<<rightNeighborID<<" formation is "<<resp.state.formation<<endl;
+		ros::service::call("cell_state_"+ leftNeighborID, request, response);
+		//cout<<cellID<<" Got response from the left cell "<<rightNeighborID<<" formation is "<<resp.state.formation<<endl;
 	}
 }
 
@@ -235,12 +265,11 @@ void Cell::startStateServiceServer()
 // Sets the state message to this state's info.  This is the callback for the state service.
 bool Cell::setStateMessage(NewSimulator::State::Request &req, NewSimulator::State::Response &res )
 {
-  	res.state.formation.radius = cellFormation.radius;
   	//res.state.formation.heading = cellFormation.heading;
-	res.state.formation.seed_frp.x = cellFormation.seedFormationRelativePosition.x;
-	res.state.formation.seed_frp.y = cellFormation.seedFormationRelativePosition.y;
+	res.state.frp.x = cellFormation.seedFormationRelativePosition.x;
+	res.state.frp.y = cellFormation.seedFormationRelativePosition.y;
   	//res.state.formation.seed_id = cellFormation.seedID;
-  	res.state.formation.formation_id = cellFormation.formationID;
+  	res.state.formation_id = cellFormation.formationID;
   	//res.state.in_position = inPosition;
 
 //	res.state.frp.x = frp.x;
@@ -263,7 +292,7 @@ bool Cell::setStateMessage(NewSimulator::State::Request &req, NewSimulator::Stat
 //	res.state.temperature = temperature;
 //	res.state.heat = heat;
 
-	ROS_INFO("sending back response with state info");
+	//ROS_INFO("sending back response with state info");
 	return true;
 }
 
@@ -319,7 +348,7 @@ void Cell::publishState()
 //    state.in_position = inPosition;
 
 	//Proof of Concept
-	state.formation.seed_id = cellID;
+//	state.formation.seed_id = cellID;		// statemessage doesn't contain this anymore
 
     state_pub.publish(state);
 //    stateChanged = false;

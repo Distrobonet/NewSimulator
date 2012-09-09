@@ -15,7 +15,6 @@
 #include <tf/transform_listener.h>
 
 // Formation service
-#include "../msg_gen/cpp/include/NewSimulator/FormationMessage.h"
 #include "../srv_gen/cpp/include/NewSimulator/CurrentFormation.h"
 
 // State service
@@ -62,16 +61,19 @@ class Cell
 		string generateSubMessage(int cellID);
 		string generatePubMessage(int cellID);
 
+
+
 		// Formation service client - only used by seed cell
-		NewSimulator::FormationMessage formationMessage;
-		NewSimulator::CurrentFormation currentFormationMessage;
 		ros::NodeHandle formationNodeHandle;
 		ros::ServiceClient formationClient;
-		void receiveFormationFromSimulator(const NewSimulator::FormationMessage &incomingFormation);
+		NewSimulator::CurrentFormation currentFormationService;
+		void receiveFormationFromSimulator();
+
+
 
 
 		// State service client
-		void getNeighborState();
+		void receiveNeighborState();
 		ros::ServiceClient stateClient;
 		State stateSrv;
 

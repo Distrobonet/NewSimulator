@@ -4,6 +4,7 @@
 #define UTILS_H
 #include <iostream>
 #include <stdlib.h>
+#include <sstream>
 using namespace std;
 
 // debug definitions
@@ -16,6 +17,14 @@ using namespace std;
 static const float TWO_PI = 2.0f * PI;
 static const float PI_OVER_180 = PI / 180.0f;
 
+
+template <class T>
+inline std::string toString (const T& t)
+{
+std::stringstream ss;
+ss << t;
+return ss.str();
+}
 
 inline float scaleDegrees(float theta) {
 	if (theta > 0.0f)

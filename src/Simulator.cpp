@@ -39,13 +39,15 @@ void keyboardInput();
 void clearScreen();
 
 const char  CHAR_ESCAPE = char(27);    // 'ESCAPE' character key
-
-
-// Menu Global variable
 int CURRENT_SELECTION = -1;
 
+
 // A formation is a vector of Functions, which are functions that take floats and return floats
-const Formation DEFAULT_FORMATION = Formation();// = Formation(line, 1, PhysicsVector(), MIDDLE_CELL, 0,  90.0f);
+Formation DEFAULT_FORMATION = Formation();// = Formation(line, 1, PhysicsVector(), MIDDLE_CELL, 0,  90.0f);
+
+
+
+
 
 // Service utility function to set the formation being served based on CURRENT_SELECTION
 bool setFormationMessage(NewSimulator::CurrentFormation::Request  &req,
@@ -55,9 +57,9 @@ bool setFormationMessage(NewSimulator::CurrentFormation::Request  &req,
   	res.formation.heading = 90.0f;
   	res.formation.seed_frp.x = 0;
   	res.formation.seed_frp.y = 0;
-  	res.formation.seed_id = 0;
+  	res.formation.seed_id = DEFAULT_FORMATION.getSeedID();
   	res.formation.formation_id = CURRENT_SELECTION;
-	ROS_INFO("sending back response with formation info");
+//	ROS_INFO("sending back response with formation info");
 	return true;
 }
 
@@ -172,7 +174,7 @@ void displayMenu()
 		<< "7) f(x) = x^3"                                   << endl
 		<< "8) f(x) = {sqrt(x),  x >= 0 | -sqrt|x|, x < 0}"  << endl
 		<< "9) f(x) = 0.05 sin(10 x)"                        << endl << endl
-		<< "Use the mouse to select a robot."                << endl
+		//<< "Use the mouse to select a robot."                << endl
 		<< "Use ctrl+C to exit."                                << endl << endl
 		<< "Please enter your selection: ";
 }

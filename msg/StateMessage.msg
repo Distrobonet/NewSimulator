@@ -1,10 +1,7 @@
-FormationMessage formation
+int32 formation_id
 VectorMessage frp
-RelationshipMessage[] relationships
-VectorMessage linear_error
-float64 angular_error
+RelationshipMessage[] desired_relationships
+RelationshipMessage[] actual_relationships
+float64 rotational_error
+VectorMessage translational_error
 int32 timestep
-int32 reference_id
-float64 temperature
-float64 heat
-bool in_position
