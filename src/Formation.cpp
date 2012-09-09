@@ -165,7 +165,6 @@ PhysicsVector Formation::getRelationship(const Function intersectingFunction, co
 
     PhysicsVector relationship;
 
-    // todo: These lines SHOULD work.  Must figure out why they don't.
     relationship =  PhysicsVector(xn, intersectingFunction(xn)) - centerPosition;
     relationship.rotateRelative(-rotationOfRelationship);
     return relationship;
