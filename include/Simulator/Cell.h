@@ -47,7 +47,7 @@ class Cell
 		void setState(State state);
 		void translateRelative(float dx = 0.0f, float dy = 0.0f);
 		void rotateRelative(float theta);
-		void updateState();
+		void updateState(const NewSimulator::State::Response &incomingState);
 
 		ros::NodeHandle stateNode;
 		ros::Publisher state_pub;
@@ -74,8 +74,11 @@ class Cell
 
 		// State service client
 		void receiveNeighborState();
+		ros::NodeHandle stateNodeHandle;
 		ros::ServiceClient stateClient;
+		NewSimulator::State incomingStateService;
 		State stateSrv;
+		void makeStateClientCall(string neighbor);
 
 		// State service server
 		ros::ServiceServer stateService;
