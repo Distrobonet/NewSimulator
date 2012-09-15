@@ -12,6 +12,7 @@ Cell::Cell(const int ID)
 	cellID = ID;
 	cellState = State();
 	cellFormation = Formation();
+	currentStatus = WAITING_FOR_FORMATION;
 
 	commandVelocity.linear.x = 0;
 	commandVelocity.linear.y = 0;
@@ -351,9 +352,9 @@ void Cell::makeStateClientCall(string neighbor)
 
 	if (stateClient.call(incomingStateService))
 	{
-		cout<<"For cell "<<cellID<<" old formation id getting "<<neighbor<<"s formation id "<<cellFormation.formationID<<endl;
+//		cout<<"For cell "<<cellID<<" old formation id getting "<<neighbor<<"'s formation id "<<cellFormation.formationID<<endl;
 		cellFormation.formationID = incomingStateService.response.state.formation_id;
-		cout<<"For cell "<<cellID<<" new formation id "<<cellFormation.formationID<<endl<<endl;
+//		cout<<"For cell "<<cellID<<" new formation id "<<cellFormation.formationID<<endl<<endl;
 		stateNodeHandle.shutdown();
 		spinner.stop();
 		return;
@@ -365,4 +366,14 @@ void Cell::makeStateClientCall(string neighbor)
 	spinner.stop();
 	return;
 
+}
+
+void Cell::setCurrentStatus(int newStatus)
+{
+	currentStatus = newStatus;
+}
+
+int Cell::getCurrentStatus()
+{
+	return currentStatus;
 }

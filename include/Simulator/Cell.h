@@ -56,6 +56,8 @@ class Cell
 		void translateRelative(float dx = 0.0f, float dy = 0.0f);
 		void rotateRelative(float theta);
 		void updateState(const NewSimulator::State::Response &incomingState);
+		int getCurrentStatus();
+		void setCurrentStatus(int newStatus);
 
 		ros::NodeHandle stateNode;
 		ros::Publisher state_pub;
@@ -102,6 +104,7 @@ class Cell
 		vector<int> neighborhoodList;
 		int cellID;
 		float x, y, z;		// Not yet sure exactly what these are for
+		int currentStatus;
 
     private:
 		void publishState();
