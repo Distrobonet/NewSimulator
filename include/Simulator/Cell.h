@@ -27,6 +27,14 @@
 
 using namespace std;
 
+enum Status{
+	WAITING_FOR_FORMATION,
+	WAITING_TO_UPDATE,
+	UPDATING,
+	WAITING_TO_MOVE,
+	MOVING
+};
+
 class Cell
 {
 	public:
