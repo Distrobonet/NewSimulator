@@ -1,3 +1,3 @@
-VectorMessage desired
-VectorMessage actual
-int32 id
+VectorMessage desired_relationship
+VectorMessage actual_relationship
+int32 cell_id

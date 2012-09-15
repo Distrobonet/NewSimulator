@@ -377,3 +377,13 @@ int Cell::getCurrentStatus()
 {
 	return currentStatus;
 }
+
+void Cell::checkNeighborStatus()
+{
+	// The following comments are what we wrote on the board for this method at 9/5 meeting
+
+	// If neighbor state is (in position)
+		// Change current state to (moving)
+		// Move (step)
+	// Change state to (in position)
+}

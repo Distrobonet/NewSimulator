@@ -58,6 +58,7 @@ class Cell
 		void updateState(const NewSimulator::State::Response &incomingState);
 		int getCurrentStatus();
 		void setCurrentStatus(int newStatus);
+		void checkNeighborStatus();
 
 		ros::NodeHandle stateNode;
 		ros::Publisher state_pub;

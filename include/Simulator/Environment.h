@@ -4,7 +4,6 @@
 // Description:     This class describes a robot cell environment.
 //
 
-// preprocessor directives
 #ifndef ENVIRONMENT_H
 #define ENVIRONMENT_H
 
@@ -19,36 +18,27 @@
 
 #include <queue>
 #include <vector>
+#include "Simulator/PhysicsVector.h"
 
 using namespace std;
 
-//#include "../msg_gen/cpp/include/NewSimulator/RelationshipMessage.h"
-//#include "../srv_gen/cpp/include/NewSimulator/Relationship.h"
+#include "../msg_gen/cpp/include/NewSimulator/RelationshipMessage.h"
+#include "../srv_gen/cpp/include/NewSimulator/Relationship.h"
 
 
 
-// Describes a robot cell environment
+// Describes an environment through which robots figure out their actual and desired positioning.
 class Environment
 {
     public:
-
-        // <public data members>
-        double robotX;
-		double robotY;
-		double robotTheta;
-		nav_msgs::Odometry odomMsg;
-		vector<ros::Subscriber> subRobots;
-		vector< vector<double> > subRobotPoses;
-
-        // <constructors>
 		Environment();
         Environment(int numRobots);
         Environment(const Environment &e);
 
-        // <destructors>
         virtual ~Environment();
 
-        void initOverlordSubscribers();
+
+        void initEnvironmentSubscribers();
         void update(bool doSpin);
 
 
@@ -56,18 +46,19 @@ class Environment
         string generateSubMessage(int cellID);
 		void callBackRobot(const nav_msgs::Odometry::ConstPtr& odom);
 
-        // <public utility functions>
-        //Vector  getRelationship(const int toID, const int fromID);
+		nav_msgs::Odometry odomMsg;
+		vector<ros::Subscriber> subRobotSubscribers;
+		vector< vector<double> > cellActualPositions;
+
+        PhysicsVector getRelationship(const int toID, const int fromID);
 
 
         // Relationship service server
-//		ros::ServiceServer relationshipService;
-//		bool setRelationshipMessage(NewSimulator::Relationship::Request  &req, NewSimulator::Relationship::Response &res );
-//      void startRelationshipServiceServer();
+		ros::ServiceServer relationshipService;
+		bool setRelationshipMessage(NewSimulator::Relationship::Request &request, NewSimulator::Relationship::Response &response);
+		void startRelationshipServiceServer();
 
     protected:
-
-        // <protected data members>
         //Formation          formation;
         int                numOfRobots;
 
