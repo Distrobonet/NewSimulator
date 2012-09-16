@@ -119,8 +119,7 @@ class Formation
 		  return x * x * x;
 		  //return pow(x, 3.0f);
 		}
-		// Returns formation function definition
-		// f(x) = {sqrt(x),  x = 0 | -sqrt|x|, x < 0}.
+		// Returns formation function definition f(x) = {sqrt(x),  x = 0 | -sqrt|x|, x < 0}.
 		float condSqrt(const float x)
 		{
 		  return sqrt(abs(0.5f * x)) * ((x >= 0) ? 1.0f : -1.0f);

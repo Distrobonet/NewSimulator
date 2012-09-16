@@ -22,7 +22,6 @@
 
 using namespace std;
 
-#include "../msg_gen/cpp/include/NewSimulator/RelationshipMessage.h"
 #include "../srv_gen/cpp/include/NewSimulator/Relationship.h"
 
 
@@ -54,6 +53,7 @@ class Environment
 
 
         // Relationship service server
+        ros::NodeHandle RelationshipServerNode;
 		ros::ServiceServer relationshipService;
 		bool setRelationshipMessage(NewSimulator::Relationship::Request &request, NewSimulator::Relationship::Response &response);
 		void startRelationshipServiceServer();

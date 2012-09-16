@@ -46,9 +46,6 @@ int CURRENT_SELECTION = -1;
 Formation DEFAULT_FORMATION = Formation();// = Formation(line, 1, PhysicsVector(), MIDDLE_CELL, 0,  90.0f);
 
 
-
-
-
 // Service utility function to set the formation being served based on CURRENT_SELECTION
 bool setFormationMessage(NewSimulator::CurrentFormation::Request  &req,
 						 NewSimulator::CurrentFormation::Response &res )

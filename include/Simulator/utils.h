@@ -8,12 +8,11 @@
 using namespace std;
 
 // debug definitions
-//#define              DEBUG         1
+//#define DEBUG 1
 
-// math pi definition
-#define              PI            3.1415926535897932384626433832795
+#define PI 3.1415926535897932384626433832795
 
-// global constants
+
 static const float TWO_PI = 2.0f * PI;
 static const float PI_OVER_180 = PI / 180.0f;
 
@@ -25,6 +24,7 @@ std::stringstream ss;
 ss << t;
 return ss.str();
 }
+
 
 inline float scaleDegrees(float theta) {
 	if (theta > 0.0f)
@@ -71,7 +71,6 @@ inline int irand(const int min = 0, const int max = 1) {
 inline float randSign() {
 	return (rand() % 2) ? -1.0f : 1.0f;
 } // randSign()
-
 
 
 inline float sign(const float f) {

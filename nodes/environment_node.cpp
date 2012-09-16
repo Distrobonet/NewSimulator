@@ -9,10 +9,11 @@ int main(int argc, char **argv)
 	// Initialize Environment
 	int numOfRobots = atoi(argv[1]);
 	Environment environmentNode(numOfRobots);
-	environmentNode.update(argv[2]);
 
-	// Relationship Service
-	//env.startRelationshipServiceServer();
+	// Relationship service server
+	environmentNode.startRelationshipServiceServer();
+
+	environmentNode.update(argv[2]);
 
 	return 0;
 }

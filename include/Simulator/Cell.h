@@ -22,12 +22,12 @@
 #include "../srv_gen/cpp/include/NewSimulator/State.h"
 
 // Relationship service
-#include "../msg_gen/cpp/include/NewSimulator/RelationshipMessage.h"
 #include "../srv_gen/cpp/include/NewSimulator/Relationship.h"
 
 using namespace std;
 
 enum Status{
+	// Ross' simulator just uses ACTIVE, INACTIVE, and DONE, which is not like the thesis
 	WAITING_FOR_FORMATION,
 	WAITING_TO_UPDATE,
 	UPDATING,
@@ -73,14 +73,18 @@ class Cell
 		string generatePubMessage(int cellID);
 
 
+		// Formation service client - only used by seed cell
+		ros::NodeHandle relationshipNodeHandle;
+		ros::ServiceClient relationshipClient;
+		NewSimulator::Relationship relationshipService;
+		void receiveRelationshipFromEnvironment(int neighborIndex);
+
 
 		// Formation service client - only used by seed cell
 		ros::NodeHandle formationNodeHandle;
 		ros::ServiceClient formationClient;
 		NewSimulator::CurrentFormation currentFormationService;
 		void receiveFormationFromSimulator();
-
-
 
 
 		// State service client
@@ -91,6 +95,7 @@ class Cell
 		State stateSrv;
 		void makeStateClientCall(string neighbor);
 
+
 		// State service server
 		ros::ServiceServer stateService;
 		bool setStateMessage(NewSimulator::State::Request & req, NewSimulator::State::Response & res);
@@ -98,13 +103,10 @@ class Cell
 
 
 	protected:
-//		PhysicsVector actualPosition;
-//		PhysicsVector desiredPosition;	// todo: These came from Robot.  Are they needed?
 		State cellState;
 		Formation cellFormation;
 		vector<int> neighborhoodList;
 		int cellID;
-		float x, y, z;		// Not yet sure exactly what these are for
 		int currentStatus;
 
     private:

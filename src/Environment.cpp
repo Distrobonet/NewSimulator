@@ -115,23 +115,31 @@ string Environment::generateSubMessage(int cellID)
 // Sets the response(relationship vector) based on the requests(IDs).  This is a callback.
 bool Environment::setRelationshipMessage(NewSimulator::Relationship::Request &request, NewSimulator::Relationship::Response &response)
 {
-	//cout << "\nsetRelationshipMessage has been called\n";
+//	cout << "\nsetRelationshipMessage has been called. Origin ID = " << request.OriginID << "\n\n";
+
 //	temp.rotateRelative(-fromCell->getHeading());
 
-	//target - origin
-	PhysicsVector tempVector;
-	tempVector.x = cellActualPositions[request.TargetID][0] - cellActualPositions[request.OriginID][0];
-	tempVector.y = cellActualPositions[request.TargetID][1] - cellActualPositions[request.OriginID][1];
+	// Target - Origin
+//	PhysicsVector tempVector;
+//	tempVector.x = cellActualPositions[request.TargetID][0] - cellActualPositions[request.OriginID][0];
+//	tempVector.y = cellActualPositions[request.TargetID][1] - cellActualPositions[request.OriginID][1];
 
 //	tempVector.rotateRelative(-(subRobotPoses[req.OriginID][2]));
-	tempVector.rotateRelative(angles::to_degrees(-(cellActualPositions[request.OriginID][2])));
+//	tempVector.rotateRelative(angles::to_degrees(-(cellActualPositions[request.OriginID][2])));
 
 //	//set(x * cos(theta) - y * sin(theta), x * sin(theta) + y * cos(theta), z);
 //	tempVector.x = tempVector.x * cos(tempVector.z) - tempVector.y * sin(tempVector.z);
 //	tempVector.y = tempVector.x * sin(tempVector.z) + tempVector.y * cos(tempVector.z);
 
-	response.theRelationship.actual_relationship.x = tempVector.x;
-	response.theRelationship.actual_relationship.y = tempVector.y;
+//	response.theRelationship.actual_relationship.x = tempVector.x;
+//	response.theRelationship.actual_relationship.y = tempVector.y;
+
+
+	// Test values to make sure relationship service is working
+	response.theRelationship.actual_relationship.x = 1;
+	response.theRelationship.actual_relationship.y = 2;
+
+
 	return true;
 }
 
@@ -143,13 +151,9 @@ void Environment::startRelationshipServiceServer()
 	char **argv = 0;
 	ros::init(argc, argv, "relationship_server");
 
-	ros::NodeHandle RelationshipServerNode;
-
 	relationshipService = RelationshipServerNode.advertiseService("relationship", &Environment::setRelationshipMessage, this);
-	cout << "Now serving the " << relationshipService.getService() << " service from the environment\n";
+	cout << "\n*** Now serving the " << relationshipService.getService() << " service from the environment ***\n\n";
 
 	ros::spinOnce();
-
-	//RelationshipServerNode.shutdown();
 }
 

@@ -22,10 +22,9 @@ Cell::Cell(const int ID)
 	commandVelocity.angular.y = 0;
 	commandVelocity.angular.z = 0;
 
-	if(cellID == cellFormation.seedID)
-	{
-		receiveFormationFromSimulator();
-	}
+	// For 1-dimensional formations, just set 2 neighbor relationships for each cell
+	cellState.actualRelationships.resize(2, PhysicsVector());
+	cellState.desiredRelationships.resize(2, PhysicsVector());
 }
 
 Cell::~Cell()
@@ -43,25 +42,62 @@ void Cell::update()
 		// If the cell's ID is the seedID set in Formation, then get the formation ID set by Simulator
 		if(cellID == cellFormation.seedID)
 		{
-			//currentFormationService.request = cellFormation;
 			receiveFormationFromSimulator();
 		}
 //		cout << "*** Continuing.  cellID = " << cellID << " / " << cellFormation.seedID << ", FormationID = " << cellFormation.formationID << " ***\n";
 
 
+		// Send requests to Environment for the cell's relationships with its neighbors
+		receiveRelationshipFromEnvironment(0);	// When we do multi-function formations and dynamic
+		receiveRelationshipFromEnvironment(1);	// neighborhoods, these indices will be changed
+
 		receiveNeighborState();
 		publishState();
 
 		// Stuff from Ross' simulator to mimic eventually:
-//		commandVelocity.linear.x = getTransVel().x;
-//		commandVelocity.linear.y = getTransVel().y;
-//		commandVelocity.angular.z = getAngVel().z;
+		if (currentStatus == 1)// This should be whatever Status means that the cell should figure out its movement
+		{
+	//		commandVelocity.linear.x = getTransVel().x;
+	//		commandVelocity.linear.y = getTransVel().y;
+	//		commandVelocity.angular.z = getAngVel().z;
+		}
 
 		cmd_velPub.publish(commandVelocity);
 
 		ros::spinOnce();
 		loop_rate.sleep();
 	}
+}
+
+
+// Uses a service client to get the relationship from Environment
+void Cell::receiveRelationshipFromEnvironment(int neighborIndex)
+{
+	ros::AsyncSpinner spinner(1);	// Uses an asynchronous spinner to account for the blocking service client call
+	spinner.start();
+
+	relationshipClient = relationshipNodeHandle.serviceClient<NewSimulator::Relationship>("relationship");
+
+//	cout << "*** attempting Relationship Service Client for cell " << cellID << " ***\n";
+
+	// Set the request values here
+	relationshipService.request.OriginID = cellID;
+	relationshipService.request.TargetID = neighborhoodList[neighborIndex];
+
+	if (relationshipClient.call(relationshipService))
+	{
+//		cout << "*** Successful Relationship Service Client for cell " << cellID << " ***\n\n";
+
+		cellState.actualRelationships[neighborIndex].x = relationshipService.response.theRelationship.actual_relationship.x;
+		cellState.actualRelationships[neighborIndex].y = relationshipService.response.theRelationship.actual_relationship.y;
+
+		relationshipNodeHandle.shutdown();
+		spinner.stop();
+		return;
+	}
+	relationshipNodeHandle.shutdown();
+	spinner.stop();
+	return;
 }
 
 // Uses a service client to get the formation from Simulator
@@ -84,14 +120,10 @@ void Cell::receiveFormationFromSimulator()
 		formationNodeHandle.shutdown();
 		spinner.stop();
 		return;
-
 	}
-
-//	ROS_INFO("Shutting down client node for Formation service...");
 	formationNodeHandle.shutdown();
 	spinner.stop();
 	return;
-
 }
 
 int Cell::getCellID()
@@ -119,14 +151,14 @@ vector<int> Cell::getNeighborhood()
 	return neighborhoodList;
 }
 
-// temp setNeighbohood - HARDCODED
+// temp setNeighbohood - HARDCODED for 1-dimensional formations
 void Cell::setNeighborhood()
 {
 	setLeftNeighbor(cellID - 1);
 	setRightNeighbor(cellID + 1);
 }
 
-// temp setLeftNeighbor - HARDCODED
+// temp setLeftNeighbor - HARDCODED for 1-dimensional formations
 void Cell::setLeftNeighbor(const int nbr)
 {
 	if (cellID == 0)
@@ -137,7 +169,7 @@ void Cell::setLeftNeighbor(const int nbr)
 	}
 }
 
-// temp setRightNeighbor - HARDCODED
+// temp setRightNeighbor - HARDCODED for 1-dimensional formations
 void Cell::setRightNeighbor(const int nbr)
 {
 	// Temp max number of cells (6)
@@ -171,16 +203,16 @@ void Cell::setState(State state)
 // Translates the robot relative to itself based on the parameterized translation vector.
 void Cell::translateRelative(float dx , float dy)
 {
-	rotateRelative(0);
-    x += dx;
-    y += dy;
+//	rotateRelative(0);
+//    x += dx;
+//    y += dy;
 }
 
 void Cell::rotateRelative(float theta)
 {
-	theta = degreesToRadians(theta);
-	x = x * cos(theta)- y * sin(theta);
-	y = x * sin(theta) + y * cos(theta);
+//	theta = degreesToRadians(theta);
+//	x = x * cos(theta)- y * sin(theta);
+//	y = x * sin(theta) + y * cos(theta);
 	//z = z;
 
 }
