@@ -1,14 +1,12 @@
 //
 // Filename:        "Environment.h"
 //
-// Description:     This class describes a robot cell environment.
+// Description:     This class describes a cell environment.
 //
 
 #ifndef ENVIRONMENT_H
 #define ENVIRONMENT_H
 
-#define SUBSCRIBER 0
-#define ROBOT_LABEL 1
 
 #include <ros/ros.h>
 #include <nav_msgs/Odometry.h>
@@ -20,10 +18,9 @@
 #include <vector>
 #include "Simulator/PhysicsVector.h"
 
-using namespace std;
-
 #include "../srv_gen/cpp/include/NewSimulator/Relationship.h"
 
+using namespace std;
 
 
 // Describes an environment through which robots figure out their actual and desired positioning.
@@ -43,11 +40,9 @@ class Environment
 
         // Functions for the subscribers for all robots
         string generateSubMessage(int cellID);
-		void callBackRobot(const nav_msgs::Odometry::ConstPtr& odom);
+		void ReceiveOdometry(const nav_msgs::Odometry::ConstPtr& odometryMessage);
 
-		nav_msgs::Odometry odomMsg;
-		vector<ros::Subscriber> subRobotSubscribers;
-		vector< vector<double> > cellActualPositions;
+
 
         PhysicsVector getRelationship(const int toID, const int fromID);
 
@@ -57,6 +52,11 @@ class Environment
 		ros::ServiceServer relationshipService;
 		bool setRelationshipMessage(NewSimulator::Relationship::Request &request, NewSimulator::Relationship::Response &response);
 		void startRelationshipServiceServer();
+
+		ros::NodeHandle environmentNode;
+		vector<ros::Subscriber> cellActualPositionSubscribers;
+		vector< vector<double> > cellActualPositions;
+
 
     protected:
         //Formation          formation;

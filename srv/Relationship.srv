@@ -11,3 +11,4 @@ RelationshipMessage theRelationship
 		# VectorMessage contains:
 			# float64 x
 			# float64 y
+			# float64 z

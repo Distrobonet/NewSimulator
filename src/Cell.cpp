@@ -55,12 +55,17 @@ void Cell::update()
 		publishState();
 
 		// Stuff from Ross' simulator to mimic eventually:
-		if (currentStatus == 1)// This should be whatever Status means that the cell should figure out its movement
+		if (currentStatus == 1) // This should be whatever Status means that the cell should figure out its movement
 		{
-	//		commandVelocity.linear.x = getTransVel().x;
-	//		commandVelocity.linear.y = getTransVel().y;
-	//		commandVelocity.angular.z = getAngVel().z;
+	//		commandVelocity.linear.x = getTranslationalVelocity().x;
+	//		commandVelocity.linear.y = getTranslationalVelocity().y;
+	//		commandVelocity.angular.z = getAngularVelocity().z;
 		}
+
+
+
+//		commandVelocity.linear.x = 1;	// moves forward
+//		commandVelocity.angular.z = 1;	// moves counter-clockwise
 
 		cmd_velPub.publish(commandVelocity);
 
@@ -78,18 +83,15 @@ void Cell::receiveRelationshipFromEnvironment(int neighborIndex)
 
 	relationshipClient = relationshipNodeHandle.serviceClient<NewSimulator::Relationship>("relationship");
 
-//	cout << "*** attempting Relationship Service Client for cell " << cellID << " ***\n";
-
 	// Set the request values here
 	relationshipService.request.OriginID = cellID;
 	relationshipService.request.TargetID = neighborhoodList[neighborIndex];
 
 	if (relationshipClient.call(relationshipService))
 	{
-//		cout << "*** Successful Relationship Service Client for cell " << cellID << " ***\n\n";
-
 		cellState.actualRelationships[neighborIndex].x = relationshipService.response.theRelationship.actual_relationship.x;
 		cellState.actualRelationships[neighborIndex].y = relationshipService.response.theRelationship.actual_relationship.y;
+		cellState.actualRelationships[neighborIndex].z = relationshipService.response.theRelationship.actual_relationship.z;
 
 		relationshipNodeHandle.shutdown();
 		spinner.stop();

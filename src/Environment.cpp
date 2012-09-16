@@ -44,8 +44,6 @@ void Environment::update(bool doSpin)
 // Set up the environment's vector of cell actual positions as received from Stage (base_pose_ground_truth)
 void Environment::initEnvironmentSubscribers()
 {
-	ros::NodeHandle environmentNode;
-
 	// Create a dummy robot Velocity to fill the subRobotPoses vector with
 	vector<double> tempSubRobotVelocity;
 	tempSubRobotVelocity.push_back(0);	// x
@@ -58,43 +56,38 @@ void Environment::initEnvironmentSubscribers()
 
 
 	// Sets all the robot subscribers to base_pose_ground_truth
-	ros::Subscriber subRobot0 = environmentNode.subscribe("/robot_0/base_pose_ground_truth", 1000, &Environment::callBackRobot, this);
-	subRobotSubscribers.push_back(subRobot0);
-	ros::Subscriber subRobot1 = environmentNode.subscribe("/robot_1/base_pose_ground_truth", 1000, &Environment::callBackRobot, this);
-	subRobotSubscribers.push_back(subRobot1);
-	ros::Subscriber subRobot2 = environmentNode.subscribe("/robot_2/base_pose_ground_truth", 1000, &Environment::callBackRobot, this);
-	subRobotSubscribers.push_back(subRobot2);
-	ros::Subscriber subRobot3 = environmentNode.subscribe("/robot_3/base_pose_ground_truth", 1000, &Environment::callBackRobot, this);
-	subRobotSubscribers.push_back(subRobot3);
-	ros::Subscriber subRobot4 = environmentNode.subscribe("/robot_4/base_pose_ground_truth", 1000, &Environment::callBackRobot, this);
-	subRobotSubscribers.push_back(subRobot4);
-	ros::Subscriber subRobot5 = environmentNode.subscribe("/robot_5/base_pose_ground_truth", 1000, &Environment::callBackRobot, this);
-	subRobotSubscribers.push_back(subRobot5);
-	ros::Subscriber subRobot6 = environmentNode.subscribe("/robot_6/base_pose_ground_truth", 1000, &Environment::callBackRobot, this);
-	subRobotSubscribers.push_back(subRobot6);
+	ros::Subscriber robot0 = environmentNode.subscribe("/robot_0/base_pose_ground_truth", 1000, &Environment::ReceiveOdometry, this);
+	cellActualPositionSubscribers.push_back(robot0);
+	ros::Subscriber robot1 = environmentNode.subscribe("/robot_1/base_pose_ground_truth", 1000, &Environment::ReceiveOdometry, this);
+	cellActualPositionSubscribers.push_back(robot1);
+	ros::Subscriber robot2 = environmentNode.subscribe("/robot_2/base_pose_ground_truth", 1000, &Environment::ReceiveOdometry, this);
+	cellActualPositionSubscribers.push_back(robot2);
+	ros::Subscriber robot3 = environmentNode.subscribe("/robot_3/base_pose_ground_truth", 1000, &Environment::ReceiveOdometry, this);
+	cellActualPositionSubscribers.push_back(robot3);
+	ros::Subscriber robot4 = environmentNode.subscribe("/robot_4/base_pose_ground_truth", 1000, &Environment::ReceiveOdometry, this);
+	cellActualPositionSubscribers.push_back(robot4);
+	ros::Subscriber robot5 = environmentNode.subscribe("/robot_5/base_pose_ground_truth", 1000, &Environment::ReceiveOdometry, this);
+	cellActualPositionSubscribers.push_back(robot5);
+	ros::Subscriber robot6 = environmentNode.subscribe("/robot_6/base_pose_ground_truth", 1000, &Environment::ReceiveOdometry, this);
+	cellActualPositionSubscribers.push_back(robot6);
 }
 
-void Environment::callBackRobot(const nav_msgs::Odometry::ConstPtr& odom)
+// Used for getting the actual positions of the cells
+void Environment::ReceiveOdometry(const nav_msgs::Odometry::ConstPtr& odometryMessage)
 {
-	btScalar yaw = 0.0l;
-	btScalar roll = 0.0l;
-	btScalar pitch = 0.0l;
+	// the quaternion is used to find the yaw, for calculating z (theta)
+	btQuaternion quaternion(odometryMessage->pose.pose.orientation.x,
+			odometryMessage->pose.pose.orientation.y,
+			odometryMessage->pose.pose.orientation.z,
+			odometryMessage->pose.pose.orientation.w);
 
-	double currentY = odom-> pose.pose.position.x;
-	double currentX = -odom-> pose.pose.position.y;
-
-//	btQuaternion q(odom->pose.pose.orientation.x,
-//				 odom->pose.pose.orientation.y,
-//				 odom->pose.pose.orientation.z,
-//				 odom->pose.pose.orientation.w);
-//	btMatrix3x3(q).getRPY(roll, pitch, yaw);
-	double currentTheta = angles::normalize_angle(yaw + M_PI / 2.0l);
-	string ID = odom->header.frame_id.substr(7,1);
+	// Set the stage ID for the cell whose actual position we're checking
+	string ID = odometryMessage->header.frame_id.substr(7,1);
 	int IDNumber = atoi(ID.c_str());
 
-	cellActualPositions.at(IDNumber).at(0) = currentX;
-	cellActualPositions.at(IDNumber).at(1) = currentY;
-	cellActualPositions.at(IDNumber).at(2) = currentTheta;
+	cellActualPositions.at(IDNumber).at(0) = -odometryMessage->pose.pose.position.y;						// x
+	cellActualPositions.at(IDNumber).at(1) = odometryMessage->pose.pose.position.x;							// y
+	cellActualPositions.at(IDNumber).at(2) = angles::normalize_angle(tf::getYaw(quaternion) + M_PI / 2.0l);	// z, theta
 
 	ros::spinOnce();
 }
@@ -138,7 +131,6 @@ bool Environment::setRelationshipMessage(NewSimulator::Relationship::Request &re
 	// Test values to make sure relationship service is working
 	response.theRelationship.actual_relationship.x = 1;
 	response.theRelationship.actual_relationship.y = 2;
-
 
 	return true;
 }
