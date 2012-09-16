@@ -52,7 +52,7 @@ void Environment::initEnvironmentSubscribers()
 	tempSubRobotVelocity.push_back(0);	// y
 	tempSubRobotVelocity.push_back(0);	// z, orientation
 
-	// Push numOfRobots robot locations into the subRobotPoses vector
+	// Push numOfRobots robot locations into the subRobotSubscribers vector
 	for(int k = 0; k < numOfRobots; k++)
 		cellActualPositions.push_back(tempSubRobotVelocity);
 
