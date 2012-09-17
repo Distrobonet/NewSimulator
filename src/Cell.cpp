@@ -384,11 +384,11 @@ void Cell::makeStateClientCall(string neighbor)
 	//ros::NodeHandle clientNode;
 	stateClient = stateNodeHandle.serviceClient<NewSimulator::State>("cell_state_"+neighbor);
 
-	if (stateClient.call(incomingStateService))
+	if (stateClient.call(incomingStateService) && incomingStateService.response.state.formation_id != cellFormation.formationID)
 	{
-//		cout<<"For cell "<<cellID<<" old formation id getting "<<neighbor<<"'s formation id "<<cellFormation.formationID<<endl;
+	//	cout << "For cell " << cellID << " old formation id getting " << neighbor << "s formation id " << cellFormation.formationID << endl;
 		cellFormation.formationID = incomingStateService.response.state.formation_id;
-//		cout<<"For cell "<<cellID<<" new formation id "<<cellFormation.formationID<<endl<<endl;
+	//	cout << "For cell " << cellID << " new formation id " << cellFormation.formationID << endl << endl;
 		stateNodeHandle.shutdown();
 		spinner.stop();
 		return;
