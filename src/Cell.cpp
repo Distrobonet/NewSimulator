@@ -36,42 +36,120 @@ void Cell::update()
 
 	ros::Rate loop_rate(10);
 	setNeighborhood();
+	updateCurrentStatus(WAITING_FOR_FORMATION);
 
 	while(ros::ok)
 	{
+		checkNeighrborStatus();
+
+
+
 		// If the cell's ID is the seedID set in Formation, then get the formation ID set by Simulator
 		if(cellID == cellFormation.seedID)
 		{
 			receiveFormationFromSimulator();
 		}
-//		cout << "*** Continuing.  cellID = " << cellID << " / " << cellFormation.seedID << ", FormationID = " << cellFormation.formationID << " ***\n";
 
+		updateCurrentStatus(WAITING_TO_UPDATE);
 
 		// Send requests to Environment for the cell's relationships with its neighbors
-		receiveRelationshipFromEnvironment(0);	// When we do multi-function formations and dynamic
-		receiveRelationshipFromEnvironment(1);	// neighborhoods, these indices will be changed
-
-		receiveNeighborState();
-		publishState();
-
-		// Stuff from Ross' simulator to mimic eventually:
-		if (currentStatus == 1) // This should be whatever Status means that the cell should figure out its movement
+		for(uint i = 0; i < getNumberOfNeighbors(); i++)
 		{
-	//		commandVelocity.linear.x = getTranslationalVelocity().x;
-	//		commandVelocity.linear.y = getTranslationalVelocity().y;
-	//		commandVelocity.angular.z = getAngularVelocity().z;
+			// When we do multi-function formations and dynamic neighborhoods, these indices will be changed
+			receiveRelationshipFromEnvironment(neighborhoodList[i]);
 		}
 
+		receiveNeighborState();
+		calculateDesiredPosition();
+		moveToDesiredFromActualPosition();
+		updateCurrentStatus();
 
-
-//		commandVelocity.linear.x = 1;	// moves forward
-//		commandVelocity.angular.z = 1;	// moves counter-clockwise
-
-		cmd_velPub.publish(commandVelocity);
+//		publishState();
+//		cmd_velPub.publish(commandVelocity);
 
 		ros::spinOnce();
 		loop_rate.sleep();
 	}
+}
+
+vector<Status> Cell::getNeighrborStatus()
+{
+	for(uint i = i; i < getNumberOfNeighbors(); i++) {
+
+	}
+}
+
+bool Cell::figureCurrentStatus(int currentNeighborCellID, vector<Status> neighrborsStatus)
+{
+		string status = neighrborsStatus.at(currentNeighborCellID);
+		switch (status) {
+			case WAITING_FOR_FORMATION:
+				if(figureCurrentStatus(neighborhoodList.at(currentNeighborCellID + 1), neighrborsStatus)) {
+
+					break;
+				}
+				else {
+					return false;
+				}
+
+			case WAITING_TO_UPDATE:
+				figureCurrentStatus(currentNeighbor, neighrborsStatus);
+				break;
+
+			case UPDATING:
+				figureCurrentStatus(currentNeighbor, neighrborsStatus);
+				break;
+
+			case WAITING_TO_MOVE:
+				figureCurrentStatus(currentNeighbor, neighrborsStatus);
+				break;
+
+			case MOVING:
+				figureCurrentStatus(currentNeighbor, neighrborsStatus);
+				break;
+
+			default:
+				break;
+		}
+}
+
+void Cell::calculateDesiredPosition()
+{
+
+}
+
+void Cell::moveToDesiredFromActualPosition()
+{
+	calculateMovement();
+	move();
+}
+
+void Cell::updateCurrentStatus()
+{
+	// Stuff from Ross' simulator to mimic eventually:
+	if (currentStatus == 1) // This should be whatever Status means that the cell should figure out its movement
+	{
+//		commandVelocity.linear.x = getTranslationalVelocity().x;
+//		commandVelocity.linear.y = getTranslationalVelocity().y;
+//		commandVelocity.angular.z = getAngularVelocity().z;
+	}
+
+//		commandVelocity.linear.x = 1;	// moves forward
+//		commandVelocity.angular.z = 1;	// moves counter-clockwise
+}
+
+void Cell::calculateMovement()
+{
+	// getActualPosition();
+	// getDesiredPosition();
+	// getFormationRelativePosition();
+
+	// doMath();
+}
+
+void Cell::move()
+{
+
 }
 
 
@@ -97,6 +175,7 @@ void Cell::receiveRelationshipFromEnvironment(int neighborIndex)
 		spinner.stop();
 		return;
 	}
+
 	relationshipNodeHandle.shutdown();
 	spinner.stop();
 	return;
@@ -249,12 +328,12 @@ string Cell::generatePubMessage(int cellID)
 void Cell::receiveNeighborState()
 {
 
-	stringstream leftSS;//create a stringstream
-	leftSS << (neighborhoodList[0]);//add number to the stream
+	stringstream leftSS;					//create a stringstream
+	leftSS << (neighborhoodList[0]);		//add number to the stream
 	string  leftNeighborID = leftSS.str();
 
-	stringstream rightSS;//create a stringstream
-	rightSS << (neighborhoodList[1]);//add number to the stream
+	stringstream rightSS;					//create a stringstream
+	rightSS << (neighborhoodList[1]);		//add number to the stream
 	string  rightNeighborID = rightSS.str();
 
 
@@ -266,6 +345,51 @@ void Cell::receiveNeighborState()
 	{
 		makeStateClientCall(rightNeighborID);
 	}
+}
+
+void Cell::updateState()
+{
+  if ((getNumberOfRobots() == 0) || (formation.getSeedID() != ID))
+		  return;
+
+  // update actual relationships to neighbors
+  Neighbor *currentNeighbor = NULL;
+  for (uint i = 0; i < getNumberOfNeighbors(); ++i)
+  {
+    currentNeighbor = neighborhoodList.at(i);
+    if (currentNeighbor == -1) break;
+
+    // change formation if a neighbor has changed formation
+    if (currentNeighbor->formation.getFormationID() > formation.getFormationID())
+      changeFormation(currentNeighbor->formation, *currentNeighbor);
+
+    currentNeighbor->relActual = getRelationship(currentNeighbor->ID);
+  }
+
+  rels = getRelationships();
+
+  // reference the neighbor with the minimum gradient
+  // to establish the correct position in formation
+  if (getNNbrs() > 0)
+  {
+    Neighbor *neighborReference = nbrWithMinGradient(formation.getSeedGradient());
+    Relationship *nbrRelToMe = relWithID(neighborReference->rels, ID);
+
+    if ((formation.getSeedID() != ID) && (neighborReference != NULL) && (nbrRelToMe != NULL))
+    {
+      // error (state) is based upon the
+      // accumulated error in the formation
+      Vector  nbrRelToMeDesired = nbrRelToMe->relDesired;
+      nbrRelToMeDesired.rotateRelative(-neighborReference->rotError);
+      float theta = scaleDegrees(nbrRelToMe->relActual.angle() - (-neighborReference->relActual).angle());
+      rotError = scaleDegrees(theta + neighborReference->rotError);
+      transError = nbrRelToMeDesired - nbrRelToMe->relActual + neighborReference->transError;
+      transError.rotateRelative(-theta);
+
+      //set the state variable of refID  = ID of the reference nbr.
+      refID = neighborReference->ID;
+    }
+  }
 }
 
 // Starts the cell's state service server
@@ -358,23 +482,23 @@ void Cell::updateState(const NewSimulator::State::Response &incomingState)
 //	cellFormation.formationID = incomingState.state.formation_id;
 }
 
-void Cell::publishState()
-{
-	NewSimulator::StateMessage state;
-//    state.formation.radius = formation.heading;
-//    state.formation.heading = formation.heading;
-//    state.formation.seed_frp.x = formation.seedFrp.x;
-//    state.formation.seed_frp.y = formation.seedFrp.y;
-//    state.formation.seed_id = formation.seedID;
-//    state.formation.formation_id = formation.formationID;
-//    state.in_position = inPosition;
-
-	//Proof of Concept
-//	state.formation.seed_id = cellID;		// statemessage doesn't contain this anymore
-
-    state_pub.publish(state);
-//    stateChanged = false;
-}
+//void Cell::publishState()
+//{
+//	NewSimulator::StateMessage state;
+////    state.formation.radius = formation.heading;
+////    state.formation.heading = formation.heading;
+////    state.formation.seed_frp.x = formation.seedFrp.x;
+////    state.formation.seed_frp.y = formation.seedFrp.y;
+////    state.formation.seed_id = formation.seedID;
+////    state.formation.formation_id = formation.formationID;
+////    state.in_position = inPosition;
+//
+//	//Proof of Concept
+////	state.formation.seed_id = cellID;		// statemessage doesn't contain this anymore
+//
+//    state_pub.publish(state);
+////    stateChanged = false;
+//}
 
 void Cell::makeStateClientCall(string neighbor)
 {
@@ -389,17 +513,16 @@ void Cell::makeStateClientCall(string neighbor)
 	//	cout << "For cell " << cellID << " old formation id getting " << neighbor << "s formation id " << cellFormation.formationID << endl;
 		cellFormation.formationID = incomingStateService.response.state.formation_id;
 	//	cout << "For cell " << cellID << " new formation id " << cellFormation.formationID << endl << endl;
+
 		stateNodeHandle.shutdown();
 		spinner.stop();
 		return;
-
 	}
 
 //	ROS_INFO("Shutting down client node for Formation service...");
 	stateClient.shutdown();
 	spinner.stop();
 	return;
-
 }
 
 void Cell::setCurrentStatus(int newStatus)
@@ -420,4 +543,10 @@ void Cell::checkNeighborStatus()
 		// Change current state to (moving)
 		// Move (step)
 	// Change state to (in position)
+}
+
+int Cell::getNumberOfNeighbors()
+{
+	return neighborhoodList.size();
+}
 }

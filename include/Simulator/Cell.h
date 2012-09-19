@@ -42,6 +42,14 @@ class Cell
 		virtual ~Cell();
 
 		void update();
+		void moveToDesiredFromActualPosition();
+		void calculateDesiredPosition();
+		void moveToDesiredFromActualPosition();
+		void updateCurrentStatus();
+
+		void calculateMovement();
+		void move();
+
 		int getCellID();
 		void setCellID(int ID);
 		Formation getFormation();
