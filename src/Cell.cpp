@@ -43,14 +43,11 @@ void Cell::update()
 		checkNeighrborStatus();
 
 
-
 		// If the cell's ID is the seedID set in Formation, then get the formation ID set by Simulator
 		if(cellID == cellFormation.seedID)
 		{
 			receiveFormationFromSimulator();
 		}
-
-		updateCurrentStatus(WAITING_TO_UPDATE);
 
 		// Send requests to Environment for the cell's relationships with its neighbors
 		for(uint i = 0; i < getNumberOfNeighbors(); i++)
@@ -74,38 +71,52 @@ void Cell::update()
 
 vector<Status> Cell::getNeighrborStatus()
 {
+	int neighborhoodStatuses = 0;
 	for(uint i = i; i < getNumberOfNeighbors(); i++) {
-
+		neighborhoodStatuses *= neighborhoodList.at(i);
 	}
+
+	figurecurrentStatus(neighborhoodStatuses);
 }
 
-bool Cell::figureCurrentStatus(int currentNeighborCellID, vector<Status> neighrborsStatus)
+void Cell::figureCurrentStatus(int neighborhoodStatuses)
 {
-		string status = neighrborsStatus.at(currentNeighborCellID);
-		switch (status) {
+		switch (cell.currentStatus) {
 			case WAITING_FOR_FORMATION:
-				if(figureCurrentStatus(neighborhoodList.at(currentNeighborCellID + 1), neighrborsStatus)) {
-
+				if(cellFormation) {
+					cell.currentStatus = WAITING_TO_UPDATE;
 					break;
 				}
-				else {
-					return false;
-				}
+				break;
 
 			case WAITING_TO_UPDATE:
-				figureCurrentStatus(currentNeighbor, neighrborsStatus);
+				if((neighborhoodStatuses % 3 != 0) ||
+				   (neighborhoodStatuses % 11 != 0) ||
+				   (neighborhoodStatuses % 13 != 0)) {
+					cell.currentStatus = UPDATING;
+					break;
+				}
 				break;
 
 			case UPDATING:
-				figureCurrentStatus(currentNeighbor, neighrborsStatus);
+				if(/*done with calculations */) {
+					cell.currentSTatus = WAITING_TO_UPDATE;
+					break;
+				}
 				break;
 
 			case WAITING_TO_MOVE:
-				figureCurrentStatus(currentNeighbor, neighrborsStatus);
+				if(neighborhoodStatuses % 7 != 0) {
+					cell.currentStatus = MOVING;
+					break;
+				}
 				break;
 
 			case MOVING:
-				figureCurrentStatus(currentNeighbor, neighrborsStatus);
+				if(/*done moving*/) {
+					cell.currentStatus = WAITING_TO_UPDATE;
+					break;
+				}
 				break;
 
 			default:
@@ -229,6 +240,7 @@ void Cell::setFormation(Formation formation)
 
 vector<int> Cell::getNeighborhood()
 {
+	//This should be were we make a service request to environment to get the neighbors
 	return neighborhoodList;
 }
 
@@ -280,6 +292,73 @@ void Cell::setState(State state)
 {
 	cellState = state;
 }
+
+void Cell::updateState(const NewSimulator::State::Response &incomingState)
+{
+//	cellFormation.formationID = incomingState.state.formation_id;
+}
+
+void Cell::updateState()
+{
+//  if ((neighborhoodList()               == 0)     ||
+//      (nbrWithMinStep()->tStep  <  tStep) ||
+//      ((formation.getSeedID()   != ID)    &&
+//       (nbrWithMaxStep()->tStep == tStep))) return;
+
+  // update actual relationships to neighbors
+  Neighbor *currentNeighbor = NULL;
+  for (uint i = 0; i < getNeighborTotal(); ++i)
+  {
+	  currentNeighbor = neighborhoodList.at(i);
+    if (currentNeighbor == NULL) break;
+
+    // change formation if a neighbor has changed formation
+    if (currentNeighbor. formation.getFormationID() > formation.getFormationID())
+      changeFormation(currentNeighbor->formation, *currentNeighbor);
+    currentNeighbor->relActual = getRelationship(currentNeighbor->ID);
+  }
+  rels = getRelationships();
+
+  for (uint i = 0; i < size(); ++i)
+  {
+	  currentNeighbor = getNbr(i);
+	if (currentNeighbor == NULL) break;
+
+	dT    = currentNeighbor->temperature - temperature;
+	d     = currentNeighbor->relActual.magnitude();
+	q     = K * A * dT / d;
+	qSum += q;
+  }
+
+  // reference the neighbor with the minimum gradient
+  // to establish the correct position in formation
+  if (getNeighborTotal() > 0)
+  {
+    Neighbor     *refNbr     = nbrWithMinGradient(
+        formation.getSeedGradient());
+    Relationship *nbrRelToMe = relWithID(refNbr->rels, ID);
+    if ((formation.getSeedID() != ID)   &&
+        (refNbr                != NULL) &&
+        (nbrRelToMe            != NULL))
+    {
+
+      // error (state) is based upon the
+      // accumulated error in the formation
+      Vector  nbrRelToMeDesired = nbrRelToMe->relDesired;
+      nbrRelToMeDesired.rotateRelative(-refNbr->rotError);
+      GLfloat theta = scaleDegrees(nbrRelToMe->relActual.angle() -
+          (-refNbr->relActual).angle());
+      rotError      = scaleDegrees(theta + refNbr->rotError);
+      transError    = nbrRelToMeDesired - nbrRelToMe->relActual +
+        refNbr->transError;
+      transError.rotateRelative(-theta);
+      //set the state variable of refID  = ID of the reference nbr.
+      refID = refNbr->ID;
+    }
+  }
+
+  tStep = max(tStep + 1, nbrWithMaxStep()->tStep);
+}   // updateState()
 
 // Translates the robot relative to itself based on the parameterized translation vector.
 void Cell::translateRelative(float dx , float dy)
@@ -475,11 +554,6 @@ void Cell::stateCallback(const NewSimulator::StateMessage &incomingState)
 //		}
 //	}
 //	updateState();
-}
-
-void Cell::updateState(const NewSimulator::State::Response &incomingState)
-{
-//	cellFormation.formationID = incomingState.state.formation_id;
 }
 
 //void Cell::publishState()
