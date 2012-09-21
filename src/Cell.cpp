@@ -69,59 +69,54 @@ void Cell::update()
 	}
 }
 
-vector<Status> Cell::getNeighrborStatus()
-{
+void Cell::updateCurrentStatus(int neighborhoodStatuses) {
+
 	int neighborhoodStatuses = 0;
 	for(uint i = i; i < getNumberOfNeighbors(); i++) {
 		neighborhoodStatuses *= neighborhoodList.at(i);
 	}
 
-	figurecurrentStatus(neighborhoodStatuses);
-}
-
-void Cell::figureCurrentStatus(int neighborhoodStatuses)
-{
-		switch (cell.currentStatus) {
-			case WAITING_FOR_FORMATION:
-				if(cellFormation) {
-					cell.currentStatus = WAITING_TO_UPDATE;
-					break;
-				}
+	switch (cell.currentStatus) {
+		case WAITING_FOR_FORMATION:
+			if(cellFormation) {
+				cell.currentStatus = WAITING_TO_UPDATE;
 				break;
+			}
+			break;
 
-			case WAITING_TO_UPDATE:
-				if((neighborhoodStatuses % 3 != 0) ||
-				   (neighborhoodStatuses % 11 != 0) ||
-				   (neighborhoodStatuses % 13 != 0)) {
-					cell.currentStatus = UPDATING;
-					break;
-				}
+		case WAITING_TO_UPDATE:
+			if((neighborhoodStatuses % 3 != 0) ||
+			   (neighborhoodStatuses % 11 != 0) ||
+			   (neighborhoodStatuses % 13 != 0)) {
+				cell.currentStatus = UPDATING;
 				break;
+			}
+			break;
 
-			case UPDATING:
-				if(/*done with calculations */) {
-					cell.currentSTatus = WAITING_TO_UPDATE;
-					break;
-				}
+		case UPDATING:
+			if(/*done with calculations */) {
+				cell.currentSTatus = WAITING_TO_UPDATE;
 				break;
+			}
+			break;
 
-			case WAITING_TO_MOVE:
-				if(neighborhoodStatuses % 7 != 0) {
-					cell.currentStatus = MOVING;
-					break;
-				}
+		case WAITING_TO_MOVE:
+			if(neighborhoodStatuses % 7 != 0) {
+				cell.currentStatus = MOVING;
 				break;
+			}
+			break;
 
-			case MOVING:
-				if(/*done moving*/) {
-					cell.currentStatus = WAITING_TO_UPDATE;
-					break;
-				}
+		case MOVING:
+			if(/*done moving*/) {
+				cell.currentStatus = WAITING_TO_UPDATE;
 				break;
+			}
+			break;
 
-			default:
-				break;
-		}
+		default:
+			break;
+	}
 }
 
 void Cell::calculateDesiredPosition()
@@ -131,22 +126,21 @@ void Cell::calculateDesiredPosition()
 
 void Cell::moveToDesiredFromActualPosition()
 {
+	void Cell::updateCurrentStatus()
+	{
+		// Stuff from Ross' simulator to mimic eventually:
+		if (currentStatus == 1) // This should be whatever Status means that the cell should figure out its movement
+		{
+	//		commandVelocity.linear.x = getTranslationalVelocity().x;
+	//		commandVelocity.linear.y = getTranslationalVelocity().y;
+	//		commandVelocity.angular.z = getAngularVelocity().z;
+		}
+
+	//		commandVelocity.linear.x = 1;	// moves forward
+	//		commandVelocity.angular.z = 1;	// moves counter-clockwise
+	}
 	calculateMovement();
 	move();
-}
-
-void Cell::updateCurrentStatus()
-{
-	// Stuff from Ross' simulator to mimic eventually:
-	if (currentStatus == 1) // This should be whatever Status means that the cell should figure out its movement
-	{
-//		commandVelocity.linear.x = getTranslationalVelocity().x;
-//		commandVelocity.linear.y = getTranslationalVelocity().y;
-//		commandVelocity.angular.z = getAngularVelocity().z;
-	}
-
-//		commandVelocity.linear.x = 1;	// moves forward
-//		commandVelocity.angular.z = 1;	// moves counter-clockwise
 }
 
 void Cell::calculateMovement()
