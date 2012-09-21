@@ -36,13 +36,9 @@ void Cell::update()
 
 	ros::Rate loop_rate(10);
 	setNeighborhood();
-	updateCurrentStatus(WAITING_FOR_FORMATION);
 
 	while(ros::ok)
 	{
-		checkNeighrborStatus();
-
-
 		// If the cell's ID is the seedID set in Formation, then get the formation ID set by Simulator
 		if(cellID == cellFormation.seedID)
 		{
@@ -56,12 +52,7 @@ void Cell::update()
 			receiveRelationshipFromEnvironment(neighborhoodList[i]);
 		}
 
-
-		calculateDesiredPosition();
-		moveToDesiredFromActualPosition();
 		updateCurrentStatus();
-
-//		publishState();
 //		cmd_velPub.publish(commandVelocity);
 
 		ros::spinOnce();
@@ -75,10 +66,10 @@ void Cell::updateCurrentStatus() {
 	for(uint i = 0; i < getNumberOfNeighbors(); i++) {
 		neighborhoodStatuses *= neighborhoodList.at(i);
 
-	switch (cell.currentStatus) {
+	switch (currentStatus) {
 		case WAITING_FOR_FORMATION:
-			if(cellFormation) {
-				cell.currentStatus = WAITING_TO_UPDATE;
+			if(cellFormation.isValid()) {
+				currentStatus = WAITING_TO_UPDATE;
 				break;
 			}
 			break;
@@ -87,28 +78,28 @@ void Cell::updateCurrentStatus() {
 			if((neighborhoodStatuses % 3 != 0) ||
 			   (neighborhoodStatuses % 11 != 0) ||
 			   (neighborhoodStatuses % 13 != 0)) {
-				cell.currentStatus = UPDATING;
+				currentStatus = UPDATING;
 				break;
 			}
 			break;
 
 		case UPDATING:
 			if(calculateMovement()) {
-				cell.currentSTatus = WAITING_TO_UPDATE;
+				currentSTatus = WAITING_TO_UPDATE;
 				break;
 			}
 			break;
 
 		case WAITING_TO_MOVE:
 			if(neighborhoodStatuses % 7 != 0) {
-				cell.currentStatus = MOVING;
+				currentStatus = MOVING;
 				break;
 			}
 			break;
 
 		case MOVING:
 			if(move()) {
-				cell.currentStatus = WAITING_TO_UPDATE;
+				currentStatus = WAITING_TO_UPDATE;
 				break;
 			}
 			break;
@@ -118,19 +109,7 @@ void Cell::updateCurrentStatus() {
 	}
 }
 
-void Cell::calculateDesiredPosition()
-{
-
-}
-
-void Cell::moveToDesiredFromActualPosition()
-{
-	calculatevoidMovement();
-	move();
-}
-
-bool Cell::calculateMovement()
-{
+bool Cell::calculateMovement() {
 	receiveNeighborState();
 	// getActualPosition();
 	// getDesiredPosition();
