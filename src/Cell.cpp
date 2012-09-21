@@ -65,6 +65,7 @@ void Cell::updateCurrentStatus() {
 	int neighborhoodStatuses = 0;
 	for(uint i = 0; i < getNumberOfNeighbors(); i++) {
 		neighborhoodStatuses *= neighborhoodList.at(i);
+	}
 
 	switch (currentStatus) {
 		case WAITING_FOR_FORMATION:
@@ -85,7 +86,7 @@ void Cell::updateCurrentStatus() {
 
 		case UPDATING:
 			if(calculateMovement()) {
-				currentSTatus = WAITING_TO_UPDATE;
+				currentStatus = WAITING_TO_UPDATE;
 				break;
 			}
 			break;
@@ -124,7 +125,6 @@ bool Cell::move()
 	// Do move stuff
 	return true;
 }
-
 
 // Uses a service client to get the relationship from Environment
 void Cell::receiveRelationshipFromEnvironment(int neighborIndex)
@@ -260,68 +260,6 @@ void Cell::updateState(const NewSimulator::State::Response &incomingState)
 //	cellFormation.formationID = incomingState.state.formation_id;
 }
 
-void Cell::updateState()
-{
-//  if ((neighborhoodList()               == 0)     ||
-//      (nbrWithMinStep()->tStep  <  tStep) ||
-//      ((formation.getSeedID()   != ID)    &&
-//       (nbrWithMaxStep()->tStep == tStep))) return;
-
-  // update actual relationships to neighbors
-  Neighbor *currentNeighbor = NULL;
-  for (uint i = 0; i < getNeighborTotal(); ++i)
-  {
-	  currentNeighbor = neighborhoodList.at(i);
-    if (currentNeighbor == NULL) break;
-
-    // change formation if a neighbor has changed formation
-    if (currentNeighbor. formation.getFormationID() > formation.getFormationID())
-      changeFormation(currentNeighbor->formation, *currentNeighbor);
-    currentNeighbor->relActual = getRelationship(currentNeighbor->ID);
-  }
-  rels = getRelationships();
-
-  for (uint i = 0; i < size(); ++i)
-  {
-	  currentNeighbor = getNbr(i);
-	if (currentNeighbor == NULL) break;
-
-	dT    = currentNeighbor->temperature - temperature;
-	d     = currentNeighbor->relActual.magnitude();
-	q     = K * A * dT / d;
-	qSum += q;
-  }
-
-  // reference the neighbor with the minimum gradient
-  // to establish the correct position in formation
-  if (getNeighborTotal() > 0)
-  {
-    Neighbor     *refNbr     = nbrWithMinGradient(
-        formation.getSeedGradient());
-    Relationship *nbrRelToMe = relWithID(refNbr->rels, ID);
-    if ((formation.getSeedID() != ID)   &&
-        (refNbr                != NULL) &&
-        (nbrRelToMe            != NULL))
-    {
-
-      // error (state) is based upon the
-      // accumulated error in the formation
-      Vector  nbrRelToMeDesired = nbrRelToMe->relDesired;
-      nbrRelToMeDesired.rotateRelative(-refNbr->rotError);
-      GLfloat theta = scaleDegrees(nbrRelToMe->relActual.angle() -
-          (-refNbr->relActual).angle());
-      rotError      = scaleDegrees(theta + refNbr->rotError);
-      transError    = nbrRelToMeDesired - nbrRelToMe->relActual +
-        refNbr->transError;
-      transError.rotateRelative(-theta);
-      //set the state variable of refID  = ID of the reference nbr.
-      refID = refNbr->ID;
-    }
-  }
-
-  tStep = max(tStep + 1, nbrWithMaxStep()->tStep);
-}   // updateState()
-
 // Translates the robot relative to itself based on the parameterized translation vector.
 void Cell::translateRelative(float dx , float dy)
 {
@@ -390,47 +328,47 @@ void Cell::receiveNeighborState()
 
 void Cell::updateState()
 {
-  if ((getNumberOfRobots() == 0) || (formation.getSeedID() != ID))
+  if ((getNumberOfNeighbors() == 0) || (cellFormation.getSeedID() != cellID))
 		  return;
 
-  // update actual relationships to neighbors
-  Neighbor *currentNeighbor = NULL;
-  for (uint i = 0; i < getNumberOfNeighbors(); ++i)
-  {
-    currentNeighbor = neighborhoodList.at(i);
-    if (currentNeighbor == -1) break;
-
-    // change formation if a neighbor has changed formation
-    if (currentNeighbor->formation.getFormationID() > formation.getFormationID())
-      changeFormation(currentNeighbor->formation, *currentNeighbor);
-
-    currentNeighbor->relActual = getRelationship(currentNeighbor->ID);
-  }
-
-  rels = getRelationships();
-
-  // reference the neighbor with the minimum gradient
-  // to establish the correct position in formation
-  if (getNNbrs() > 0)
-  {
-    Neighbor *neighborReference = nbrWithMinGradient(formation.getSeedGradient());
-    Relationship *nbrRelToMe = relWithID(neighborReference->rels, ID);
-
-    if ((formation.getSeedID() != ID) && (neighborReference != NULL) && (nbrRelToMe != NULL))
-    {
-      // error (state) is based upon the
-      // accumulated error in the formation
-      Vector  nbrRelToMeDesired = nbrRelToMe->relDesired;
-      nbrRelToMeDesired.rotateRelative(-neighborReference->rotError);
-      float theta = scaleDegrees(nbrRelToMe->relActual.angle() - (-neighborReference->relActual).angle());
-      rotError = scaleDegrees(theta + neighborReference->rotError);
-      transError = nbrRelToMeDesired - nbrRelToMe->relActual + neighborReference->transError;
-      transError.rotateRelative(-theta);
-
-      //set the state variable of refID  = ID of the reference nbr.
-      refID = neighborReference->ID;
-    }
-  }
+//  // update actual relationships to neighbors
+//  Neighbor *currentNeighbor = NULL;
+//  for (uint i = 0; i < getNumberOfNeighbors(); ++i)
+//  {
+//    currentNeighbor = neighborhoodList.at(i);
+//    if (currentNeighbor == -1) break;
+//
+//    // change formation if a neighbor has changed formation
+//    if (currentNeighbor->formation.getFormationID() > formation.getFormationID())
+//      changeFormation(currentNeighbor->formation, *currentNeighbor);
+//
+//    currentNeighbor->relActual = getRelationship(currentNeighbor->ID);
+//  }
+//
+//  rels = getRelationships();
+//
+//  // reference the neighbor with the minimum gradient
+//  // to establish the correct position in formation
+//  if (getNNbrs() > 0)
+//  {
+//    Neighbor *neighborReference = nbrWithMinGradient(formation.getSeedGradient());
+//    Relationship *nbrRelToMe = relWithID(neighborReference->rels, ID);
+//
+//    if ((formation.getSeedID() != ID) && (neighborReference != NULL) && (nbrRelToMe != NULL))
+//    {
+//      // error (state) is based upon the
+//      // accumulated error in the formation
+//      Vector  nbrRelToMeDesired = nbrRelToMe->relDesired;
+//      nbrRelToMeDesired.rotateRelative(-neighborReference->rotError);
+//      float theta = scaleDegrees(nbrRelToMe->relActual.angle() - (-neighborReference->relActual).angle());
+//      rotError = scaleDegrees(theta + neighborReference->rotError);
+//      transError = nbrRelToMeDesired - nbrRelToMe->relActual + neighborReference->transError;
+//      transError.rotateRelative(-theta);
+//
+//      //set the state variable of refID  = ID of the reference nbr.
+//      refID = neighborReference->ID;
+//    }
+//  }
 }
 
 // Starts the cell's state service server
@@ -584,5 +522,4 @@ void Cell::checkNeighborStatus()
 int Cell::getNumberOfNeighbors()
 {
 	return neighborhoodList.size();
-}
 }

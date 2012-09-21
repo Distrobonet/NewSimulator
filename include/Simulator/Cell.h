@@ -42,13 +42,11 @@ class Cell
 		virtual ~Cell();
 
 		void update();
-		void moveToDesiredFromActualPosition();
-		void calculateDesiredPosition();
-		void moveToDesiredFromActualPosition();
 		void updateCurrentStatus();
+		int getNumberOfNeighbors();
 
-		void calculateMovement();
-		void move();
+		bool calculateMovement();
+		bool move();
 
 		int getCellID();
 		void setCellID(int ID);
@@ -63,6 +61,7 @@ class Cell
 		void setState(State state);
 		void translateRelative(float dx = 0.0f, float dy = 0.0f);
 		void rotateRelative(float theta);
+		void updateState();
 		void updateState(const NewSimulator::State::Response &incomingState);
 		int getCurrentStatus();
 		void setCurrentStatus(int newStatus);
