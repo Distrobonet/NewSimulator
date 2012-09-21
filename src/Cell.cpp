@@ -56,7 +56,7 @@ void Cell::update()
 			receiveRelationshipFromEnvironment(neighborhoodList[i]);
 		}
 
-		receiveNeighborState();
+
 		calculateDesiredPosition();
 		moveToDesiredFromActualPosition();
 		updateCurrentStatus();
@@ -69,12 +69,11 @@ void Cell::update()
 	}
 }
 
-void Cell::updateCurrentStatus(int neighborhoodStatuses) {
+void Cell::updateCurrentStatus() {
 
 	int neighborhoodStatuses = 0;
-	for(uint i = i; i < getNumberOfNeighbors(); i++) {
+	for(uint i = 0; i < getNumberOfNeighbors(); i++) {
 		neighborhoodStatuses *= neighborhoodList.at(i);
-	}
 
 	switch (cell.currentStatus) {
 		case WAITING_FOR_FORMATION:
@@ -94,7 +93,7 @@ void Cell::updateCurrentStatus(int neighborhoodStatuses) {
 			break;
 
 		case UPDATING:
-			if(/*done with calculations */) {
+			if(calculateMovement()) {
 				cell.currentSTatus = WAITING_TO_UPDATE;
 				break;
 			}
@@ -108,7 +107,7 @@ void Cell::updateCurrentStatus(int neighborhoodStatuses) {
 			break;
 
 		case MOVING:
-			if(/*done moving*/) {
+			if(move()) {
 				cell.currentStatus = WAITING_TO_UPDATE;
 				break;
 			}
@@ -126,35 +125,25 @@ void Cell::calculateDesiredPosition()
 
 void Cell::moveToDesiredFromActualPosition()
 {
-	void Cell::updateCurrentStatus()
-	{
-		// Stuff from Ross' simulator to mimic eventually:
-		if (currentStatus == 1) // This should be whatever Status means that the cell should figure out its movement
-		{
-	//		commandVelocity.linear.x = getTranslationalVelocity().x;
-	//		commandVelocity.linear.y = getTranslationalVelocity().y;
-	//		commandVelocity.angular.z = getAngularVelocity().z;
-		}
-
-	//		commandVelocity.linear.x = 1;	// moves forward
-	//		commandVelocity.angular.z = 1;	// moves counter-clockwise
-	}
-	calculateMovement();
+	calculatevoidMovement();
 	move();
 }
 
-void Cell::calculateMovement()
+bool Cell::calculateMovement()
 {
+	receiveNeighborState();
 	// getActualPosition();
 	// getDesiredPosition();
 	// getFormationRelativePosition();
 
 	// doMath();
+	return true;
 }
 
-void Cell::move()
+bool Cell::move()
 {
-
+	// Do move stuff
+	return true;
 }
 
 
