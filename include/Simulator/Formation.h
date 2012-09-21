@@ -44,6 +44,7 @@ class Formation
 		PhysicsVector getSeedFormationRelativePosition();
 		int getSeedID();
 		vector<PhysicsVector> getRelationships(const PhysicsVector someVector);
+		bool isValid();
 
 		PhysicsVector getRelationship( const Function intersectingFunction = DEFAULT_FORMATION_FUNCTION,
 		                               const float intersectingCircleRadius = DEFAULT_FORMATION_RADIUS,

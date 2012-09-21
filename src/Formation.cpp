@@ -188,3 +188,9 @@ float Formation::getFunctionIntersection(const Function formationToCopy, const f
 {
 	return pow(offset - centerPosition.x, 2.0f) + pow(formationToCopy(offset) - centerPosition.y, 2.0f) - pow(intersectingCircleRadius, 2.0f);
 }
+
+bool Formation::isValid() {
+	if(formationID != -1)
+		return true;
+	return false;
+}
