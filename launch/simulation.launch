@@ -1,5 +1,4 @@
 <launch>
-	<node pkg="stage" type="stageros" name="stageros" args="$(optenv ROS_STAGE_GRAPHICS -g) $(find stage_controllers)/world/distrobo-world-7-robots.world" respawn="false"/>
 	<node pkg="NewSimulator" type="environment_node" name="environment" args="7 1" output="screen"/>
 	<node pkg="NewSimulator" type="cell_node" name="cell0" args="0 1" output="screen"/>
 	<node pkg="NewSimulator" type="cell_node" name="cell1" args="1 1" output="screen"/>

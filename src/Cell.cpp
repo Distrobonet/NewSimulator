@@ -46,13 +46,17 @@ void Cell::update()
 		}
 
 		// Send requests to Environment for the cell's relationships with its neighbors
-		for(uint i = 0; i < getNumberOfNeighbors(); i++)
+		for(int i = 0; i < getNumberOfNeighbors(); i++)
 		{
 			// When we do multi-function formations and dynamic neighborhoods, these indices will be changed
 			receiveRelationshipFromEnvironment(neighborhoodList[i]);
 		}
 
 		updateCurrentStatus();
+
+
+//		commandVelocity.linear.x = 1;
+//		commandVelocity.angular.z = 2;
 //		cmd_velPub.publish(commandVelocity);
 
 		ros::spinOnce();
@@ -63,7 +67,7 @@ void Cell::update()
 void Cell::updateCurrentStatus() {
 
 	int neighborhoodStatuses = 0;
-	for(uint i = 0; i < getNumberOfNeighbors(); i++) {
+	for(int i = 0; i < getNumberOfNeighbors(); i++) {
 		neighborhoodStatuses *= neighborhoodList.at(i);
 	}
 
@@ -295,7 +299,7 @@ string Cell::generatePubMessage(int cellID)
 	stringstream ss;//create a stringstream
 	ss << (cellID);//add number to the stream
 	string  nbrID = ss.str();
-	string subString = "/robot_/cmd_vel";
+	string subString = "/sphero/cmd_vel";	// We publish to the sphero subscriber that runs with rviz via Ross' code
 
 	subString.insert(7, nbrID);
 	return subString;
