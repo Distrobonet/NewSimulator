@@ -1,5 +1,5 @@
 //
-// Filename:        "Vector.cpp"
+// Filename:        "PhysicsVector.cpp"
 //
 // Description:     This class implements a 3-dimensional vector.
 //
@@ -11,30 +11,26 @@
 PhysicsVector::PhysicsVector(const float dx, const float dy, const float dz)
 {
     init(dx, dy, dz);
-}   // Vector(const float, const float, const float, const Color)
+}
 
 
-// Copy constructor that copies the contents of
-// the parameterized vector into this vector.
+// Copy constructor
 PhysicsVector::PhysicsVector(const PhysicsVector &v)
 {
     init(v.x, v.y, v.z);
     *this = v;
 
-    //setColor(v.color);
     for (int i = 0; i < 3; ++i)
     {
         translate[i] = v.translate[i];
         rotate[i]    = v.rotate[i];
         scale[i]     = v.scale[i];
     }
-    showLine         = v.showLine;
-    showHead         = v.showHead;
 
-}   // Vector(const Vector &)
+}
 
 
-PhysicsVector::~PhysicsVector(){}   // ~Vector()
+PhysicsVector::~PhysicsVector(){}
 
 
 
@@ -46,7 +42,7 @@ bool PhysicsVector::set(const float dx, const float dy, const float dz)
     y = dy;
     z = dz;
     return true;
-}   // set(const float, const float, const float)
+}
 
 
 
@@ -56,108 +52,97 @@ bool PhysicsVector::set(const float dx, const float dy, const float dz)
 bool PhysicsVector::set(const PhysicsVector &v)
 {
     return set(v.x, v.y, v.z);
-}   // set(const Vector &v)
+}
 
 
-// Translates the vector display based on the
-// parameterized xyz-coordinate translations.
+// Translates the vector display based on the parameterized xyz-coordinate translations.
 void PhysicsVector::translated(const float dx, const float dy, const float dz)
 {
     translate[0] = dx;
     translate[1] = dy;
     translate[2] = dz;
-}   // translated(const float, const float, const float)
+}
 
 
-// Translates the vector display based on the
-// parameterized translation vector.
+// Translates the vector display based on the parameterized translation vector.
 void PhysicsVector::translated(const PhysicsVector &v)
 {
     translated(v.x, v.y, v.z);
-}   // translated(const Vector &)
+}
 
 
 
-// Rotates the vector display about itself (in 2-dimensions)
-// based on the parameterized rotation angle.
+// Rotates the vector display about itself (in 2-dimensions) based on the parameterized rotation angle.
 void PhysicsVector::rotated(float theta)
 {
     rotate[2] = theta;
-}   // rotated(float)
+}
 
 
-// Rotates the vector about itself (in 2-dimensions)
-// based on the parameterized rotation angle.
+// Rotates the vector about itself (in 2-dimensions) based on the parameterized rotation angle.
 void PhysicsVector::rotateRelative(float theta)
 {
     theta = degreesToRadians(theta);
     set(x * cos(theta) - y * sin(theta), x * sin(theta) + y * cos(theta), z);
-}   // rotateRelative(float)
-
+}
 
 // Scales the vector display based on the parameterized scalar.
 void PhysicsVector::scaled(const float s)
 {
     scale[0] = scale[1] = scale[2] = s;
-}   // scaled(const float)
+}
 
 
-// Attempts to set the vector based on the parameterized polar coordinates,
-// returning true if successful, false otherwise.
+// Attempts to set the vector based on the parameterized polar coordinates, returning true if successful, false otherwise.
 bool PhysicsVector::setPolar(float mag, float theta, float dz)
 {
     theta = degreesToRadians(theta);
     return set(mag * cos(theta), mag * sin(theta), dz);
-}   // setPolar(float, float, float)
+}
 
 
 
 
-// Attempts to set the vector to the difference from the
-// parameterized source to the parameterized destination,
+// Attempts to set the vector to the difference from the parameterized source to the parameterized destination,
 // returning true if successful, false otherwise.
-bool PhysicsVector::setDiff(const PhysicsVector &dest, const PhysicsVector &source)
+bool PhysicsVector::setDifference(const PhysicsVector &dest, const PhysicsVector &source)
 {
     return set(source.x - dest.x, source.y - dest.y, source.z - dest.z);
-}   // setDiff(const Vector &, const Vector &)
+}
 
 
 
 
-// Attempts to set the angle to the parameterized angle,
-// returning true if successful, false otherwise.
+// Attempts to set the angle to the parameterized angle, returning true if successful, false otherwise.
 bool PhysicsVector::setAngle(const float theta)
 {
     return setPolar(magnitude(), theta);
-}   // setAngleconst float)
+}
 
 
 
-// Attempts to set the magnitude (normal) to the parameterized magnitude,
-// returning true if successful, false otherwise.
+// Attempts to set the magnitude (normal) to the parameterized magnitude, returning true if successful, false otherwise.
 bool PhysicsVector::setMagnitude(const float mag)
 {
     if (!normalize()) return false;
     return set(x * mag, y * mag, z * mag);
-}   // setMagnitude(const float)
+}
 
 
-// Attempts to set this vector to its perpendicular vector,
-// returning true if successful, false otherwise.
-bool PhysicsVector::setPerp()
+// Attempts to set this vector to its perpendicular vector, returning true if successful, false otherwise.
+bool PhysicsVector::setPerpendicular()
 {
     float temp = x;
     x            = -y;
     y            = temp;
     return true;
-}   // setPerp()
+}
 
 
 
-// Attempts to set the vector based on the average
-// of the parameterized vectors, returning true
+// Attempts to set the vector based on the average of the parameterized vectors, returning true
 // if successful, false otherwise.
-bool PhysicsVector::setAvg(const PhysicsVector v[], const int n)
+bool PhysicsVector::setAverage(const PhysicsVector v[], const int n)
 {
     if (n <= 0) return false;
     for (int i = 0; i < n; i++) *this += v[i];
@@ -165,7 +150,7 @@ bool PhysicsVector::setAvg(const PhysicsVector v[], const int n)
     y /= (float)n;
     z /= (float)n;
     return true;
-}   // avg(const Vector [], const int)
+}
 
 
 
@@ -201,13 +186,13 @@ float PhysicsVector::magnitude() const
 PhysicsVector PhysicsVector::perp()
 {
     PhysicsVector v = *this;
-    v.setPerp();
+    v.setPerpendicular();
     return v;
 }   // perp()
 
 
 // Returns the dot product of the perpendicular vector of this vector and the parameterized vector.
-float PhysicsVector::perpDot(const PhysicsVector &v) const
+float PhysicsVector::perpendicularDotProduct(const PhysicsVector &v) const
 {
     return x * v.x - y * v.y;
 }   // perpDot(const Vector &)
@@ -223,8 +208,6 @@ PhysicsVector& PhysicsVector::operator =(const PhysicsVector &v)
         rotate[i]    = v.rotate[i];
         scale[i]     = v.scale[i];
     }
-    showLine         = v.showLine;
-    showHead         = v.showHead;
     return *this;
 }
 
@@ -362,7 +345,6 @@ bool PhysicsVector::init(const float dx, const float dy, const float dz)
         rotate[i]    = DEFAULT_VECTOR_ROTATE[i];
         scale[i]     = DEFAULT_VECTOR_SCALE[i];
     }
-    showLine         = DEFAULT_VECTOR_SHOW_LINE;
-    showHead         = DEFAULT_VECTOR_SHOW_HEAD;
+
     return true;
 }   // init(const float, const float, const float, const Color)

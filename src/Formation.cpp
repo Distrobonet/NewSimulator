@@ -48,7 +48,7 @@ Formation::~Formation()
 
 void Formation::setFunction(const Function newFunction)
 {
-	//clear();						// Clears this vector if functions, should be used when we switch to multifunction.
+	//clear();						// Clears this vector of functions, should be used when we switch to multifunction.
 	//this->push_back(newFunction);	// Adds the new function to this vector.  Will replace the next line.
 
 	currentFunction = newFunction;
@@ -105,8 +105,6 @@ void Formation::setSeedFormationRelativePosition(PhysicsVector newFormationRelat
     	seedFormationRelativePosition.rotate[i]     = newFormationRelativePosition.rotate[i];
     	seedFormationRelativePosition. scale[i]     = newFormationRelativePosition.scale[i];
     }
-    seedFormationRelativePosition. showLine         = newFormationRelativePosition.showLine;
-    seedFormationRelativePosition.showHead          = newFormationRelativePosition.showHead;
 }
 
 int Formation::getSeedID()
