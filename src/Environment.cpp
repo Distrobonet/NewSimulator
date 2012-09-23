@@ -16,8 +16,6 @@ Environment::Environment()
 // Default constructor that initializes this environment to the parameterized values.
 Environment::Environment(int numRobots)
 {
-	//startRelationshipServiceServer();
-
 	numOfRobots = numRobots;
 	initEnvironmentSubscribers();
 }
@@ -32,11 +30,20 @@ Environment::~Environment()
 // Everything that the environment continuously does goes here.
 void Environment::update(bool doSpin)
 {
-	ros::NodeHandle rosNode;
-	ros::Rate loop_rate(10);
+	ros::Rate loop_rate(1);
 
 	while(ros::ok())
 	{
+	    // This is from the tf tutorial.  Not sure if it's needed by us.
+//	    NewSimulator::Velocity vel_msg;
+//	    vel_msg.angular = 4 * atan2(transform.getOrigin().y(),
+//	                                transform.getOrigin().x());
+//	    vel_msg.linear = 0.5 * sqrt(pow(transform.getOrigin().x(), 2) +
+//	                                 pow(transform.getOrigin().y(), 2));
+//	    turtle_vel.publish(vel_msg);
+
+
+	    loop_rate.sleep();
 		ros::spinOnce();
 	}
 }
@@ -44,32 +51,32 @@ void Environment::update(bool doSpin)
 // Set up the environment's vector of cell actual positions as received from Stage (base_pose_ground_truth)
 void Environment::initEnvironmentSubscribers()
 {
-	// Create a dummy robot Velocity to fill the subRobotPoses vector with
-	vector<double> tempSubRobotVelocity;
-	tempSubRobotVelocity.push_back(0);	// x
-	tempSubRobotVelocity.push_back(0);	// y
-	tempSubRobotVelocity.push_back(0);	// z, orientation
-
-	// Push numOfRobots robot locations into the subRobotSubscribers vector
-	for(int k = 0; k < numOfRobots; k++)
-		cellActualPositions.push_back(tempSubRobotVelocity);
-
-
-	// Sets all the robot subscribers to base_pose_ground_truth
-	ros::Subscriber robot0 = environmentNode.subscribe("/robot_0/base_pose_ground_truth", 1000, &Environment::ReceiveOdometry, this);
-	cellActualPositionSubscribers.push_back(robot0);
-	ros::Subscriber robot1 = environmentNode.subscribe("/robot_1/base_pose_ground_truth", 1000, &Environment::ReceiveOdometry, this);
-	cellActualPositionSubscribers.push_back(robot1);
-	ros::Subscriber robot2 = environmentNode.subscribe("/robot_2/base_pose_ground_truth", 1000, &Environment::ReceiveOdometry, this);
-	cellActualPositionSubscribers.push_back(robot2);
-	ros::Subscriber robot3 = environmentNode.subscribe("/robot_3/base_pose_ground_truth", 1000, &Environment::ReceiveOdometry, this);
-	cellActualPositionSubscribers.push_back(robot3);
-	ros::Subscriber robot4 = environmentNode.subscribe("/robot_4/base_pose_ground_truth", 1000, &Environment::ReceiveOdometry, this);
-	cellActualPositionSubscribers.push_back(robot4);
-	ros::Subscriber robot5 = environmentNode.subscribe("/robot_5/base_pose_ground_truth", 1000, &Environment::ReceiveOdometry, this);
-	cellActualPositionSubscribers.push_back(robot5);
-	ros::Subscriber robot6 = environmentNode.subscribe("/robot_6/base_pose_ground_truth", 1000, &Environment::ReceiveOdometry, this);
-	cellActualPositionSubscribers.push_back(robot6);
+//	// Create a dummy robot Velocity to fill the subRobotPoses vector with
+//	vector<double> tempSubRobotVelocity;
+//	tempSubRobotVelocity.push_back(0);	// x
+//	tempSubRobotVelocity.push_back(0);	// y
+//	tempSubRobotVelocity.push_back(0);	// z, orientation
+//
+//	// Push numOfRobots robot locations into the subRobotSubscribers vector
+//	for(int k = 0; k < numOfRobots; k++)
+//		cellActualPositions.push_back(tempSubRobotVelocity);
+//
+//
+//	// Sets all the robot subscribers to base_pose_ground_truth
+//	ros::Subscriber robot0 = environmentBasePoseGroundTruthNode.subscribe("/sphero0/base_link", 1000, &Environment::ReceiveOdometry, this);
+//	cellActualPositionSubscribers.push_back(robot0);
+//	ros::Subscriber robot1 = environmentBasePoseGroundTruthNode.subscribe("/sphero1/base_link", 1000, &Environment::ReceiveOdometry, this);
+//	cellActualPositionSubscribers.push_back(robot1);
+//	ros::Subscriber robot2 = environmentBasePoseGroundTruthNode.subscribe("/sphero2/base_link", 1000, &Environment::ReceiveOdometry, this);
+//	cellActualPositionSubscribers.push_back(robot2);
+//	ros::Subscriber robot3 = environmentBasePoseGroundTruthNode.subscribe("/sphero3/base_link", 1000, &Environment::ReceiveOdometry, this);
+//	cellActualPositionSubscribers.push_back(robot3);
+//	ros::Subscriber robot4 = environmentBasePoseGroundTruthNode.subscribe("/sphero4/base_link", 1000, &Environment::ReceiveOdometry, this);
+//	cellActualPositionSubscribers.push_back(robot4);
+//	ros::Subscriber robot5 = environmentBasePoseGroundTruthNode.subscribe("/sphero5/base_link", 1000, &Environment::ReceiveOdometry, this);
+//	cellActualPositionSubscribers.push_back(robot5);
+//	ros::Subscriber robot6 = environmentBasePoseGroundTruthNode.subscribe("/sphero6/base_link", 1000, &Environment::ReceiveOdometry, this);
+//	cellActualPositionSubscribers.push_back(robot6);
 }
 
 // Used for getting the actual positions of the cells
@@ -128,9 +135,37 @@ bool Environment::setRelationshipMessage(NewSimulator::Relationship::Request &re
 //	response.theRelationship.actual_relationship.y = tempVector.y;
 
 
-	// Test values to make sure relationship service is working
-	response.theRelationship.actual_relationship.x = 1;
-	response.theRelationship.actual_relationship.y = 2;
+
+
+	// Get the relationship between the origin cell and the target cell from rviz
+
+	string requestingCell = "/sphero/base_link";
+	string targetCell = "/sphero/base_link";
+
+	stringstream originStringStream;					//create a stringstream
+	originStringStream << (request.OriginID);			//add number to the stream
+	string  originID = originStringStream.str();
+	requestingCell.insert(7, originID);
+
+
+	stringstream targetStringStream;
+	targetStringStream << (request.TargetID);
+	string targetID = targetStringStream.str();
+	targetCell.insert(7, targetID);
+
+//	cout << "\n*** Requesting cell: " << requestingCell << " - Target cell: " << targetCell << endl;
+	try	{
+		// Get the transform from one frame to a second and store it in a StampedTransform object
+		spheroTransformListener.lookupTransform(requestingCell, targetCell, ros::Time(0), transform);
+	}
+	catch (tf::TransformException ex){
+		ROS_ERROR("%s",ex.what());
+	}
+
+	// Set the values to the response
+	response.theRelationship.actual_relationship.x = transform.getOrigin().x();
+	response.theRelationship.actual_relationship.y = transform.getOrigin().y();
+	response.theRelationship.actual_relationship.z = transform.getRotation().getAngle();
 
 	return true;
 }

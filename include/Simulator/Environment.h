@@ -33,7 +33,6 @@ class Environment
 
         virtual ~Environment();
 
-
         void initEnvironmentSubscribers();
         void update(bool doSpin);
 
@@ -41,7 +40,6 @@ class Environment
         // Functions for the subscribers for all robots
         string generateSubMessage(int cellID);
 		void ReceiveOdometry(const nav_msgs::Odometry::ConstPtr& odometryMessage);
-
 
 
         PhysicsVector getRelationship(const int toID, const int fromID);
@@ -53,14 +51,15 @@ class Environment
 		bool setRelationshipMessage(NewSimulator::Relationship::Request &request, NewSimulator::Relationship::Response &response);
 		void startRelationshipServiceServer();
 
-		ros::NodeHandle environmentNode;
+		ros::NodeHandle environmentBasePoseGroundTruthNode;
 		vector<ros::Subscriber> cellActualPositionSubscribers;
 		vector< vector<double> > cellActualPositions;
 
 
     protected:
-        //Formation          formation;
         int                numOfRobots;
+        tf::TransformListener spheroTransformListener;		// Listens to sphero positions in rviz
+        tf::StampedTransform transform;						// Stores the sphero position info
 
 };  // Environment
 

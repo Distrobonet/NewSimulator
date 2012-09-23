@@ -86,25 +86,30 @@ void Cell::update()
 			// Publish the formation change to this cell's non-reference neighbor (cell farthest from seed)
 			formationChangePublisher.publish(createFormationChangeMessage());
 			isFormationChanged = false;
-			cout << "\n**** " << "cell" << cellID << "'s Formation ID: " << cellFormation.formationID << " - Formation count: " << formationCount << " ****\n";
+//			cout << "\n**** " << "cell" << cellID << "'s Formation ID: " << cellFormation.formationID << " - Formation count: " << formationCount << " ****\n";
 		}
 
 //		cout << "\n**** " << "cell" << cellID << "'s Formation ID: " << cellFormation.formationID << " - Formation count: " << formationCount << " ****\n";
 		receiveNeighborState();
 
-		// Send requests to Environment for the cell's relationships with its neighbors
-		for(int i = 0; i < getNumberOfNeighbors(); i++)
+		// Send request to Environment for the cell's relationship with its reference neighbor
+		if(cellID > cellFormation.getSeedID() && getNeighborhood()[0] != NO_NEIGHBOR)
 		{
-			// When we do multi-function formations and dynamic neighborhoods, these indices will be changed
-			if(neighborhoodList[i] != NO_NEIGHBOR)
-				receiveRelationshipFromEnvironment(neighborhoodList[i]);
+			// This cell is to the right of the seed.  Get relationship to our left neighbor.
+			receiveRelationshipFromEnvironment(0);
+		}
+		if(cellID < cellFormation.getSeedID() && getNeighborhood()[1] != NO_NEIGHBOR)
+		{
+			// This cell is to the left of the seed.  Get relationship to our right neighbor.
+			receiveRelationshipFromEnvironment(1);
 		}
 
 		updateCurrentStatus();
 
-//		commandVelocity.linear.x = 1;
+		if(cellID == 3)
+			commandVelocity.linear.x = 1;
 //		commandVelocity.angular.z = 2;
-//		cmd_velPub.publish(commandVelocity);
+		cmd_velPub.publish(commandVelocity);
 
 		ros::spinOnce();
 		loop_rate.sleep();
@@ -177,7 +182,7 @@ bool Cell::move()
 	return true;
 }
 
-// Uses a service client to get the relationship from Environment
+// Uses a service client to get the relationship to your reference neighbor from Environment
 void Cell::receiveRelationshipFromEnvironment(int neighborIndex)
 {
 	if(neighborIndex == NO_NEIGHBOR)
@@ -186,7 +191,7 @@ void Cell::receiveRelationshipFromEnvironment(int neighborIndex)
 	ros::AsyncSpinner spinner(1);	// Uses an asynchronous spinner to account for the blocking service client call
 	spinner.start();
 
-	relationshipClient = relationshipNodeHandle.serviceClient<NewSimulator::Relationship>("relationship_" + cellID);
+	relationshipClient = relationshipNodeHandle.serviceClient<NewSimulator::Relationship>("relationship");
 
 	// Set the request values here
 	relationshipService.request.OriginID = cellID;
@@ -197,6 +202,14 @@ void Cell::receiveRelationshipFromEnvironment(int neighborIndex)
 		cellState.actualRelationships[neighborIndex].x = relationshipService.response.theRelationship.actual_relationship.x;
 		cellState.actualRelationships[neighborIndex].y = relationshipService.response.theRelationship.actual_relationship.y;
 		cellState.actualRelationships[neighborIndex].z = relationshipService.response.theRelationship.actual_relationship.z;
+
+//		if(cellID == 2)
+//		{
+//			cout << "\nEnvironment relationship service returned:\n"
+//				<< "x: " << relationshipService.response.theRelationship.actual_relationship.x << endl
+//				<< "y: " << relationshipService.response.theRelationship.actual_relationship.y << endl
+//				<< "z: " << relationshipService.response.theRelationship.actual_relationship.z << endl << endl;
+//		}
 
 		relationshipNodeHandle.shutdown();
 		spinner.stop();
@@ -232,11 +245,11 @@ void Cell::receiveFormationFromSimulator(const NewSimulator::FormationMessage::C
 		formationCount = formationMessage->formation_count;
 		cellFormation.seedID = formationMessage->seed_id;
 
-		cout << "\nCell " << cellID << " got new formation: " << cellFormation.formationID << " from Simulator.\n";
+//		cout << "\nCell " << cellID << " got new formation: " << cellFormation.formationID << " from Simulator.\n";
 		return;
 	}
 
-	cout << "\nFormation received by cell " << cellID << " was not newer than its current formation.\n";
+//	cout << "\nFormation received by cell " << cellID << " was not newer than its current formation.\n";
 }
 
 // This cell uses this to get the new formation from a neighbor who is publishing it (this is the callback)
@@ -251,11 +264,11 @@ void Cell::receiveFormationFromNeighbor(const NewSimulator::FormationMessage::Co
 		formationCount = formationMessage->formation_count;
 		cellFormation.seedID = formationMessage->seed_id;
 
-		cout << "\nCell " << cellID << " got new formation: " << cellFormation.formationID << " from neighbor.\n";
+//		cout << "\nCell " << cellID << " got new formation: " << cellFormation.formationID << " from neighbor.\n";
 		return;
 	}
 
-	cout << "\nFormation received by cell " << cellID << " was not newer than its current formation.\n";
+//	cout << "\nFormation received by cell " << cellID << " was not newer than its current formation.\n";
 
 }
 
@@ -339,7 +352,7 @@ void Cell::updateState(const NewSimulator::State::Response &incomingState)
 //	cellFormation.formationID = incomingState.state.formation_id;
 }
 
-// Translates the robot relative to itself based on the parameterized translation vector.
+// Translates the cell relative to itself based on the parameterized translation vector.
 void Cell::translateRelative(float dx , float dy)
 {
 //	rotateRelative(0);
@@ -372,10 +385,10 @@ string Cell::generateStateSubMessage(int cellID)
 {
 	stringstream ss;					//create a stringstream
 	ss << (cellID);						//add number to the stream
-	string  nbrID = ss.str();
+	string  neighborID = ss.str();
 	string subString = "/cell_/state";
 
-	subString.insert(6, nbrID);
+	subString.insert(6, neighborID);
 	return subString;
 }
 
@@ -383,12 +396,12 @@ string Cell::generateCommandVelocityPubMessage(int cellID)
 {
 	stringstream ss;//create a stringstream
 	ss << (cellID);//add number to the stream
-	string  nbrID = ss.str();
+	string  neighborID = ss.str();
 
 	// We publish to the sphero subscriber that runs with rviz via Ross' code
 	string subString = "/sphero/cmd_vel";
 
-	subString.insert(7, nbrID);
+	subString.insert(7, neighborID);
 	return subString;
 }
 
