@@ -96,11 +96,11 @@ void Cell::update()
 		for(int i = 0; i < getNumberOfNeighbors(); i++)
 		{
 			// When we do multi-function formations and dynamic neighborhoods, these indices will be changed
-			receiveRelationshipFromEnvironment(neighborhoodList[i]);
+			if(neighborhoodList[i] != NO_NEIGHBOR)
+				receiveRelationshipFromEnvironment(neighborhoodList[i]);
 		}
 
 		updateCurrentStatus();
-
 
 //		commandVelocity.linear.x = 1;
 //		commandVelocity.angular.z = 2;
@@ -180,10 +180,13 @@ bool Cell::move()
 // Uses a service client to get the relationship from Environment
 void Cell::receiveRelationshipFromEnvironment(int neighborIndex)
 {
+	if(neighborIndex == NO_NEIGHBOR)
+		return;
+
 	ros::AsyncSpinner spinner(1);	// Uses an asynchronous spinner to account for the blocking service client call
 	spinner.start();
 
-	relationshipClient = relationshipNodeHandle.serviceClient<NewSimulator::Relationship>("relationship");
+	relationshipClient = relationshipNodeHandle.serviceClient<NewSimulator::Relationship>("relationship_" + cellID);
 
 	// Set the request values here
 	relationshipService.request.OriginID = cellID;
@@ -390,25 +393,26 @@ string Cell::generateCommandVelocityPubMessage(int cellID)
 }
 
 // Get a neighbor's state from the State service
-// Gets the state of the neighbor that is closest to the seed cell
+// Gets the state of the neighbor that is closest to the seed cell (reference cell)
 // This should prevent cells from getting conflicting states
 void Cell::receiveNeighborState()
 {
-
 	stringstream leftSS;					//create a stringstream
 	leftSS << (neighborhoodList[0]);		//add number to the stream
-	string  leftNeighborID = leftSS.str();
+	string leftNeighborID = leftSS.str();
 
 	stringstream rightSS;					//create a stringstream
 	rightSS << (neighborhoodList[1]);		//add number to the stream
-	string  rightNeighborID = rightSS.str();
+	string rightNeighborID = rightSS.str();
 
 
-	if(cellID > cellFormation.getSeedID())
+	// If this cell is to the right of the seed, get our left neighbor's state (it is our reference cell)
+	if(cellID > cellFormation.getSeedID() && getNeighborhood()[0] != NO_NEIGHBOR)
 	{
 		makeStateClientCall(leftNeighborID);
 	}
-	else if(cellID < cellFormation.getSeedID())
+	// If this cell is to the left of the seed, get our right neighbor's state (it is our reference cell)
+	if(cellID < cellFormation.getSeedID() && getNeighborhood()[1] != NO_NEIGHBOR)
 	{
 		makeStateClientCall(rightNeighborID);
 	}
@@ -607,3 +611,18 @@ int Cell::getNumberOfNeighbors()
 	return neighborhoodList.size();
 }
 
+// Outputs all the useful info about this cell for debugging purposes
+void Cell::outputCellInfo()
+{
+//	if(cellID == 4)
+	{
+		cout << "\n\ncell ID: " << cellID << "\n"
+				<< "left neighbor: " << neighborhoodList[0] << endl
+				<< "right neighbor: " << neighborhoodList[1] << endl
+				<< "seed ID: " << cellFormation.seedID << endl
+				<< "isFormationChanged: " << isFormationChanged << endl
+				<< "cell state time step: " << cellState.timeStep << endl
+				<< "getNumberOfNeighbors(): " << getNumberOfNeighbors() << endl
+				<< "cellFormation.formationID: " << cellFormation.formationID << endl << endl;
+	}
+}

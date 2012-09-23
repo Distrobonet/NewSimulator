@@ -14,11 +14,10 @@
 #include <angles/angles.h>
 #include <tf/transform_listener.h>
 
-// Formation subscriber
+// Formation publisher/subscriber
 #include "../msg_gen/cpp/include/NewSimulator/FormationMessage.h"
 
 // State service
-#include "../msg_gen/cpp/include/NewSimulator/StateMessage.h"
 #include "../srv_gen/cpp/include/NewSimulator/State.h"
 
 // Relationship service
@@ -133,6 +132,7 @@ class Cell
     private:
 		bool isFormationChanged;
 		void publishState();
+		void outputCellInfo();	// This is useful for debugging
 };
 
 #endif
