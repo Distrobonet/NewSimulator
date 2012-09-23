@@ -58,11 +58,14 @@ void Cell::update()
 
 	while(ros::ok)
 	{
-		// If the cell's ID is the seedID set in Formation, then get the formation ID set by Simulator
+		// If the cell's ID is the seedID set in Formation
 		if(cellID == cellFormation.seedID)
 		{
-//			cout << "\n**** " << "Seed cell's Formation ID: " << cellFormation.formationID << " - Formation count: " << formationCount << " ****\n";
+			// Some stuff might need to be done uniquely for the seed cell here.
 		}
+
+//		cout << "\n**** " << "cell" << cellID << "'s Formation ID: " << cellFormation.formationID << " - Formation count: " << formationCount << " ****\n";
+		receiveNeighborState();
 
 		// Send requests to Environment for the cell's relationships with its neighbors
 		for(int i = 0; i < getNumberOfNeighbors(); i++)
