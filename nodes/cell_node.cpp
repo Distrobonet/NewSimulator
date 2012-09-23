@@ -26,8 +26,9 @@ int main(int argc, char **argv)
 
     // Initilize cell, giving it the ID of the parameterized value
     Cell thisCell = Cell(atoi(argv[1]));
-    thisCell.state_pub = thisCell.stateNode.advertise<NewSimulator::StateMessage>(thisCell.generateSubMessage(thisCell.getCellID()), 1);
-    thisCell.cmd_velPub = thisCell.stateNode.advertise<geometry_msgs::Twist>(thisCell.generatePubMessage(thisCell.getCellID()), 1);
+
+    thisCell.state_pub = thisCell.stateNode.advertise<NewSimulator::StateMessage>(thisCell.generateStateSubMessage(thisCell.getCellID()), 1);
+    thisCell.cmd_velPub = thisCell.stateNode.advertise<geometry_msgs::Twist>(thisCell.generateCommandVelocityPubMessage(thisCell.getCellID()), 1);
 
 	// Start the state service server for this cell
 	ros_name = "state_server_";

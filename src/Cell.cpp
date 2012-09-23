@@ -13,6 +13,7 @@ Cell::Cell(const int ID)
 	cellState = State();
 	cellFormation = Formation();
 	currentStatus = WAITING_FOR_FORMATION;
+	formationCount = 0;
 
 	commandVelocity.linear.x = 0;
 	commandVelocity.linear.y = 0;
@@ -25,15 +26,33 @@ Cell::Cell(const int ID)
 	// For 1-dimensional formations, just set 2 neighbor relationships for each cell
 	cellState.actualRelationships.resize(2, PhysicsVector());
 	cellState.desiredRelationships.resize(2, PhysicsVector());
+
+	// Set the seed cell to subscribe to the Simulator's formation messages
+	if(cellID == cellFormation.getSeedID())
+	{
+		formationSubscriber = formationNodeHandle.subscribe("seedFormationMessage", 1000, &Cell::receiveFormationFromSimulator, this);
+	}
 }
 
 Cell::~Cell()
-{}
+{
+	formationNodeHandle.shutdown();
+	relationshipNodeHandle.shutdown();
+	stateNodeHandle.shutdown();
+	stateService.shutdown();
+	stateClient.shutdown();
+	formationSubscriber.shutdown();
+	relationshipClient.shutdown();
+	stateNode.shutdown();
+	state_pub.shutdown();
+	cmd_velPub.shutdown();
+	leftNeighborStateSubscriber.shutdown();
+	rightNeighborStateSubscriber.shutdown();
+}
 
 // This is where most of the magic happens
 void Cell::update()
 {
-
 	ros::Rate loop_rate(10);
 	setNeighborhood();
 
@@ -42,7 +61,7 @@ void Cell::update()
 		// If the cell's ID is the seedID set in Formation, then get the formation ID set by Simulator
 		if(cellID == cellFormation.seedID)
 		{
-			receiveFormationFromSimulator();
+//			cout << "\n**** " << "Seed cell's Formation ID: " << cellFormation.formationID << " - Formation count: " << formationCount << " ****\n";
 		}
 
 		// Send requests to Environment for the cell's relationships with its neighbors
@@ -158,30 +177,14 @@ void Cell::receiveRelationshipFromEnvironment(int neighborIndex)
 	return;
 }
 
-// Uses a service client to get the formation from Simulator
-void Cell::receiveFormationFromSimulator()
+// Uses a subscriber to get the formation from Simulator
+void Cell::receiveFormationFromSimulator(const NewSimulator::FormationMessage::ConstPtr &formationMessage)
 {
-	ros::AsyncSpinner spinner(1);	// Uses an asynchronous spinner to account for the blocking service client call
-	spinner.start();
+	cellFormation.formationID = formationMessage->formation_id;
+	formationCount = formationMessage->formation_count;
+	cellFormation.seedID = formationMessage->seed_id;
 
-	formationClient = formationNodeHandle.serviceClient<NewSimulator::CurrentFormation>("formation");
-
-	if (formationClient.call(currentFormationService))
-	{
-//		cout << "*** Success - Formation ID is " << currentFormationService.response.formation.formation_id << " ***\n";
-
-		cellFormation.setFormationID(currentFormationService.response.formation.formation_id);
-
-		cellFormation.radius = currentFormationService.response.formation.radius;
-		cellFormation.seedID = currentFormationService.response.formation.seed_id;
-
-		formationNodeHandle.shutdown();
-		spinner.stop();
-		return;
-	}
-	formationNodeHandle.shutdown();
-	spinner.stop();
-	return;
+//	cout << "\nSeed got new formation: " << cellFormation.formationID;
 }
 
 int Cell::getCellID()
@@ -282,24 +285,25 @@ void Cell::rotateRelative(float theta)
 }
 
 // create correct string for state subscriber
-string Cell::generateSubMessage(int cellID)
+string Cell::generateStateSubMessage(int cellID)
 {
 	stringstream ss;					//create a stringstream
 	ss << (cellID);						//add number to the stream
 	string  nbrID = ss.str();
-	string subString = "/robot_/state";
+	string subString = "/cell_/state";
 
 	subString.insert(7, nbrID);
 	return subString;
 }
 
-
-string Cell::generatePubMessage(int cellID)
+string Cell::generateCommandVelocityPubMessage(int cellID)
 {
 	stringstream ss;//create a stringstream
 	ss << (cellID);//add number to the stream
 	string  nbrID = ss.str();
-	string subString = "/sphero/cmd_vel";	// We publish to the sphero subscriber that runs with rviz via Ross' code
+
+	// We publish to the sphero subscriber that runs with rviz via Ross' code
+	string subString = "/sphero/cmd_vel";
 
 	subString.insert(7, nbrID);
 	return subString;

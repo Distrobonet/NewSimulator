@@ -18,12 +18,9 @@
 #include <ros/ros.h>
 #include "Simulator/Formation.h"
 
-
-// Formation service - Simulator serves the formation to the seed cell, the ID of which is
+// Formation publisher - Simulator publishes the formation to the seed cell, the ID of which is
 // determined by Formation.seedID (set to global variable in Formation for now)
-//#include "../msg_gen/cpp/include/NewSimulator/FormationMessage.h"
-#include "../srv_gen/cpp/include/NewSimulator/CurrentFormation.h"
-
+#include "../msg_gen/cpp/include/NewSimulator/FormationMessage.h"
 
 using namespace std;
 
@@ -39,44 +36,42 @@ void keyboardInput();
 void clearScreen();
 
 const char  CHAR_ESCAPE = char(27);    // 'ESCAPE' character key
+int LAST_SELECTION = -1;
 int CURRENT_SELECTION = -1;
+int formationCount = 0;
 
+NewSimulator::FormationMessage formationMessage;
 
 // A formation is a vector of Functions, which are functions that take floats and return floats
 Formation DEFAULT_FORMATION = Formation();// = Formation(line, 1, PhysicsVector(), MIDDLE_CELL, 0,  90.0f);
 
-
 // Service utility function to set the formation being served based on CURRENT_SELECTION
-bool setFormationMessage(NewSimulator::CurrentFormation::Request  &req,
-						 NewSimulator::CurrentFormation::Response &res )
+void setFormationMessage()
 {
-  	res.formation.radius = 1.0f;
-  	res.formation.heading = 90.0f;
-  	res.formation.seed_frp.x = 0;
-  	res.formation.seed_frp.y = 0;
-  	res.formation.seed_id = DEFAULT_FORMATION.getSeedID();
-  	res.formation.formation_id = CURRENT_SELECTION;
+	formationMessage.seed_id = DEFAULT_FORMATION.getSeedID();
+	formationMessage.formation_id = CURRENT_SELECTION;
+	formationMessage.formation_count = formationCount;
 //	ROS_INFO("sending back response with formation info");
-	return true;
 }
 
 int main(int argc, char **argv)
 {
-	ros::init(argc, argv, "robot_driver");
+	ros::init(argc, argv, "simulator");
 
 	displayMenu();
 
-	// Only continue program once valid a selection has been made
+	// Only continue program once a valid selection has been made
 	while(CURRENT_SELECTION < 0 || CURRENT_SELECTION > 9)
 	{
 		keyboardInput();
 	}
 
-	// Formation Service server
-	ros::init(argc, argv, "formation_server");
-	ros::NodeHandle FormationServerNode;
-	ros::ServiceServer formationService = FormationServerNode.advertiseService("formation", setFormationMessage);
-	cout << "Now serving the formation: " << CURRENT_SELECTION << endl;
+	// Formation publisher to the seed cell
+	ros::init(argc, argv, "formation_publisher");
+	ros::NodeHandle FormationPublisherNode;
+	ros::Publisher formationPublisher = FormationPublisherNode.advertise<NewSimulator::FormationMessage>("seedFormationMessage", 1000);
+
+	cout << "\nNow publishing formations.  Current formation = " << CURRENT_SELECTION << endl;
 	ros::spinOnce();
 
 
@@ -90,6 +85,16 @@ int main(int argc, char **argv)
 		ros::spinOnce();
 
 		keyboardInput();
+
+		// Selection has changed, push this new formation to the seed cell
+		if(CURRENT_SELECTION != LAST_SELECTION)
+		{
+			formationCount += 1;
+//			cout << "\nformationCount: " << formationCount << " - New formation: " << CURRENT_SELECTION << endl;
+			LAST_SELECTION = CURRENT_SELECTION;
+			setFormationMessage();
+			formationPublisher.publish(formationMessage);
+		}
 	}
 
   return 0;
@@ -171,7 +176,6 @@ void displayMenu()
 		<< "7) f(x) = x^3"                                   << endl
 		<< "8) f(x) = {sqrt(x),  x >= 0 | -sqrt|x|, x < 0}"  << endl
 		<< "9) f(x) = 0.05 sin(10 x)"                        << endl << endl
-		//<< "Use the mouse to select a robot."                << endl
 		<< "Use ctrl+C to exit."                                << endl << endl
 		<< "Please enter your selection: ";
 }
@@ -186,7 +190,6 @@ void clearScreen()
 void terminate(int retVal)
 {
   signal(SIGINT, SIG_IGN);
-  //deinitEnv();
   signal(SIGINT, SIG_DFL);
   exit(retVal);
 }

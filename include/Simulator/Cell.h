@@ -14,8 +14,8 @@
 #include <angles/angles.h>
 #include <tf/transform_listener.h>
 
-// Formation service
-#include "../srv_gen/cpp/include/NewSimulator/CurrentFormation.h"
+// Formation subscriber
+#include "../msg_gen/cpp/include/NewSimulator/FormationMessage.h"
 
 // State service
 #include "../msg_gen/cpp/include/NewSimulator/StateMessage.h"
@@ -76,22 +76,21 @@ class Cell
 
 
 		void stateCallback(const NewSimulator::StateMessage & state);
-		string generateSubMessage(int cellID);
-		string generatePubMessage(int cellID);
+		string generateStateSubMessage(int cellID);
+		string generateCommandVelocityPubMessage(int cellID);
 
 
-		// Formation service client - only used by seed cell
+		// Relationship service client
 		ros::NodeHandle relationshipNodeHandle;
 		ros::ServiceClient relationshipClient;
 		NewSimulator::Relationship relationshipService;
 		void receiveRelationshipFromEnvironment(int neighborIndex);
 
 
-		// Formation service client - only used by seed cell
+		// Formation subscriber - only used by seed cell to get formation from Simulator
 		ros::NodeHandle formationNodeHandle;
-		ros::ServiceClient formationClient;
-		NewSimulator::CurrentFormation currentFormationService;
-		void receiveFormationFromSimulator();
+		ros::Subscriber formationSubscriber;
+		void receiveFormationFromSimulator(const NewSimulator::FormationMessage::ConstPtr &formationMessage);
 
 
 		// State service client
@@ -112,6 +111,7 @@ class Cell
 	protected:
 		State cellState;
 		Formation cellFormation;
+		int formationCount;
 		vector<int> neighborhoodList;
 		int cellID;
 		int currentStatus;
