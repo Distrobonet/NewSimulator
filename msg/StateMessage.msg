@@ -1,4 +1,3 @@
-int32 formation_id
 VectorMessage frp
 RelationshipMessage[] desired_relationships
 RelationshipMessage[] actual_relationships

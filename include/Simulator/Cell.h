@@ -35,6 +35,8 @@ enum Status{
 	MOVING
 };
 
+const int NO_NEIGHBOR = -1;
+
 class Cell
 {
 	public:
@@ -87,10 +89,22 @@ class Cell
 		void receiveRelationshipFromEnvironment(int neighborIndex);
 
 
-		// Formation subscriber - only used by seed cell to get formation from Simulator
-		ros::NodeHandle formationNodeHandle;
-		ros::Subscriber formationSubscriber;
+		// Simulator formation subscriber - only used by seed cell to get formation from Simulator
+		ros::NodeHandle simulatorFormationNodeHandle;
+		ros::Subscriber simulatorFormationSubscriber;
 		void receiveFormationFromSimulator(const NewSimulator::FormationMessage::ConstPtr &formationMessage);
+
+		// Neighbor formation change subscriber
+		ros::NodeHandle formationChangeSubscriberNode;
+		ros::Subscriber formationChangeSubscriber;
+		void receiveFormationFromNeighbor(const NewSimulator::FormationMessage::ConstPtr &formationMessage);
+		NewSimulator::FormationMessage createFormationChangeMessage();
+
+		// Formation change publisher to neighbors
+		string generateFormationPubName(int cellID);
+		ros::NodeHandle formationChangePublisherNode;
+		ros::Publisher formationChangePublisher;
+
 
 
 		// State service client
@@ -117,6 +131,7 @@ class Cell
 		int currentStatus;
 
     private:
+		bool isFormationChanged;
 		void publishState();
 };
 

@@ -68,8 +68,8 @@ int main(int argc, char **argv)
 
 	// Formation publisher to the seed cell
 	ros::init(argc, argv, "formation_publisher");
-	ros::NodeHandle FormationPublisherNode;
-	ros::Publisher formationPublisher = FormationPublisherNode.advertise<NewSimulator::FormationMessage>("seedFormationMessage", 1000);
+	ros::NodeHandle formationPublisherNode;
+	ros::Publisher formationPublisher = formationPublisherNode.advertise<NewSimulator::FormationMessage>("seedFormationMessage", 1000);
 
 	cout << "\nNow publishing formations.  Current formation = " << CURRENT_SELECTION << endl;
 	ros::spinOnce();

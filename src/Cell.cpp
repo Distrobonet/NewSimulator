@@ -14,6 +14,7 @@ Cell::Cell(const int ID)
 	cellFormation = Formation();
 	currentStatus = WAITING_FOR_FORMATION;
 	formationCount = 0;
+	isFormationChanged = false;
 
 	commandVelocity.linear.x = 0;
 	commandVelocity.linear.y = 0;
@@ -27,21 +28,37 @@ Cell::Cell(const int ID)
 	cellState.actualRelationships.resize(2, PhysicsVector());
 	cellState.desiredRelationships.resize(2, PhysicsVector());
 
+	setNeighborhood();
+
+	// Set up the subscriber callback for new formations between neighbors.  ONLY SUBSCRIBE TO YOUR REFERENCE NEIGHBOR
+	if(cellID > cellFormation.getSeedID() && getNeighborhood()[0] != NO_NEIGHBOR)
+	{
+		// This cell is to the right of the seed.  Subscribe to our left neighbor.
+		formationChangeSubscriber = formationChangeSubscriberNode.subscribe(generateFormationPubName(getNeighborhood()[0]), 1000, &Cell::receiveFormationFromNeighbor, this);
+		cout << "\nCell " << cellID << " has subscribed to neighbor " << getNeighborhood()[0] << "'s formation change messages.\n";
+	}
+	if(cellID < cellFormation.getSeedID() && getNeighborhood()[1] != NO_NEIGHBOR)
+	{
+		// This cell is to the left of the seed.  Subscribe to our right neighbor.
+		formationChangeSubscriber = formationChangeSubscriberNode.subscribe(generateFormationPubName(getNeighborhood()[1]), 1000, &Cell::receiveFormationFromNeighbor, this);
+		cout << "\nCell " << cellID << " has subscribed to neighbor " << getNeighborhood()[1] << "'s formation change messages.\n";
+	}
+
 	// Set the seed cell to subscribe to the Simulator's formation messages
 	if(cellID == cellFormation.getSeedID())
 	{
-		formationSubscriber = formationNodeHandle.subscribe("seedFormationMessage", 1000, &Cell::receiveFormationFromSimulator, this);
+		simulatorFormationSubscriber = simulatorFormationNodeHandle.subscribe("seedFormationMessage", 1000, &Cell::receiveFormationFromSimulator, this);
 	}
 }
 
 Cell::~Cell()
 {
-	formationNodeHandle.shutdown();
+	simulatorFormationNodeHandle.shutdown();
 	relationshipNodeHandle.shutdown();
 	stateNodeHandle.shutdown();
 	stateService.shutdown();
 	stateClient.shutdown();
-	formationSubscriber.shutdown();
+	simulatorFormationSubscriber.shutdown();
 	relationshipClient.shutdown();
 	stateNode.shutdown();
 	state_pub.shutdown();
@@ -54,7 +71,6 @@ Cell::~Cell()
 void Cell::update()
 {
 	ros::Rate loop_rate(10);
-	setNeighborhood();
 
 	while(ros::ok)
 	{
@@ -62,6 +78,15 @@ void Cell::update()
 		if(cellID == cellFormation.seedID)
 		{
 			// Some stuff might need to be done uniquely for the seed cell here.
+		}
+
+		// If a neighbor published a message to this cell that the formation changed
+		if(isFormationChanged)
+		{
+			// Publish the formation change to this cell's non-reference neighbor (cell farthest from seed)
+			formationChangePublisher.publish(createFormationChangeMessage());
+			isFormationChanged = false;
+			cout << "\n**** " << "cell" << cellID << "'s Formation ID: " << cellFormation.formationID << " - Formation count: " << formationCount << " ****\n";
 		}
 
 //		cout << "\n**** " << "cell" << cellID << "'s Formation ID: " << cellFormation.formationID << " - Formation count: " << formationCount << " ****\n";
@@ -180,14 +205,55 @@ void Cell::receiveRelationshipFromEnvironment(int neighborIndex)
 	return;
 }
 
-// Uses a subscriber to get the formation from Simulator
+// Creates a message to send to neighhbor cells informing them of the new formation
+NewSimulator::FormationMessage Cell::createFormationChangeMessage()
+{
+	NewSimulator::FormationMessage formationChangeMessage;
+
+	formationChangeMessage.formation_id = cellFormation.formationID;
+	formationChangeMessage.formation_count = formationCount;
+	formationChangeMessage.seed_id = cellFormation.seedID;
+
+	return formationChangeMessage;
+}
+
+// Uses a subscriber to get the formation from Simulator (this is the callback)
 void Cell::receiveFormationFromSimulator(const NewSimulator::FormationMessage::ConstPtr &formationMessage)
 {
-	cellFormation.formationID = formationMessage->formation_id;
-	formationCount = formationMessage->formation_count;
-	cellFormation.seedID = formationMessage->seed_id;
+	// If the formation count is higher than ours, then this is a newer formation than we currently have stored
+	if(formationMessage->formation_count > formationCount)
+	{
+		isFormationChanged = true;
 
-//	cout << "\nSeed got new formation: " << cellFormation.formationID;
+		cellFormation.formationID = formationMessage->formation_id;
+		formationCount = formationMessage->formation_count;
+		cellFormation.seedID = formationMessage->seed_id;
+
+		cout << "\nCell " << cellID << " got new formation: " << cellFormation.formationID << " from Simulator.\n";
+		return;
+	}
+
+	cout << "\nFormation received by cell " << cellID << " was not newer than its current formation.\n";
+}
+
+// This cell uses this to get the new formation from a neighbor who is publishing it (this is the callback)
+void Cell::receiveFormationFromNeighbor(const NewSimulator::FormationMessage::ConstPtr &formationMessage)
+{
+	// If the formation count is higher than ours, then this is a newer formation than we currently have stored
+	if(formationMessage->formation_count > formationCount)
+	{
+		isFormationChanged = true;
+
+		cellFormation.formationID = formationMessage->formation_id;
+		formationCount = formationMessage->formation_count;
+		cellFormation.seedID = formationMessage->seed_id;
+
+		cout << "\nCell " << cellID << " got new formation: " << cellFormation.formationID << " from neighbor.\n";
+		return;
+	}
+
+	cout << "\nFormation received by cell " << cellID << " was not newer than its current formation.\n";
+
 }
 
 int Cell::getCellID()
@@ -227,7 +293,7 @@ void Cell::setNeighborhood()
 void Cell::setLeftNeighbor(const int nbr)
 {
 	if (cellID == 0)
-		neighborhoodList.insert(neighborhoodList.begin() + 0, -1);
+		neighborhoodList.insert(neighborhoodList.begin() + 0, NO_NEIGHBOR);
 	else {
 		neighborhoodList.insert(neighborhoodList.begin() + 0, nbr);
 //		leftNeighborStateSubscriber = stateNode.subscribe(generateSubMessage(nbr), 1000, &Cell::stateCallback, this);
@@ -287,6 +353,17 @@ void Cell::rotateRelative(float theta)
 
 }
 
+string Cell::generateFormationPubName(int cellID)
+{
+	stringstream ss;					//create a stringstream
+	ss << (cellID);						//add number to the stream
+	string  nbrID = ss.str();
+	string subString = "/cell_/formation";
+
+	subString.insert(6, nbrID);
+	return subString;
+}
+
 // create correct string for state subscriber
 string Cell::generateStateSubMessage(int cellID)
 {
@@ -295,7 +372,7 @@ string Cell::generateStateSubMessage(int cellID)
 	string  nbrID = ss.str();
 	string subString = "/cell_/state";
 
-	subString.insert(7, nbrID);
+	subString.insert(6, nbrID);
 	return subString;
 }
 
@@ -405,7 +482,6 @@ bool Cell::setStateMessage(NewSimulator::State::Request &req, NewSimulator::Stat
 	res.state.frp.x = cellFormation.seedFormationRelativePosition.x;
 	res.state.frp.y = cellFormation.seedFormationRelativePosition.y;
   	//res.state.formation.seed_id = cellFormation.seedID;
-  	res.state.formation_id = cellFormation.formationID;
   	//res.state.in_position = inPosition;
 
 //	res.state.frp.x = frp.x;
@@ -485,26 +561,22 @@ void Cell::stateCallback(const NewSimulator::StateMessage &incomingState)
 ////    stateChanged = false;
 //}
 
+// This cell checks the state service of parameterized neighbor
 void Cell::makeStateClientCall(string neighbor)
 {
 	ros::AsyncSpinner spinner(1);	// Uses an asynchronous spinner to account for the blocking service client call
 	spinner.start();
 
-	//ros::NodeHandle clientNode;
-	stateClient = stateNodeHandle.serviceClient<NewSimulator::State>("cell_state_"+neighbor);
+	stateClient = stateNodeHandle.serviceClient<NewSimulator::State>("cell_state_" + neighbor);
 
-	if (stateClient.call(incomingStateService) && incomingStateService.response.state.formation_id != cellFormation.formationID)
+	if (stateClient.call(incomingStateService))
 	{
-	//	cout << "For cell " << cellID << " old formation id getting " << neighbor << "s formation id " << cellFormation.formationID << endl;
-		cellFormation.formationID = incomingStateService.response.state.formation_id;
-	//	cout << "For cell " << cellID << " new formation id " << cellFormation.formationID << endl << endl;
-
+		cellState.timeStep = incomingStateService.response.state.timestep;
+		//cout << "Cell " << cellID << " got time step " << cellState.timeStep << " from neighbor " << neighbor << endl;
 		stateNodeHandle.shutdown();
 		spinner.stop();
 		return;
 	}
-
-//	ROS_INFO("Shutting down client node for Formation service...");
 	stateClient.shutdown();
 	spinner.stop();
 	return;
@@ -534,3 +606,4 @@ int Cell::getNumberOfNeighbors()
 {
 	return neighborhoodList.size();
 }
+
