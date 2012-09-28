@@ -29,7 +29,7 @@ Environment::~Environment()
 // Everything that the environment continuously does goes here.
 void Environment::update(bool doSpin)
 {
-	ros::Rate loop_rate(1);	// todo: increase this to 10 for production code.  A value of 1 is useful for debugging.
+	ros::Rate loop_rate(.5);	// todo: increase this to 10 for production code.  A value of 1 is useful for debugging.
 
 	while(ros::ok())
 	{
@@ -54,36 +54,15 @@ string Environment::generateSubMessage(int cellID)
 // Sets the response(relationship vector) based on the requests(IDs).  This is a callback.
 bool Environment::setRelationshipMessage(NewSimulator::Relationship::Request &request, NewSimulator::Relationship::Response &response)
 {
-//	temp.rotateRelative(-fromCell->getHeading());
-
-	// Target - Origin
-//	PhysicsVector tempVector;
-//	tempVector.x = cellActualPositions[request.TargetID][0] - cellActualPositions[request.OriginID][0];
-//	tempVector.y = cellActualPositions[request.TargetID][1] - cellActualPositions[request.OriginID][1];
-
-//	tempVector.rotateRelative(-(subRobotPoses[req.OriginID][2]));
-//	tempVector.rotateRelative(angles::to_degrees(-(cellActualPositions[request.OriginID][2])));
-
-//	//set(x * cos(theta) - y * sin(theta), x * sin(theta) + y * cos(theta), z);
-//	tempVector.x = tempVector.x * cos(tempVector.z) - tempVector.y * sin(tempVector.z);
-//	tempVector.y = tempVector.x * sin(tempVector.z) + tempVector.y * cos(tempVector.z);
-
-//	response.theRelationship.actual_relationship.x = tempVector.x;
-//	response.theRelationship.actual_relationship.y = tempVector.y;
-
-
-
-
 	// Get the relationship between the origin cell and the target cell from rviz
 
 	string requestingCell = "/sphero/base_link";
 	string targetCell = "/sphero/base_link";
 
-	stringstream originStringStream;					//create a stringstream
-	originStringStream << (request.OriginID);			//add number to the stream
+	stringstream originStringStream;
+	originStringStream << (request.OriginID);
 	string  originID = originStringStream.str();
 	requestingCell.insert(7, originID);
-
 
 	stringstream targetStringStream;
 	targetStringStream << (request.TargetID);
@@ -91,18 +70,29 @@ bool Environment::setRelationshipMessage(NewSimulator::Relationship::Request &re
 	targetCell.insert(7, targetID);
 
 
-	// This uses Ross' code snippet to get the actual RELATIVE position between 2 frames/cells
-//	PhysicsVector relationshipVector = getTransform(targetCell, requestingCell);
-//	response.theRelationship.actual_relationship.x = relationshipVector.x;
-//	response.theRelationship.actual_relationship.y = relationshipVector.y;
-//	response.theRelationship.actual_relationship.z = relationshipVector.z;
+	// This uses Ross' code snippet to get the ACTUAL RELATIVE position (actual relationship) between 2 frames/cells
+	PhysicsVector relationshipVector = getTransform(targetCell, requestingCell);
+	response.theRelationship.actual_relationship.x = relationshipVector.x;
+	response.theRelationship.actual_relationship.y = relationshipVector.y;
+	response.theRelationship.actual_relationship.z = relationshipVector.z;
+
+	// todo: We still need to calculate the DESIRED RELATIVE relationship (desired relationship)
+	// todo: currently this is being done by the cell.
+//	response.theRelationship.desired_relationship.x =
+//	response.theRelationship.desired_relationship.y =
+//	response.theRelationship.desired_relationship.z =
+
+
+	// todo: After we calculate relationships, immediately rotate them (according to Ross)
+	// todo: not yet sure if this is necessary or how to do it.
+
 
 
 	// This will return the ACTUAL POSITION of the requesting cell (for debugging purposes)
-	PhysicsVector actualPosition = getActualPosition(requestingCell);
-	response.theRelationship.actual_relationship.x = actualPosition.x;
-	response.theRelationship.actual_relationship.y = actualPosition.y;
-	response.theRelationship.actual_relationship.z = actualPosition.z;
+//	PhysicsVector actualPosition = getActualPosition(requestingCell);
+//	response.theRelationship.actual_relationship.x = actualPosition.x;
+//	response.theRelationship.actual_relationship.y = actualPosition.y;
+//	response.theRelationship.actual_relationship.z = actualPosition.z;
 	return true;
 }
 
@@ -119,11 +109,7 @@ PhysicsVector Environment::getTransform(string tfOriginName, string tfTargetName
 	ros::Time time = ros::Time(0);
 	double waitTime = 0.0;
 
-	PhysicsVector transformValues;
-	transformValues.x = 0;
-	transformValues.y = 0;
-	transformValues.z = 0;
-
+	PhysicsVector transformValues(0,0,0);
 
 	if (tfTargetName.empty() || tfOriginName.empty())
 		return transformValues;

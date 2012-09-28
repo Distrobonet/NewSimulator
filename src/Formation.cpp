@@ -1,8 +1,8 @@
 
 #include <Simulator/Formation.h>
+#include "Simulator/functions.h"
 
 using namespace std;
-
 
 Formation::Formation()
 {
@@ -52,6 +52,52 @@ void Formation::setFunction(const Function newFunction)
 	//this->push_back(newFunction);	// Adds the new function to this vector.  Will replace the next line.
 
 	currentFunction = newFunction;
+}
+
+void Formation::setFunctionFromFormationID(int newFormationId)
+{
+	switch(newFormationId)
+	{
+		case 0:
+			setFunction(&line); // todo: these have ampersands for testing but they don't appear to make a difference?
+			break;
+		case 1:
+			setFunction(&x); // todo: these have ampersands for testing but they don't appear to make a difference?
+			break;
+		case 2:
+			setFunction(absX);
+			break;
+		case 3:
+			setFunction(negHalfX);
+			break;
+		case 4:
+			setFunction(negAbsHalfX);
+			break;
+		case 5:
+			setFunction(negAbsX);
+			break;
+		case 6:
+			setFunction(parabola);
+			break;
+		case 7:
+			setFunction(cubic);
+			break;
+		case 8:
+			setFunction(condSqrt);
+			break;
+		case 9:
+			setFunction(sine);
+			break;
+		case 10:
+			setFunction(xRoot3);
+			break;
+		case 11:
+			setFunction(negXRoot3);
+			break;
+		default:
+			setFunction(line);
+			break;
+	}
 }
 
 Function Formation::getFunction()
@@ -139,9 +185,9 @@ vector<PhysicsVector> Formation::getRelationships(const PhysicsVector c)
 // Uses the secant method to calculate the intersection of the function and a circle centered at
 // the parameterized vector position centerPosition with the appropriate radius, returning a vector
 // from centerPosition to this intersection.
-// Uses the secant method:    x_(n + 1) = x_n - f(x_n) * (x_n - x_(n - 1)) / (f(x_n) - f(x_(n - 1))).
-PhysicsVector Formation::getRelationship(const Function intersectingFunction, const float intersectingCircleRadius,
-		                      	  	  	 const PhysicsVector centerPosition, const float rotationOfRelationship)
+// Uses the secant method:    x_(n + 1) = x_n - f(x_n) * (x_n - x_(n - 1)) / (f(x_n) - f(x_(n - 1)))
+PhysicsVector Formation::getDesiredRelationship(const Function intersectingFunction, const float intersectingCircleRadius,
+		const PhysicsVector centerPosition, const float rotationOfRelationship)
 {
     if (intersectingFunction == NULL)
     	return PhysicsVector();
@@ -161,17 +207,17 @@ PhysicsVector Formation::getRelationship(const Function intersectingFunction, co
         xn           -= error;
     }
 
-    PhysicsVector relationship;
+    PhysicsVector desiredRelationship;
 
-    relationship =  PhysicsVector(xn, intersectingFunction(xn)) - centerPosition;
-    relationship.rotateRelative(-rotationOfRelationship);
-    return relationship;
+    desiredRelationship =  PhysicsVector(xn, intersectingFunction(xn)) - centerPosition;
+    desiredRelationship.rotateRelative(-rotationOfRelationship);
+    return desiredRelationship;
 }
 
 
 // Useful when we implement multi-function
-PhysicsVector Formation::getRelationship(const int positionOfDesiredFunction, const float intersectingCircleRadius,
-		                      const PhysicsVector  centerPosition, const float rotationOfRelationship)
+PhysicsVector Formation::getDesiredRelationship(const int positionOfDesiredFunction, const float intersectingCircleRadius,
+		const PhysicsVector  centerPosition, const float rotationOfRelationship)
 {
 	PhysicsVector temp;	// See below \/
 	return temp;		// Temporary, just to remove warning.  Remove when implementing multi-function

@@ -47,7 +47,7 @@ class Cell
 		int getNumberOfNeighbors();
 
 		bool calculateMovement();
-		bool move();
+		void move(int neighborIndex);
 
 		int getCellID();
 		void setCellID(int ID);
@@ -67,6 +67,7 @@ class Cell
 		int getCurrentStatus();
 		void setCurrentStatus(int newStatus);
 		void checkNeighborStatus();
+		void calculateDesiredRelationship(int neighborIndex);
 
 		ros::NodeHandle stateNode;
 		ros::Publisher state_pub;

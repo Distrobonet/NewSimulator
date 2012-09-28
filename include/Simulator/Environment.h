@@ -56,7 +56,7 @@ class Environment
 
 
     protected:
-        int                numOfRobots;
+        int numOfRobots;
         tf::TransformListener spheroTransformListener;		// Listens to sphero positions in rviz
 
 };  // Environment

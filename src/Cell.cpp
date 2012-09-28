@@ -49,6 +49,8 @@ Cell::Cell(const int ID)
 	{
 		simulatorFormationSubscriber = simulatorFormationNodeHandle.subscribe("seedFormationMessage", 1000, &Cell::receiveFormationFromSimulator, this);
 	}
+
+	cellFormation.setFunctionFromFormationID(5);// todo: this is just temporary for debugging. remove this!
 }
 
 Cell::~Cell()
@@ -97,20 +99,24 @@ void Cell::update()
 		{
 			// This cell is to the right of the seed.  Get relationship to our left neighbor.
 			receiveRelationshipFromEnvironment(0);
+			calculateDesiredRelationship(0);
+			move(0); 		// Move relative to this cell's left neighbor
 		}
 		if(cellID < cellFormation.getSeedID() && getNeighborhood()[1] != NO_NEIGHBOR)
 		{
 			// This cell is to the left of the seed.  Get relationship to our right neighbor.
 			receiveRelationshipFromEnvironment(1);
+			calculateDesiredRelationship(1);
+			move(1); 		// Move relative to this cell's right neighbor
 		}
 
 		updateCurrentStatus();
 
 		if(cellID == 2)
 		{
-			commandVelocity.linear.x = .5;
-			commandVelocity.angular.z = .1;
-			cmd_velPub.publish(commandVelocity);
+//			commandVelocity.linear.x = .5;
+//			commandVelocity.angular.z = .1;
+//			cmd_velPub.publish(commandVelocity);
 		}
 
 		ros::spinOnce();
@@ -157,10 +163,10 @@ void Cell::updateCurrentStatus() {
 			break;
 
 		case MOVING:
-			if(move()) {
+//			if(move()) {
 				currentStatus = WAITING_TO_UPDATE;
 				break;
-			}
+//			}
 			break;
 
 		default:
@@ -178,10 +184,26 @@ bool Cell::calculateMovement() {
 	return true;
 }
 
-bool Cell::move()
+// Movement =  desired relationship - actual relationship.  Movement is relative to the parameterized neighbor
+void Cell::move(int neighborIndex)
 {
-	// Do move stuff
-	return true;
+	// At this point, we should know the cell's actual and desired relationship to its reference neighbor.
+
+	PhysicsVector movementPhysicsVector;
+
+	movementPhysicsVector.x = cellState.desiredRelationships[neighborIndex].x - cellState.actualRelationships[neighborIndex].x;
+	movementPhysicsVector.y = cellState.desiredRelationships[neighborIndex].y - cellState.actualRelationships[neighborIndex].y;
+	movementPhysicsVector.z = cellState.desiredRelationships[neighborIndex].z - cellState.actualRelationships[neighborIndex].z;
+
+	// todo: this isn't right, havent yet figured out how to build the command velocity
+	if(cellID == 0)
+	{
+		commandVelocity.linear.x = movementPhysicsVector.x;
+		commandVelocity.angular.z = movementPhysicsVector.z;
+		cmd_velPub.publish(commandVelocity);
+	}
+
+	return;
 }
 
 // Uses a service client to get the relationship to your reference neighbor from Environment
@@ -205,9 +227,10 @@ void Cell::receiveRelationshipFromEnvironment(int neighborIndex)
 		cellState.actualRelationships[neighborIndex].y = relationshipService.response.theRelationship.actual_relationship.y;
 		cellState.actualRelationships[neighborIndex].z = relationshipService.response.theRelationship.actual_relationship.z;
 
-		if(cellID == 2)
+		if(cellID == 0)
 		{
-			cout << "\nEnvironment relationship service returned:\n"
+			cout << "\nFor origin cell " << cellID << " and target cell " << relationshipService.request.TargetID
+					<< "\n       the environment relationship service returned ACTUAL relationship:\n"
 				<< "x: " << relationshipService.response.theRelationship.actual_relationship.x << endl
 				<< "y: " << relationshipService.response.theRelationship.actual_relationship.y << endl
 				<< "z: " << relationshipService.response.theRelationship.actual_relationship.z << endl << endl;
@@ -222,6 +245,27 @@ void Cell::receiveRelationshipFromEnvironment(int neighborIndex)
 	spinner.stop();
 	return;
 }
+// intersectingCircleRadius,const PhysicsVector centerPosition, const float rotationOfRelationship
+void Cell::calculateDesiredRelationship(int neighborIndex)
+{
+	if(cellID != 0)
+		return;//todo: REMOVE THIS ONCE DEBUGGING IS COMPLETE
+	PhysicsVector originCellPosition(0,0,90);
+	PhysicsVector desiredRelationship = cellFormation.getDesiredRelationship(cellFormation.getFunction(), cellFormation.getRadius(), originCellPosition, 90);
+
+	cellState.desiredRelationships[neighborIndex].x = desiredRelationship.x;
+	cellState.desiredRelationships[neighborIndex].y = desiredRelationship.y;
+	cellState.desiredRelationships[neighborIndex].z = desiredRelationship.z;
+
+	if(cellID == 0)
+	{
+		cout << "\nFor origin cell " << cellID << " and target cell " << neighborhoodList[neighborIndex]
+				<< "\n       the calculated DESIRED relationship is:\n"
+			<< "x: " << cellState.desiredRelationships[neighborIndex].x << endl
+			<< "y: " << cellState.desiredRelationships[neighborIndex].y << endl
+			<< "z: " << cellState.desiredRelationships[neighborIndex].z << endl << endl;
+	}
+}
 
 // Creates a message to send to neighhbor cells informing them of the new formation
 NewSimulator::FormationMessage Cell::createFormationChangeMessage()
@@ -235,7 +279,7 @@ NewSimulator::FormationMessage Cell::createFormationChangeMessage()
 	return formationChangeMessage;
 }
 
-// Uses a subscriber to get the formation from Simulator (this is the callback)
+// Uses a subscriber to get the formation from Simulator (this is the callback).  Only the seed does this.
 void Cell::receiveFormationFromSimulator(const NewSimulator::FormationMessage::ConstPtr &formationMessage)
 {
 	// If the formation count is higher than ours, then this is a newer formation than we currently have stored
@@ -244,10 +288,11 @@ void Cell::receiveFormationFromSimulator(const NewSimulator::FormationMessage::C
 		isFormationChanged = true;
 
 		cellFormation.formationID = formationMessage->formation_id;
+		cellFormation.setFunctionFromFormationID(cellFormation.formationID);
 		formationCount = formationMessage->formation_count;
 		cellFormation.seedID = formationMessage->seed_id;
 
-//		cout << "\nCell " << cellID << " got new formation: " << cellFormation.formationID << " from Simulator.\n";
+//		cout << "\nSeed Cell " << cellID << " got new formation: " << formationMessage->formation_id << " from Simulator.\n";
 		return;
 	}
 
@@ -263,10 +308,16 @@ void Cell::receiveFormationFromNeighbor(const NewSimulator::FormationMessage::Co
 		isFormationChanged = true;
 
 		cellFormation.formationID = formationMessage->formation_id;
+		cellFormation.setFunctionFromFormationID(cellFormation.formationID);
 		formationCount = formationMessage->formation_count;
 		cellFormation.seedID = formationMessage->seed_id;
 
 //		cout << "\nCell " << cellID << " got new formation: " << cellFormation.formationID << " from neighbor.\n";
+
+		if(cellID == 0)
+		{
+			outputCellInfo();
+		}
 		return;
 	}
 
@@ -631,13 +682,30 @@ void Cell::outputCellInfo()
 {
 //	if(cellID == 4)
 	{
-		cout << "\n\ncell ID: " << cellID << "\n"
-				<< "left neighbor: " << neighborhoodList[0] << endl
-				<< "right neighbor: " << neighborhoodList[1] << endl
-				<< "seed ID: " << cellFormation.seedID << endl
-				<< "isFormationChanged: " << isFormationChanged << endl
-				<< "cell state time step: " << cellState.timeStep << endl
-				<< "getNumberOfNeighbors(): " << getNumberOfNeighbors() << endl
-				<< "cellFormation.formationID: " << cellFormation.formationID << endl << endl;
+		cout << "\n\nCell stuff:\n"
+				<< "   cell ID: " << cellID << endl
+				<< "   isFormationChanged: " << isFormationChanged << endl
+				<< "   formationCount: " << formationCount << endl
+				<< "   cell state time step: " << cellState.timeStep << endl
+				<< "   getNumberOfNeighbors(): " << getNumberOfNeighbors() << endl
+				<< "Formation stuff:\n"
+				<< "   cellFormation.formationID: " << cellFormation.formationID << endl
+				<< "   cellFormation.currentFunction: " << cellFormation.currentFunction << endl
+				<< "   cellFormation.getRadius: " << cellFormation.getRadius() << endl
+				<< "   seed ID: " << cellFormation.seedID << endl
+				<< "Left neighbor: " << neighborhoodList[0] << endl
+				<< "   Actual relationship: " << cellState.actualRelationships[0].x << ", "
+						<< cellState.actualRelationships[0].y << ", "
+						<< cellState.actualRelationships[0].z << ", " << endl
+				<< "   Desired relationship: " << cellState.desiredRelationships[0].x << ", "
+						<< cellState.desiredRelationships[0].y << ", "
+						<< cellState.desiredRelationships[0].z << ", " << endl
+				<< "Right neighbor: " << neighborhoodList[1] << endl
+				<< "   Actual relationship: " << cellState.actualRelationships[1].x << ", "
+						<< cellState.actualRelationships[1].y << ", "
+						<< cellState.actualRelationships[1].z << ", " << endl
+				<< "   Desired relationship: " << cellState.desiredRelationships[1].x << ", "
+						<< cellState.desiredRelationships[1].y << ", "
+						<< cellState.desiredRelationships[1].z << ", " << endl << endl;
 	}
 }
