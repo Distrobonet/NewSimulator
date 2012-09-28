@@ -72,7 +72,7 @@ Cell::~Cell()
 // This is where most of the magic happens
 void Cell::update()
 {
-	ros::Rate loop_rate(1);// todo: this should be 10 in production code
+	ros::Rate loop_rate(10);// todo: this should be 10 in production code
 
 	while(ros::ok)
 	{
@@ -196,15 +196,17 @@ void Cell::move(int neighborIndex)
 	movementPhysicsVector.z = cellState.desiredRelationships[neighborIndex].z - cellState.actualRelationships[neighborIndex].z;
 
 	// todo: this isn't right, havent yet figured out how to build the command velocity
-	if(cellID == 0)
+//	if(cellID == 0)
 	{
 		commandVelocity.linear.x = movementPhysicsVector.x;
-		commandVelocity.angular.z = movementPhysicsVector.z;
+		commandVelocity.linear.y = movementPhysicsVector.y;	// This shouldn't do anything
+		commandVelocity.angular.z = 0;
 		cmd_velPub.publish(commandVelocity);
 
-		cout << "\nExecuting movement.  x = " << movementPhysicsVector.x << " towards angle " << movementPhysicsVector.z << endl;
-		cout << "Desired - Actual = " << movementPhysicsVector.x << ", " << movementPhysicsVector.y << ", " << movementPhysicsVector.z;
-		outputCellInfo();
+//		cout << "\nDesired - Actual = " << movementPhysicsVector.x << ", " << movementPhysicsVector.y << ", " << movementPhysicsVector.z;
+//		cout << "\nExecuting movement.  x = " << movementPhysicsVector.x << " towards angle " << movementPhysicsVector.z;
+//
+//		outputCellInfo();
 	}
 
 	return;

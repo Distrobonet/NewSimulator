@@ -29,7 +29,7 @@ Environment::~Environment()
 // Everything that the environment continuously does goes here.
 void Environment::update(bool doSpin)
 {
-	ros::Rate loop_rate(.5);	// todo: increase this to 10 for production code.  A value of 1 is useful for debugging.
+	ros::Rate loop_rate(10);	// todo: increase this to 10 for production code.  A value of 1 is useful for debugging.
 
 	while(ros::ok())
 	{
