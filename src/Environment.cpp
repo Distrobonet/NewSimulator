@@ -34,15 +34,6 @@ void Environment::update(bool doSpin)
 
 	while(ros::ok())
 	{
-	    // This is from the tf tutorial.  Not sure if it's needed by us.
-//	    NewSimulator::Velocity vel_msg;
-//	    vel_msg.angular = 4 * atan2(transform.getOrigin().y(),
-//	                                transform.getOrigin().x());
-//	    vel_msg.linear = 0.5 * sqrt(pow(transform.getOrigin().x(), 2) +
-//	                                 pow(transform.getOrigin().y(), 2));
-//	    turtle_vel.publish(vel_msg);
-
-
 	    loop_rate.sleep();
 		ros::spinOnce();
 	}
@@ -158,7 +149,7 @@ bool Environment::setRelationshipMessage(NewSimulator::Relationship::Request &re
 		// Get the transform from one frame to a second and store it in a StampedTransform object
 		spheroTransformListener.lookupTransform(requestingCell, targetCell, ros::Time(0), transform);
 	}
-	catch (tf::TransformException ex){
+	catch (tf::TransformException &ex){
 		ROS_ERROR("%s",ex.what());
 	}
 
@@ -170,6 +161,41 @@ bool Environment::setRelationshipMessage(NewSimulator::Relationship::Request &re
 	return true;
 }
 
+// Gets the relative pose (x, y, theta) of target cell to origin cell.  Names should be in the format "/sphero1/base_link"
+void Environment::getTransform(string tfTargetName, string tfOriginName, ros::Time time = ros::Time(0), double waitTime = 0.0)
+{
+	if (tfTargetName.empty() || tfOriginName.empty())
+		return;
+
+	tf::StampedTransform transform;
+
+	try
+	{
+		if (waitTime > 0.00l)
+			spheroTransformListener.waitForTransform(tfOriginName, tfTargetName, time, ros::Duration(waitTime));
+
+		spheroTransformListener.lookupTransform(tfOriginName, tfTargetName, time, transform);
+	}
+	catch (tf::TransformException &ex)
+	{
+		ROS_DEBUG("%s", ex.what());
+		return;
+	}
+
+	// get position (x, y, z)
+	double x = transform.getOrigin().x();
+	double y = transform.getOrigin().y();
+	double z = transform.getOrigin().z();
+
+
+	// get orientation (roll, pitch, yaw)
+	float roll = 0.0, pitch = 0.0, yaw = 0.0;
+	btMatrix3x3 const rotationMatrix(transform.getRotation());
+	rotationMatrix.getEulerYPR(yaw, pitch, roll);
+	ROS_INFO("(x, y, th) = (%.2f, %.2f, %.2f)", x, y, yaw);
+
+	return;
+}
 
 // Starts the environment's relationship service server
 void Environment::startRelationshipServiceServer()

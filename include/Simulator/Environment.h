@@ -54,6 +54,7 @@ class Environment
 		ros::NodeHandle environmentBasePoseGroundTruthNode;
 		vector<ros::Subscriber> cellActualPositionSubscribers;
 		vector< vector<double> > cellActualPositions;
+		void getTransform(string tf_dst_name, string tf_src_name, ros::Time t, double wait_for);
 
 
     protected:
