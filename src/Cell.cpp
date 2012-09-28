@@ -72,7 +72,7 @@ Cell::~Cell()
 // This is where most of the magic happens
 void Cell::update()
 {
-	ros::Rate loop_rate(10);
+	ros::Rate loop_rate(1);// todo: this should be 10 in production code
 
 	while(ros::ok)
 	{
@@ -201,6 +201,10 @@ void Cell::move(int neighborIndex)
 		commandVelocity.linear.x = movementPhysicsVector.x;
 		commandVelocity.angular.z = movementPhysicsVector.z;
 		cmd_velPub.publish(commandVelocity);
+
+		cout << "\nExecuting movement.  x = " << movementPhysicsVector.x << " towards angle " << movementPhysicsVector.z << endl;
+		cout << "Desired - Actual = " << movementPhysicsVector.x << ", " << movementPhysicsVector.y << ", " << movementPhysicsVector.z;
+		outputCellInfo();
 	}
 
 	return;
@@ -227,14 +231,14 @@ void Cell::receiveRelationshipFromEnvironment(int neighborIndex)
 		cellState.actualRelationships[neighborIndex].y = relationshipService.response.theRelationship.actual_relationship.y;
 		cellState.actualRelationships[neighborIndex].z = relationshipService.response.theRelationship.actual_relationship.z;
 
-		if(cellID == 0)
-		{
-			cout << "\nFor origin cell " << cellID << " and target cell " << relationshipService.request.TargetID
-					<< "\n       the environment relationship service returned ACTUAL relationship:\n"
-				<< "x: " << relationshipService.response.theRelationship.actual_relationship.x << endl
-				<< "y: " << relationshipService.response.theRelationship.actual_relationship.y << endl
-				<< "z: " << relationshipService.response.theRelationship.actual_relationship.z << endl << endl;
-		}
+//		if(cellID == 0)
+//		{
+//			cout << "\nFor origin cell " << cellID << " and target cell " << relationshipService.request.TargetID
+//					<< "\n       the environment relationship service returned ACTUAL relationship:\n"
+//				<< "x: " << relationshipService.response.theRelationship.actual_relationship.x << endl
+//				<< "y: " << relationshipService.response.theRelationship.actual_relationship.y << endl
+//				<< "z: " << relationshipService.response.theRelationship.actual_relationship.z << endl << endl;
+//		}
 
 		relationshipNodeHandle.shutdown();
 		spinner.stop();
@@ -248,8 +252,8 @@ void Cell::receiveRelationshipFromEnvironment(int neighborIndex)
 // intersectingCircleRadius,const PhysicsVector centerPosition, const float rotationOfRelationship
 void Cell::calculateDesiredRelationship(int neighborIndex)
 {
-	if(cellID != 0)
-		return;//todo: REMOVE THIS ONCE DEBUGGING IS COMPLETE
+//	if(cellID != 0)
+//		return;//todo: REMOVE THIS ONCE DEBUGGING IS COMPLETE
 	PhysicsVector originCellPosition(0,0,90);
 	PhysicsVector desiredRelationship = cellFormation.getDesiredRelationship(cellFormation.getFunction(), cellFormation.getRadius(), originCellPosition, 90);
 
@@ -257,14 +261,14 @@ void Cell::calculateDesiredRelationship(int neighborIndex)
 	cellState.desiredRelationships[neighborIndex].y = desiredRelationship.y;
 	cellState.desiredRelationships[neighborIndex].z = desiredRelationship.z;
 
-	if(cellID == 0)
-	{
-		cout << "\nFor origin cell " << cellID << " and target cell " << neighborhoodList[neighborIndex]
-				<< "\n       the calculated DESIRED relationship is:\n"
-			<< "x: " << cellState.desiredRelationships[neighborIndex].x << endl
-			<< "y: " << cellState.desiredRelationships[neighborIndex].y << endl
-			<< "z: " << cellState.desiredRelationships[neighborIndex].z << endl << endl;
-	}
+//	if(cellID == 0)
+//	{
+//		cout << "\nFor origin cell " << cellID << " and target cell " << neighborhoodList[neighborIndex]
+//				<< "\n       the calculated DESIRED relationship is:\n"
+//			<< "x: " << cellState.desiredRelationships[neighborIndex].x << endl
+//			<< "y: " << cellState.desiredRelationships[neighborIndex].y << endl
+//			<< "z: " << cellState.desiredRelationships[neighborIndex].z << endl << endl;
+//	}
 }
 
 // Creates a message to send to neighhbor cells informing them of the new formation

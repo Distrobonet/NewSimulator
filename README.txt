@@ -19,3 +19,78 @@ To get the testing running
 2)Unpack gtest
 3)Run through the readme in gtest and setup gtest
 4)To run the tests roscd into robot_driver and run 'make test'
+
+
+
+
+It is suggested that you replace your multi-sphero.launch file (contained at ROS_DIRECTORY/sphero/fake_sphero/launch) with this for easier testing...
+
+<launch>
+
+    <!-- Namespace -->
+    <arg name="ns" default="sphero" />
+
+    <!-- Sphero #0 -->
+    <include file="$(find fake_sphero)/launch/sphero.launch">
+      <arg name="name" value="$(arg ns)0" />
+      <arg name="px" value="3.0" />
+      <arg name="py" value="5.0" />
+      <arg name="r" value="1.0" />
+      <arg name="g" value="1.0" />
+      <arg name="b" value="1.0" />
+    </include>
+
+    <!-- Sphero #1 -->
+    <include file="$(find fake_sphero)/launch/sphero.launch">
+      <arg name="name" value="$(arg ns)1" />
+      <arg name="px" value="1.0" />
+      <arg name="r" value="1.0" />
+      <arg name="g" value="1.0" />
+      <arg name="b" value="0.0" />
+    </include>
+
+    <!-- Sphero #2 -->
+    <include file="$(find fake_sphero)/launch/sphero.launch">
+      <arg name="name" value="$(arg ns)2" />
+      <arg name="px" value="2.0" />
+      <arg name="r" value="1.0" />
+      <arg name="g" value="0.0" />
+      <arg name="b" value="1.0" />
+    </include>
+
+    <!-- Sphero #3 -->
+    <include file="$(find fake_sphero)/launch/sphero.launch">
+      <arg name="name" value="$(arg ns)3" />
+      <arg name="px" value="3.0" />
+      <arg name="r" value="1.0" />
+      <arg name="g" value="0.0" />
+      <arg name="b" value="0.0" />
+    </include>
+
+    <!-- Sphero #4 -->
+    <include file="$(find fake_sphero)/launch/sphero.launch">
+      <arg name="name" value="$(arg ns)4" />
+      <arg name="px" value="4.0" />
+      <arg name="r" value="0.0" />
+      <arg name="g" value="1.0" />
+      <arg name="b" value="1.0" />
+    </include>
+
+    <!-- Sphero #5 -->
+    <include file="$(find fake_sphero)/launch/sphero.launch">
+      <arg name="name" value="$(arg ns)5" />
+      <arg name="px" value="5.0" />
+      <arg name="r" value="0.0" />
+      <arg name="g" value="1.0" />
+      <arg name="b" value="0.0" />
+    </include>
+
+    <!-- Sphero #6 -->
+    <include file="$(find fake_sphero)/launch/sphero.launch">
+      <arg name="name" value="$(arg ns)6" />
+      <arg name="px" value="6.0" />
+      <arg name="r" value="0.0" />
+      <arg name="g" value="0.0" />
+      <arg name="b" value="1.0" />
+    </include>
+</launch>
