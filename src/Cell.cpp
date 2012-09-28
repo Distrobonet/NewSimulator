@@ -106,10 +106,12 @@ void Cell::update()
 
 		updateCurrentStatus();
 
-		if(cellID == 3)
-			commandVelocity.linear.x = 1;
-//		commandVelocity.angular.z = 2;
-		cmd_velPub.publish(commandVelocity);
+		if(cellID == 2)
+		{
+			commandVelocity.linear.x = .5;
+			commandVelocity.angular.z = .1;
+			cmd_velPub.publish(commandVelocity);
+		}
 
 		ros::spinOnce();
 		loop_rate.sleep();
@@ -203,13 +205,13 @@ void Cell::receiveRelationshipFromEnvironment(int neighborIndex)
 		cellState.actualRelationships[neighborIndex].y = relationshipService.response.theRelationship.actual_relationship.y;
 		cellState.actualRelationships[neighborIndex].z = relationshipService.response.theRelationship.actual_relationship.z;
 
-//		if(cellID == 2)
-//		{
-//			cout << "\nEnvironment relationship service returned:\n"
-//				<< "x: " << relationshipService.response.theRelationship.actual_relationship.x << endl
-//				<< "y: " << relationshipService.response.theRelationship.actual_relationship.y << endl
-//				<< "z: " << relationshipService.response.theRelationship.actual_relationship.z << endl << endl;
-//		}
+		if(cellID == 2)
+		{
+			cout << "\nEnvironment relationship service returned:\n"
+				<< "x: " << relationshipService.response.theRelationship.actual_relationship.x << endl
+				<< "y: " << relationshipService.response.theRelationship.actual_relationship.y << endl
+				<< "z: " << relationshipService.response.theRelationship.actual_relationship.z << endl << endl;
+		}
 
 		relationshipNodeHandle.shutdown();
 		spinner.stop();

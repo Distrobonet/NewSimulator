@@ -51,16 +51,13 @@ class Environment
 		bool setRelationshipMessage(NewSimulator::Relationship::Request &request, NewSimulator::Relationship::Response &response);
 		void startRelationshipServiceServer();
 
-		ros::NodeHandle environmentBasePoseGroundTruthNode;
-		vector<ros::Subscriber> cellActualPositionSubscribers;
-		vector< vector<double> > cellActualPositions;
-		void getTransform(string tf_dst_name, string tf_src_name, ros::Time t, double wait_for);
+		PhysicsVector getTransform(string tfOriginName, string tfTargetName);
+		PhysicsVector getActualPosition(string tfOriginName);
 
 
     protected:
         int                numOfRobots;
         tf::TransformListener spheroTransformListener;		// Listens to sphero positions in rviz
-        tf::StampedTransform transform;						// Stores the sphero position info
 
 };  // Environment
 
