@@ -7,7 +7,7 @@ using namespace std;
 Formation::Formation()
 {
 	seedID = DEFAULT_SEED_ID;
-	setRadius(DEFAULT_RADIUS);
+	setRadius(DEFAULT_FORMATION_RADIUS);
 	setFormationID(NO_FUNCTION_FORMATION_ID);
 //	setSeedFormationRelativePosition();
 	setFormationRelativeOrientation(DEFAULT_FORMATION_RELATIVE_ORIENTATION);
@@ -59,10 +59,10 @@ void Formation::setFunctionFromFormationID(int newFormationId)
 	switch(newFormationId)
 	{
 		case 0:
-			setFunction(&line); // todo: these have ampersands for testing but they don't appear to make a difference?
+			setFunction(line);
 			break;
 		case 1:
-			setFunction(&x); // todo: these have ampersands for testing but they don't appear to make a difference?
+			setFunction(x);
 			break;
 		case 2:
 			setFunction(absX);
@@ -115,12 +115,12 @@ void Formation::setFormationID(int newFormationID)
 	formationID = newFormationID;
 }
 
-int Formation::getRadius()
+float Formation::getRadius()
 {
 	return radius;
 }
 
-void Formation::setRadius(int newRadius)
+void Formation::setRadius(float newRadius)
 {
 	radius = newRadius;
 }

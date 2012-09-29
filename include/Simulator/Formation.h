@@ -12,12 +12,11 @@ typedef float (*Function)(const float);
 static const int DEFAULT_SEED_ID = 3;		// Hard-coded seed ID because it is not selectable
 
 static const Function DEFAULT_FORMATION_FUNCTION = NULL;
-static const int    DEFAULT_RADIUS = 1;
-static const int    DEFAULT_FORMATION_RELATIVE_ORIENTATION = 0;
-static const int    NO_FUNCTION_FORMATION_ID = -1;
-static const float  DEFAULT_FORMATION_RADIUS   = 1.0f;
-static const double X_ROOT_THRESHOLD           = 5E-7;
-static const int    X_N_ITERATIONS             = 100;
+static const int      DEFAULT_FORMATION_RELATIVE_ORIENTATION = 0;
+static const int      NO_FUNCTION_FORMATION_ID = -1;
+static const float    DEFAULT_FORMATION_RADIUS   = 1.0f;
+static const double   X_ROOT_THRESHOLD           = 5E-7;
+static const int      X_N_ITERATIONS             = 100;
 
 
 //class Formation : protected vector<Function>			// Multi-function formations will use this line eventually
@@ -35,7 +34,7 @@ class Formation
 		void setFunction(const Function newFunction = DEFAULT_FORMATION_FUNCTION);
 		void setFunctionFromFormationID(int newFormationId);
 		void setFormationID(int newFormationID);
-		void setRadius(int newRadius);
+		void setRadius(float newRadius);
 		void setFormationRelativeOrientation(float newFormationRelativeOrientation);
 		void setSeedFormationRelativePosition(PhysicsVector newFormationRelativePosition);
 
@@ -43,7 +42,7 @@ class Formation
 		// Accessors
 		Function getFunction();
 		int getFormationID();
-		int getRadius();
+		float getRadius();
 		float getFormationRelativeOrientation();
 		PhysicsVector getSeedFormationRelativePosition();
 		int getSeedID();
@@ -72,7 +71,7 @@ class Formation
 		Formation fx(int formationId);
 		Function currentFunction;
 		int formationID;									// The identifier for the current formation function
-		int radius;											// The desired distance between neighbors
+		float radius;										// The desired distance between neighbors
 		float formationRelativeOrientation;					// Orientation of each robot relative to the formation
 		PhysicsVector seedFormationRelativePosition;		// FRP that serves as starting point from which formation and relationships will propagate
 

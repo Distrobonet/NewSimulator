@@ -50,7 +50,10 @@ Cell::Cell(const int ID)
 		simulatorFormationSubscriber = simulatorFormationNodeHandle.subscribe("seedFormationMessage", 1000, &Cell::receiveFormationFromSimulator, this);
 	}
 
-//	cellFormation.setFunctionFromFormationID(5);// This can be used for debugging to set a default starting formation
+
+	// This can be used for debugging to set a default starting formation
+//	isFormationChanged = true;
+//	cellFormation.setFunctionFromFormationID(2);
 }
 
 Cell::~Cell()
@@ -252,14 +255,15 @@ void Cell::receiveRelationshipFromEnvironment(int neighborIndex)
 // intersectingCircleRadius,const PhysicsVector centerPosition, const float rotationOfRelationship
 void Cell::calculateDesiredRelationship(int neighborIndex)
 {
-	PhysicsVector originCellPosition(0,0,90);
-	PhysicsVector desiredRelationship = cellFormation.getDesiredRelationship(cellFormation.getFunction(), cellFormation.getRadius(), originCellPosition, 90);
+	PhysicsVector originCellPosition(0,0,0);
+//	cout << cellFormation.radius << endl;
+	PhysicsVector desiredRelationship = cellFormation.getDesiredRelationship(cellFormation.getFunction(), cellFormation.getRadius(), originCellPosition, 0);
 
 	cellState.desiredRelationships[neighborIndex].x = desiredRelationship.x;
 	cellState.desiredRelationships[neighborIndex].y = desiredRelationship.y;
 	cellState.desiredRelationships[neighborIndex].z = desiredRelationship.z;
 
-//	if(cellID == 0)
+//	if(cellID == 4)
 //	{
 //		cout << "\nFor origin cell " << cellID << " and target cell " << neighborhoodList[neighborIndex]
 //				<< "\n       the calculated DESIRED relationship is:\n"
@@ -274,6 +278,7 @@ NewSimulator::FormationMessage Cell::createFormationChangeMessage()
 {
 	NewSimulator::FormationMessage formationChangeMessage;
 
+	formationChangeMessage.radius = cellFormation.radius;
 	formationChangeMessage.formation_id = cellFormation.formationID;
 	formationChangeMessage.formation_count = formationCount;
 	formationChangeMessage.seed_id = cellFormation.seedID;
@@ -289,6 +294,7 @@ void Cell::receiveFormationFromSimulator(const NewSimulator::FormationMessage::C
 	{
 		isFormationChanged = true;
 
+		cellFormation.radius = formationMessage->radius;
 		cellFormation.formationID = formationMessage->formation_id;
 		cellFormation.setFunctionFromFormationID(cellFormation.formationID);
 		formationCount = formationMessage->formation_count;
@@ -309,6 +315,7 @@ void Cell::receiveFormationFromNeighbor(const NewSimulator::FormationMessage::Co
 	{
 		isFormationChanged = true;
 
+		cellFormation.radius = formationMessage->radius;
 		cellFormation.formationID = formationMessage->formation_id;
 		cellFormation.setFunctionFromFormationID(cellFormation.formationID);
 		formationCount = formationMessage->formation_count;

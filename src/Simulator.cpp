@@ -38,19 +38,20 @@ void clearScreen();
 const char  CHAR_ESCAPE = char(27);    // 'ESCAPE' character key
 int LAST_SELECTION = -1;
 int CURRENT_SELECTION = -1;
-int formationCount = 0;
+float CELL_RADIUS = 1.0f;
+int FORMATION_COUNT = 0;
+bool IS_RADIUS_CHANGED = false;
+int SEED_ID = 3;		// Can use this to change which cell is the seed
 
 NewSimulator::FormationMessage formationMessage;
-
-// A formation is a vector of Functions, which are functions that take floats and return floats
-Formation DEFAULT_FORMATION = Formation();// = Formation(line, 1, PhysicsVector(), MIDDLE_CELL, 0,  90.0f);
 
 // Service utility function to set the formation being served based on CURRENT_SELECTION
 void setFormationMessage()
 {
-	formationMessage.seed_id = DEFAULT_FORMATION.getSeedID();
+	formationMessage.radius = CELL_RADIUS;
+	formationMessage.seed_id = SEED_ID;
 	formationMessage.formation_id = CURRENT_SELECTION;
-	formationMessage.formation_count = formationCount;
+	formationMessage.formation_count = FORMATION_COUNT;
 //	ROS_INFO("Setting the formation message");
 }
 
@@ -84,11 +85,12 @@ int main(int argc, char **argv)
 		ros::spinOnce();
 
 		// Selection has changed, push this new formation to the seed cell
-		if(CURRENT_SELECTION != LAST_SELECTION)
+		if(CURRENT_SELECTION != LAST_SELECTION || IS_RADIUS_CHANGED)
 		{
-			formationCount += 1;
-//			cout << "\nformationCount: " << formationCount << " - New formation: " << CURRENT_SELECTION << endl;
+			FORMATION_COUNT += 1;
+//			cout << "\nformationCount: " << FORMATION_COUNT << " - New formation: " << CURRENT_SELECTION << endl;
 			LAST_SELECTION = CURRENT_SELECTION;
+			IS_RADIUS_CHANGED = false;
 			setFormationMessage();
 			formationPublisher.publish(formationMessage);
 		}
@@ -144,6 +146,23 @@ void keyboardInput()
 			CURRENT_SELECTION = keyPressed-48;	// convert from ascii char to int
 			cout << " - Setting CURRENT_SELECTION to " << CURRENT_SELECTION <<endl;
 		}
+		else if(keyPressed == '+')
+		{
+			CELL_RADIUS += 0.2f;
+			IS_RADIUS_CHANGED = true;
+			cout << " - Increasing cell radius to  " << CELL_RADIUS <<endl;
+		}
+		else if(keyPressed == '-')
+		{
+			if(CELL_RADIUS >= 0.4f)
+			{
+				CELL_RADIUS -= 0.2f;
+				IS_RADIUS_CHANGED = true;
+				cout << " - Decreasing cell radius to " << CELL_RADIUS <<endl;
+			}
+			else
+				cout << " - Can not decrease the radius any more!\n";
+		}
 		else
 			cout << " - Not a valid input.";
 
@@ -170,6 +189,7 @@ void displayMenu()
 		<< "7) f(x) = x^3"                                   << endl
 		<< "8) f(x) = {sqrt(x),  x >= 0 | -sqrt|x|, x < 0}"  << endl
 		<< "9) f(x) = sin(x)"                        		 << endl << endl
+		<< "Use + and - to adjust the cell radius"    		 << endl
 		<< "Use ctrl+C to exit."                             << endl << endl
 		<< "Please enter your selection: ";
 }
