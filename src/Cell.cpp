@@ -96,7 +96,7 @@ void Cell::update()
 		if(cellID > cellFormation.getSeedID() && getNeighborhood()[0] != NO_NEIGHBOR)
 		{
 			// This cell is to the right of the seed.  Get relationship to our left neighbor.
-			receiveRelationshipFromEnvironment(0);
+			receiveActualRelationshipFromEnvironment(0);
 			applySensorError(0);
 			calculateDesiredRelationship(0);
 			move(0); 		// Move relative to this cell's left neighbor
@@ -104,7 +104,7 @@ void Cell::update()
 		if(cellID < cellFormation.getSeedID() && getNeighborhood()[1] != NO_NEIGHBOR)
 		{
 			// This cell is to the left of the seed.  Get relationship to our right neighbor.
-			receiveRelationshipFromEnvironment(1);
+			receiveActualRelationshipFromEnvironment(1);
 			applySensorError(1);
 			calculateDesiredRelationship(1);
 			move(1); 		// Move relative to this cell's right neighbor
@@ -184,11 +184,7 @@ void Cell::move(int neighborIndex)
 		return;
 
 	PhysicsVector movementPhysicsVector;
-	if(cellID == 4 || cellID == 5 || cellID == 6) 	// todo: this is clearly not the ideal way to do this.  something is broken elsewhere.
-	{
-		cellState.desiredRelationships[neighborIndex].x *= -1;
-		cellState.desiredRelationships[neighborIndex].y *= -1;
-	}
+
 	movementPhysicsVector.x = cellState.desiredRelationships[neighborIndex].x - cellState.actualRelationships[neighborIndex].x;
 	movementPhysicsVector.y = cellState.desiredRelationships[neighborIndex].y - cellState.actualRelationships[neighborIndex].y;
 	movementPhysicsVector.z = cellState.desiredRelationships[neighborIndex].z - cellState.actualRelationships[neighborIndex].z;
@@ -208,7 +204,7 @@ void Cell::move(int neighborIndex)
 }
 
 // Uses a service client to get the relationship to your reference neighbor from Environment
-void Cell::receiveRelationshipFromEnvironment(int neighborIndex)
+void Cell::receiveActualRelationshipFromEnvironment(int neighborIndex)
 {
 	if(neighborIndex == NO_NEIGHBOR || getCommunicationLostBasedOnError())
 		return;
@@ -246,11 +242,16 @@ void Cell::receiveRelationshipFromEnvironment(int neighborIndex)
 	spinner.stop();
 	return;
 }
-// intersectingCircleRadius,const PhysicsVector centerPosition, const float rotationOfRelationship
+
+// Calculate this cell's desired relationship to its parameterized neighbor
 void Cell::calculateDesiredRelationship(int neighborIndex)
 {
+	float rotationOfRelationship = 0.0f;
+	if(cellID > cellFormation.getSeedID())
+		rotationOfRelationship = 180.0f;
+
 	PhysicsVector originCellPosition(0,0,0);
-	PhysicsVector desiredRelationship = cellFormation.getDesiredRelationship(cellFormation.getFunction(), cellFormation.getRadius(), originCellPosition, 0);
+	PhysicsVector desiredRelationship = cellFormation.getDesiredRelationship(cellFormation.getFunction(), cellFormation.getRadius(), originCellPosition, rotationOfRelationship);
 
 	cellState.desiredRelationships[neighborIndex].x = desiredRelationship.x;
 	cellState.desiredRelationships[neighborIndex].y = desiredRelationship.y;

@@ -69,16 +69,11 @@ bool Environment::setActualRelationshipMessage(NewSimulator::Relationship::Reque
 	string targetID = targetStringStream.str();
 	targetCell.insert(7, targetID);
 
-
-	// This uses Ross' code snippet to get the ACTUAL RELATIVE position (actual relationship) between 2 frames/cells
+	// This will return the ACTUAL RELATIVE position (actual relationship) between 2 frames/cells
 	PhysicsVector relationshipVector = getTransform(targetCell, requestingCell);
 	response.theRelationship.actual_relationship.x = relationshipVector.x;
 	response.theRelationship.actual_relationship.y = relationshipVector.y;
 	response.theRelationship.actual_relationship.z = relationshipVector.z;
-
-	// todo: After we calculate relationships, immediately rotate them (according to Ross)
-	// todo: not yet sure if this is necessary or how to do it.
-
 
 
 	// This will return the ACTUAL POSITION of the requesting cell (for debugging purposes)

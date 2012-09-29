@@ -89,7 +89,7 @@ class Cell
 		ros::NodeHandle relationshipNodeHandle;
 		ros::ServiceClient relationshipClient;
 		NewSimulator::Relationship relationshipService;
-		void receiveRelationshipFromEnvironment(int neighborIndex);
+		void receiveActualRelationshipFromEnvironment(int neighborIndex);
 
 
 		// Simulator formation subscriber - only used by seed cell to get formation from Simulator
