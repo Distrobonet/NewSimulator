@@ -102,6 +102,7 @@ void Cell::update()
 		{
 			// This cell is to the right of the seed.  Get relationship to our left neighbor.
 			receiveRelationshipFromEnvironment(0);
+			applySensorAndCommError(0);
 			calculateDesiredRelationship(0);
 			move(0); 		// Move relative to this cell's left neighbor
 		}
@@ -109,9 +110,11 @@ void Cell::update()
 		{
 			// This cell is to the left of the seed.  Get relationship to our right neighbor.
 			receiveRelationshipFromEnvironment(1);
+			applySensorAndCommError(1);
 			calculateDesiredRelationship(1);
 			move(1); 		// Move relative to this cell's right neighbor
 		}
+
 
 		updateCurrentStatus();
 
@@ -256,7 +259,6 @@ void Cell::receiveRelationshipFromEnvironment(int neighborIndex)
 void Cell::calculateDesiredRelationship(int neighborIndex)
 {
 	PhysicsVector originCellPosition(0,0,0);
-//	cout << cellFormation.radius << endl;
 	PhysicsVector desiredRelationship = cellFormation.getDesiredRelationship(cellFormation.getFunction(), cellFormation.getRadius(), originCellPosition, 0);
 
 	cellState.desiredRelationships[neighborIndex].x = desiredRelationship.x;
@@ -282,6 +284,8 @@ NewSimulator::FormationMessage Cell::createFormationChangeMessage()
 	formationChangeMessage.formation_id = cellFormation.formationID;
 	formationChangeMessage.formation_count = formationCount;
 	formationChangeMessage.seed_id = cellFormation.seedID;
+	formationChangeMessage.sensor_error = cellFormation.getSensorError();
+	formationChangeMessage.communication_error = cellFormation.getCommunicationError();
 
 	return formationChangeMessage;
 }
@@ -299,6 +303,8 @@ void Cell::receiveFormationFromSimulator(const NewSimulator::FormationMessage::C
 		cellFormation.setFunctionFromFormationID(cellFormation.formationID);
 		formationCount = formationMessage->formation_count;
 		cellFormation.seedID = formationMessage->seed_id;
+		cellFormation.setSensorError(formationMessage->sensor_error);
+		cellFormation.setCommunicationError(formationMessage->communication_error);
 
 //		cout << "\nSeed Cell " << cellID << " got new formation: " << formationMessage->formation_id << " from Simulator.\n";
 		return;
@@ -320,6 +326,8 @@ void Cell::receiveFormationFromNeighbor(const NewSimulator::FormationMessage::Co
 		cellFormation.setFunctionFromFormationID(cellFormation.formationID);
 		formationCount = formationMessage->formation_count;
 		cellFormation.seedID = formationMessage->seed_id;
+		cellFormation.sensorError = formationMessage->sensor_error;
+		cellFormation.communicationError = formationMessage->communication_error;
 
 //		cout << "\nCell " << cellID << " got new formation: " << cellFormation.formationID << " from neighbor.\n";
 
@@ -624,6 +632,37 @@ int Cell::getNumberOfNeighbors()
 	return neighborhoodList.size();
 }
 
+// Applies the sensor and communication error set by the user and transmitted to this cell in the formation message
+void Cell::applySensorAndCommError(int neighborIndex)
+{
+	if(cellFormation.getSensorError() > 0.0f)
+	{
+		// Apply sensor error
+
+		// Generate a random multipler for the error between 0 and 2
+		float randomizer = rand() % 200;
+		randomizer /= 100;
+		cellState.actualRelationships[neighborIndex].x += cellFormation.getSensorError() * randomizer;
+
+		randomizer = rand() % 200;
+		randomizer /= 100;
+		cellState.actualRelationships[neighborIndex].y += cellFormation.getSensorError() * randomizer;
+
+		randomizer = rand() % 200;
+		randomizer /= 100;
+		cellState.actualRelationships[neighborIndex].z += cellFormation.getSensorError() * randomizer;
+
+		cout << cellState.actualRelationships[neighborIndex].x << ", " << cellState.actualRelationships[neighborIndex].y << ", "
+				<< cellState.actualRelationships[neighborIndex].z << endl;
+	}
+
+	if(cellFormation.getCommunicationError() > 0.0f)
+	{
+		// Apply communication error
+	}
+
+
+}
 // Outputs all the useful info about this cell for debugging purposes
 void Cell::outputCellInfo()
 {
@@ -640,6 +679,8 @@ void Cell::outputCellInfo()
 				<< "   cellFormation.currentFunction: " << cellFormation.currentFunction << endl
 				<< "   cellFormation.getRadius: " << cellFormation.getRadius() << endl
 				<< "   seed ID: " << cellFormation.seedID << endl
+				<< "   sensorError: " << cellFormation.getSensorError() << endl
+				<< "   communicationError: " << cellFormation.getCommunicationError() << endl
 				<< "Left neighbor: " << neighborhoodList[0] << endl
 				<< "   Actual relationship: " << cellState.actualRelationships[0].x << ", "
 						<< cellState.actualRelationships[0].y << ", "

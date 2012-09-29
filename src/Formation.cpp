@@ -233,8 +233,29 @@ float Formation::getFunctionIntersection(const Function formationToCopy, const f
 	return pow(offset - centerPosition.x, 2.0f) + pow(formationToCopy(offset) - centerPosition.y, 2.0f) - pow(intersectingCircleRadius, 2.0f);
 }
 
-bool Formation::isValid() {
-	if(formationID != -1)
+bool Formation::isValid()
+{
+	if(formationID != NO_FUNCTION_FORMATION_ID)
 		return true;
 	return false;
+}
+
+float Formation::getSensorError()
+{
+	return sensorError;
+}
+
+void Formation::setSensorError(float newSensorError)
+{
+	sensorError = newSensorError;
+}
+
+float Formation::getCommunicationError()
+{
+	return communicationError;
+}
+
+void Formation::setCommunicationError(float newCommunicationError)
+{
+	communicationError = newCommunicationError;
 }

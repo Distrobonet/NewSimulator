@@ -13,6 +13,8 @@ static const int DEFAULT_SEED_ID = 3;		// Hard-coded seed ID because it is not s
 
 static const Function DEFAULT_FORMATION_FUNCTION = NULL;
 static const int      DEFAULT_FORMATION_RELATIVE_ORIENTATION = 0;
+static const float    DEFAULT_SENSOR_ERROR = 0;
+static const float    DEFAULT_COMMUNICATION_ERROR = 0;
 static const int      NO_FUNCTION_FORMATION_ID = -1;
 static const float    DEFAULT_FORMATION_RADIUS   = 1.0f;
 static const double   X_ROOT_THRESHOLD           = 5E-7;
@@ -37,6 +39,8 @@ class Formation
 		void setRadius(float newRadius);
 		void setFormationRelativeOrientation(float newFormationRelativeOrientation);
 		void setSeedFormationRelativePosition(PhysicsVector newFormationRelativePosition);
+		void setSensorError(float newSensorError);
+		void setCommunicationError(float newCommunicationError);
 
 
 		// Accessors
@@ -48,6 +52,8 @@ class Formation
 		int getSeedID();
 		vector<PhysicsVector> getRelationships(const PhysicsVector someVector);
 		bool isValid();
+		float getSensorError();
+		float getCommunicationError();
 
 		PhysicsVector getDesiredRelationship( const Function intersectingFunction = DEFAULT_FORMATION_FUNCTION,
 		                               const float intersectingCircleRadius = DEFAULT_FORMATION_RADIUS,
@@ -72,6 +78,8 @@ class Formation
 		Function currentFunction;
 		int formationID;									// The identifier for the current formation function
 		float radius;										// The desired distance between neighbors
+		float sensorError;
+		float communicationError;
 		float formationRelativeOrientation;					// Orientation of each robot relative to the formation
 		PhysicsVector seedFormationRelativePosition;		// FRP that serves as starting point from which formation and relationships will propagate
 

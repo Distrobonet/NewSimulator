@@ -68,6 +68,7 @@ class Cell
 		void setCurrentStatus(int newStatus);
 		void checkNeighborStatus();
 		void calculateDesiredRelationship(int neighborIndex);
+		void applySensorAndCommError(int neighborIndex);
 
 		ros::NodeHandle stateNode;
 		ros::Publisher state_pub;

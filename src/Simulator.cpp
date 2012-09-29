@@ -41,6 +41,12 @@ int CURRENT_SELECTION = -1;
 float CELL_RADIUS = 1.0f;
 int FORMATION_COUNT = 0;
 bool IS_RADIUS_CHANGED = false;
+float SENSOR_ERROR = 0.0f;
+bool IS_SENSOR_ERROR_CHANGED = false;
+float SENSOR_ERROR_INCREMENT = 0.01f;
+float COMMUNICATION_ERROR = 0.0f;
+bool IS_COMMUNICATION_ERROR_CHANGED = false;
+float COMMUNICATION_ERROR_INCREMENT = 0.01f;
 int SEED_ID = 3;		// Can use this to change which cell is the seed
 
 NewSimulator::FormationMessage formationMessage;
@@ -49,6 +55,8 @@ NewSimulator::FormationMessage formationMessage;
 void setFormationMessage()
 {
 	formationMessage.radius = CELL_RADIUS;
+	formationMessage.sensor_error = SENSOR_ERROR;
+	formationMessage.communication_error = COMMUNICATION_ERROR;
 	formationMessage.seed_id = SEED_ID;
 	formationMessage.formation_id = CURRENT_SELECTION;
 	formationMessage.formation_count = FORMATION_COUNT;
@@ -84,13 +92,15 @@ int main(int argc, char **argv)
 	{
 		ros::spinOnce();
 
-		// Selection has changed, push this new formation to the seed cell
-		if(CURRENT_SELECTION != LAST_SELECTION || IS_RADIUS_CHANGED)
+		// Selection or radius or error has changed, push this new formation to the seed cell
+		if(CURRENT_SELECTION != LAST_SELECTION || IS_RADIUS_CHANGED || IS_SENSOR_ERROR_CHANGED || IS_COMMUNICATION_ERROR_CHANGED)
 		{
 			FORMATION_COUNT += 1;
 //			cout << "\nformationCount: " << FORMATION_COUNT << " - New formation: " << CURRENT_SELECTION << endl;
 			LAST_SELECTION = CURRENT_SELECTION;
 			IS_RADIUS_CHANGED = false;
+			IS_SENSOR_ERROR_CHANGED = false;
+			IS_COMMUNICATION_ERROR_CHANGED = false;
 			setFormationMessage();
 			formationPublisher.publish(formationMessage);
 		}
@@ -150,7 +160,7 @@ void keyboardInput()
 		{
 			CELL_RADIUS += 0.2f;
 			IS_RADIUS_CHANGED = true;
-			cout << " - Increasing cell radius to  " << CELL_RADIUS <<endl;
+			cout << " - Increasing cell radius to " << CELL_RADIUS <<endl;
 		}
 		else if(keyPressed == '-')
 		{
@@ -162,6 +172,40 @@ void keyboardInput()
 			}
 			else
 				cout << " - Can not decrease the radius any more!\n";
+		}
+		else if(keyPressed == 's')
+		{
+			SENSOR_ERROR += SENSOR_ERROR_INCREMENT;
+			IS_SENSOR_ERROR_CHANGED = true;
+			cout << " - Increasing sensor error to " << SENSOR_ERROR <<endl;
+		}
+		else if(keyPressed == 'd')
+		{
+			if(SENSOR_ERROR >= SENSOR_ERROR_INCREMENT)
+			{
+				SENSOR_ERROR -= SENSOR_ERROR_INCREMENT;
+				IS_SENSOR_ERROR_CHANGED = true;
+				cout << " - Decreasing sensor error to " << SENSOR_ERROR <<endl;
+			}
+			else
+				cout << " - Can not decrease the sensor error any more!\n";
+		}
+		else if(keyPressed == 'c')
+		{
+			COMMUNICATION_ERROR += COMMUNICATION_ERROR_INCREMENT;
+			IS_COMMUNICATION_ERROR_CHANGED = true;
+			cout << " - Increasing communication error to " << COMMUNICATION_ERROR <<endl;
+		}
+		else if(keyPressed == 'v')
+		{
+			if(COMMUNICATION_ERROR >= COMMUNICATION_ERROR_INCREMENT)
+			{
+				COMMUNICATION_ERROR -= COMMUNICATION_ERROR_INCREMENT;
+				IS_COMMUNICATION_ERROR_CHANGED = true;
+				cout << " - Decreasing communication error to " << COMMUNICATION_ERROR <<endl;
+			}
+			else
+				cout << " - Can not decrease the communication error any more!\n";
 		}
 		else
 			cout << " - Not a valid input.";
@@ -190,6 +234,8 @@ void displayMenu()
 		<< "8) f(x) = {sqrt(x),  x >= 0 | -sqrt|x|, x < 0}"  << endl
 		<< "9) f(x) = sin(x)"                        		 << endl << endl
 		<< "Use + and - to adjust the cell radius"    		 << endl
+		<< "Use s and d to adjust the sensor error"    		 << endl
+		<< "Use c and v to adjust the communication error"	 << endl
 		<< "Use ctrl+C to exit."                             << endl << endl
 		<< "Please enter your selection: ";
 }
