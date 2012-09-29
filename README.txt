@@ -33,8 +33,8 @@ It is suggested that you replace your multi-sphero.launch file (contained at ROS
     <!-- Sphero #0 -->
     <include file="$(find fake_sphero)/launch/sphero.launch">
       <arg name="name" value="$(arg ns)0" />
-      <arg name="px" value="3.0" />
-      <arg name="py" value="5.0" />
+      <arg name="px" value="-8.0" />
+      <arg name="py" value="-5.0" />
       <arg name="r" value="1.0" />
       <arg name="g" value="1.0" />
       <arg name="b" value="1.0" />
@@ -43,7 +43,8 @@ It is suggested that you replace your multi-sphero.launch file (contained at ROS
     <!-- Sphero #1 -->
     <include file="$(find fake_sphero)/launch/sphero.launch">
       <arg name="name" value="$(arg ns)1" />
-      <arg name="px" value="1.0" />
+      <arg name="px" value="-2.0" />
+      <arg name="py" value="-5.0" />
       <arg name="r" value="1.0" />
       <arg name="g" value="1.0" />
       <arg name="b" value="0.0" />
@@ -52,7 +53,8 @@ It is suggested that you replace your multi-sphero.launch file (contained at ROS
     <!-- Sphero #2 -->
     <include file="$(find fake_sphero)/launch/sphero.launch">
       <arg name="name" value="$(arg ns)2" />
-      <arg name="px" value="2.0" />
+      <arg name="px" value="0.0" />
+      <arg name="py" value="-5.0" />
       <arg name="r" value="1.0" />
       <arg name="g" value="0.0" />
       <arg name="b" value="1.0" />
@@ -61,7 +63,8 @@ It is suggested that you replace your multi-sphero.launch file (contained at ROS
     <!-- Sphero #3 -->
     <include file="$(find fake_sphero)/launch/sphero.launch">
       <arg name="name" value="$(arg ns)3" />
-      <arg name="px" value="3.0" />
+      <arg name="px" value="0.0" />
+      <arg name="py" value="0.0" />
       <arg name="r" value="1.0" />
       <arg name="g" value="0.0" />
       <arg name="b" value="0.0" />
@@ -71,6 +74,7 @@ It is suggested that you replace your multi-sphero.launch file (contained at ROS
     <include file="$(find fake_sphero)/launch/sphero.launch">
       <arg name="name" value="$(arg ns)4" />
       <arg name="px" value="4.0" />
+      <arg name="py" value="-8.0" />
       <arg name="r" value="0.0" />
       <arg name="g" value="1.0" />
       <arg name="b" value="1.0" />
@@ -80,6 +84,7 @@ It is suggested that you replace your multi-sphero.launch file (contained at ROS
     <include file="$(find fake_sphero)/launch/sphero.launch">
       <arg name="name" value="$(arg ns)5" />
       <arg name="px" value="5.0" />
+      <arg name="py" value="-2.0" />
       <arg name="r" value="0.0" />
       <arg name="g" value="1.0" />
       <arg name="b" value="0.0" />
@@ -88,7 +93,8 @@ It is suggested that you replace your multi-sphero.launch file (contained at ROS
     <!-- Sphero #6 -->
     <include file="$(find fake_sphero)/launch/sphero.launch">
       <arg name="name" value="$(arg ns)6" />
-      <arg name="px" value="6.0" />
+      <arg name="px" value="8.0" />
+      <arg name="py" value="-2.0" />
       <arg name="r" value="0.0" />
       <arg name="g" value="0.0" />
       <arg name="b" value="1.0" />

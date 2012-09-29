@@ -51,7 +51,7 @@ void setFormationMessage()
 	formationMessage.seed_id = DEFAULT_FORMATION.getSeedID();
 	formationMessage.formation_id = CURRENT_SELECTION;
 	formationMessage.formation_count = formationCount;
-//	ROS_INFO("sending back response with formation info");
+//	ROS_INFO("Setting the formation message");
 }
 
 int main(int argc, char **argv)
@@ -74,7 +74,6 @@ int main(int argc, char **argv)
 	cout << "\nNow publishing formations.  Current formation = " << CURRENT_SELECTION << endl;
 	ros::spinOnce();
 
-
 	// Create handler for interrupts (i.e., ^C)
 	if (signal(SIGINT, SIG_IGN) != SIG_IGN) signal(SIGINT, terminate);
 	signal(SIGPIPE, SIG_IGN);
@@ -83,8 +82,6 @@ int main(int argc, char **argv)
 	while(ros::ok)
 	{
 		ros::spinOnce();
-
-		keyboardInput();
 
 		// Selection has changed, push this new formation to the seed cell
 		if(CURRENT_SELECTION != LAST_SELECTION)
@@ -95,11 +92,12 @@ int main(int argc, char **argv)
 			setFormationMessage();
 			formationPublisher.publish(formationMessage);
 		}
+
+		keyboardInput();
 	}
 
   return 0;
 }
-
 
 
 // Used by keyboardInput() to catch keystrokes without blocking
@@ -130,7 +128,6 @@ int kbhit(void)
 	return 0;
 }
 
-
 // Catches keyboard input and sets CURRENT_SELECTION based on user input, redisplays the menu
 void keyboardInput()
 {
@@ -140,7 +137,6 @@ void keyboardInput()
 	{
 		keyPressed=getchar();
 
-		//int keyNum = atoi(&keyPressed);
 		cout << "\nKey pressed: " << keyPressed;
 
 		if(keyPressed >= '0' && keyPressed <= '9')
@@ -153,9 +149,7 @@ void keyboardInput()
 
 		displayMenu();
 	}
-
 }
-
 
 // Displays the selection menu to the screen
 void displayMenu()
@@ -175,8 +169,8 @@ void displayMenu()
 		<< "6) f(x) = x^2"                                   << endl
 		<< "7) f(x) = x^3"                                   << endl
 		<< "8) f(x) = {sqrt(x),  x >= 0 | -sqrt|x|, x < 0}"  << endl
-		<< "9) f(x) = 0.05 sin(10 x)"                        << endl << endl
-		<< "Use ctrl+C to exit."                                << endl << endl
+		<< "9) f(x) = sin(x)"                        		 << endl << endl
+		<< "Use ctrl+C to exit."                             << endl << endl
 		<< "Please enter your selection: ";
 }
 
@@ -193,4 +187,3 @@ void terminate(int retVal)
   signal(SIGINT, SIG_DFL);
   exit(retVal);
 }
-

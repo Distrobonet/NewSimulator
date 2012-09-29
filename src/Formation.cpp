@@ -7,10 +7,10 @@ using namespace std;
 Formation::Formation()
 {
 	seedID = DEFAULT_SEED_ID;
-	setRadius(1);
-	setFormationID(0);
+	setRadius(DEFAULT_RADIUS);
+	setFormationID(NO_FUNCTION_FORMATION_ID);
 //	setSeedFormationRelativePosition();
-	setFormationRelativeOrientation(0);
+	setFormationRelativeOrientation(DEFAULT_FORMATION_RELATIVE_ORIENTATION);
 
 	seedFormationRelativePosition.x = 0.0f;
 	seedFormationRelativePosition.y = 0.0f;

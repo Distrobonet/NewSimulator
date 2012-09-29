@@ -12,6 +12,9 @@ typedef float (*Function)(const float);
 static const int DEFAULT_SEED_ID = 3;		// Hard-coded seed ID because it is not selectable
 
 static const Function DEFAULT_FORMATION_FUNCTION = NULL;
+static const int    DEFAULT_RADIUS = 1;
+static const int    DEFAULT_FORMATION_RELATIVE_ORIENTATION = 0;
+static const int    NO_FUNCTION_FORMATION_ID = -1;
 static const float  DEFAULT_FORMATION_RADIUS   = 1.0f;
 static const double X_ROOT_THRESHOLD           = 5E-7;
 static const int    X_N_ITERATIONS             = 100;

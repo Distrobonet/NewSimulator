@@ -50,7 +50,7 @@ Cell::Cell(const int ID)
 		simulatorFormationSubscriber = simulatorFormationNodeHandle.subscribe("seedFormationMessage", 1000, &Cell::receiveFormationFromSimulator, this);
 	}
 
-	cellFormation.setFunctionFromFormationID(5);// todo: this is just temporary for debugging. remove this!
+//	cellFormation.setFunctionFromFormationID(5);// This can be used for debugging to set a default starting formation
 }
 
 Cell::~Cell()
@@ -72,7 +72,7 @@ Cell::~Cell()
 // This is where most of the magic happens
 void Cell::update()
 {
-	ros::Rate loop_rate(10);// todo: this should be 10 in production code
+	ros::Rate loop_rate(10);// This should be 10 in production code
 
 	while(ros::ok)
 	{
@@ -94,7 +94,7 @@ void Cell::update()
 //		cout << "\n**** " << "cell" << cellID << "'s Formation ID: " << cellFormation.formationID << " - Formation count: " << formationCount << " ****\n";
 		receiveNeighborState();
 
-		// Send request to Environment for the cell's relationship with its reference neighbor
+		// Send request to Environment for the cell's relationship with its reference neighbor, calculate the desired relationship, and do the movement.
 		if(cellID > cellFormation.getSeedID() && getNeighborhood()[0] != NO_NEIGHBOR)
 		{
 			// This cell is to the right of the seed.  Get relationship to our left neighbor.
@@ -111,13 +111,6 @@ void Cell::update()
 		}
 
 		updateCurrentStatus();
-
-		if(cellID == 2)
-		{
-//			commandVelocity.linear.x = .5;
-//			commandVelocity.angular.z = .1;
-//			cmd_velPub.publish(commandVelocity);
-		}
 
 		ros::spinOnce();
 		loop_rate.sleep();
@@ -176,11 +169,7 @@ void Cell::updateCurrentStatus() {
 
 bool Cell::calculateMovement() {
 	receiveNeighborState();
-	// getActualPosition();
-	// getDesiredPosition();
-	// getFormationRelativePosition();
 
-	// doMath();
 	return true;
 }
 
@@ -188,18 +177,27 @@ bool Cell::calculateMovement() {
 void Cell::move(int neighborIndex)
 {
 	// At this point, we should know the cell's actual and desired relationship to its reference neighbor.
+;
+	// If a formation hasn't been set, don't move
+	if(cellFormation.formationID == NO_FUNCTION_FORMATION_ID)
+		return;
 
 	PhysicsVector movementPhysicsVector;
-
+	if(cellID == 4 || cellID == 5 || cellID == 6) 	// todo: this is clearly not the ideal way to do this.  something is broken elsewhere.
+	{
+		cellState.desiredRelationships[neighborIndex].x *= -1;
+		cellState.desiredRelationships[neighborIndex].y *= -1;
+	}
 	movementPhysicsVector.x = cellState.desiredRelationships[neighborIndex].x - cellState.actualRelationships[neighborIndex].x;
 	movementPhysicsVector.y = cellState.desiredRelationships[neighborIndex].y - cellState.actualRelationships[neighborIndex].y;
 	movementPhysicsVector.z = cellState.desiredRelationships[neighborIndex].z - cellState.actualRelationships[neighborIndex].z;
 
-	// todo: this isn't right, havent yet figured out how to build the command velocity
+
+	// todo: this isn't right, havent yet figured out how to build the command velocity the right way
 //	if(cellID == 0)
 	{
 		commandVelocity.linear.x = movementPhysicsVector.x;
-		commandVelocity.linear.y = movementPhysicsVector.y;	// This shouldn't do anything
+		commandVelocity.linear.y = movementPhysicsVector.y;	// This shouldn't do anything but it is
 		commandVelocity.angular.z = 0;
 		cmd_velPub.publish(commandVelocity);
 
@@ -254,8 +252,6 @@ void Cell::receiveRelationshipFromEnvironment(int neighborIndex)
 // intersectingCircleRadius,const PhysicsVector centerPosition, const float rotationOfRelationship
 void Cell::calculateDesiredRelationship(int neighborIndex)
 {
-//	if(cellID != 0)
-//		return;//todo: REMOVE THIS ONCE DEBUGGING IS COMPLETE
 	PhysicsVector originCellPosition(0,0,90);
 	PhysicsVector desiredRelationship = cellFormation.getDesiredRelationship(cellFormation.getFunction(), cellFormation.getRadius(), originCellPosition, 90);
 
@@ -320,10 +316,7 @@ void Cell::receiveFormationFromNeighbor(const NewSimulator::FormationMessage::Co
 
 //		cout << "\nCell " << cellID << " got new formation: " << cellFormation.formationID << " from neighbor.\n";
 
-		if(cellID == 0)
-		{
-			outputCellInfo();
-		}
+		outputCellInfo();
 		return;
 	}
 
@@ -388,14 +381,6 @@ void Cell::setRightNeighbor(const int nbr)
 	}
 }
 
-//void Cell::establishNeighborhoodCom()
-//{
-//	for (int i = 0; i < (int)neighborhoodList.size(); i++)
-//	{
-//		stateNode.subscribe(generateSubMessage(neighborhoodList.at(i)), 1000, &Cell::stateCallback, this);
-//	}
-//}
-
 State Cell::getState()
 {
 	return cellState;
@@ -404,11 +389,6 @@ State Cell::getState()
 void Cell::setState(State state)
 {
 	cellState = state;
-}
-
-void Cell::updateState(const NewSimulator::State::Response &incomingState)
-{
-//	cellFormation.formationID = incomingState.state.formation_id;
 }
 
 // Translates the cell relative to itself based on the parameterized translation vector.
@@ -490,50 +470,6 @@ void Cell::receiveNeighborState()
 	}
 }
 
-void Cell::updateState()
-{
-  if ((getNumberOfNeighbors() == 0) || (cellFormation.getSeedID() != cellID))
-		  return;
-
-//  // update actual relationships to neighbors
-//  Neighbor *currentNeighbor = NULL;
-//  for (uint i = 0; i < getNumberOfNeighbors(); ++i)
-//  {
-//    currentNeighbor = neighborhoodList.at(i);
-//    if (currentNeighbor == -1) break;
-//
-//    // change formation if a neighbor has changed formation
-//    if (currentNeighbor->formation.getFormationID() > formation.getFormationID())
-//      changeFormation(currentNeighbor->formation, *currentNeighbor);
-//
-//    currentNeighbor->relActual = getRelationship(currentNeighbor->ID);
-//  }
-//
-//  rels = getRelationships();
-//
-//  // reference the neighbor with the minimum gradient
-//  // to establish the correct position in formation
-//  if (getNNbrs() > 0)
-//  {
-//    Neighbor *neighborReference = nbrWithMinGradient(formation.getSeedGradient());
-//    Relationship *nbrRelToMe = relWithID(neighborReference->rels, ID);
-//
-//    if ((formation.getSeedID() != ID) && (neighborReference != NULL) && (nbrRelToMe != NULL))
-//    {
-//      // error (state) is based upon the
-//      // accumulated error in the formation
-//      Vector  nbrRelToMeDesired = nbrRelToMe->relDesired;
-//      nbrRelToMeDesired.rotateRelative(-neighborReference->rotError);
-//      float theta = scaleDegrees(nbrRelToMe->relActual.angle() - (-neighborReference->relActual).angle());
-//      rotError = scaleDegrees(theta + neighborReference->rotError);
-//      transError = nbrRelToMeDesired - nbrRelToMe->relActual + neighborReference->transError;
-//      transError.rotateRelative(-theta);
-//
-//      //set the state variable of refID  = ID of the reference nbr.
-//      refID = neighborReference->ID;
-//    }
-//  }
-}
 
 // Starts the cell's state service server
 void Cell::startStateServiceServer()
@@ -546,8 +482,6 @@ void Cell::startStateServiceServer()
 	//cout << "Now serving the " << stateService.getService() << " service!\n";
 
 	ros::spinOnce();
-
-	//StateServerNode.shutdown();
 }
 
 
