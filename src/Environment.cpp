@@ -52,7 +52,7 @@ string Environment::generateSubMessage(int cellID)
 
 
 // Sets the response(relationship vector) based on the requests(IDs).  This is a callback.
-bool Environment::setRelationshipMessage(NewSimulator::Relationship::Request &request, NewSimulator::Relationship::Response &response)
+bool Environment::setActualRelationshipMessage(NewSimulator::Relationship::Request &request, NewSimulator::Relationship::Response &response)
 {
 	// Get the relationship between the origin cell and the target cell from rviz
 
@@ -75,13 +75,6 @@ bool Environment::setRelationshipMessage(NewSimulator::Relationship::Request &re
 	response.theRelationship.actual_relationship.x = relationshipVector.x;
 	response.theRelationship.actual_relationship.y = relationshipVector.y;
 	response.theRelationship.actual_relationship.z = relationshipVector.z;
-
-	// todo: We still need to calculate the DESIRED RELATIVE relationship (desired relationship)
-	// todo: currently this is being done by the cell.
-//	response.theRelationship.desired_relationship.x =
-//	response.theRelationship.desired_relationship.y =
-//	response.theRelationship.desired_relationship.z =
-
 
 	// todo: After we calculate relationships, immediately rotate them (according to Ross)
 	// todo: not yet sure if this is necessary or how to do it.
@@ -147,13 +140,13 @@ PhysicsVector Environment::getTransform(string tfOriginName, string tfTargetName
 }
 
 // Starts the environment's relationship service server
-void Environment::startRelationshipServiceServer()
+void Environment::startActualRelationshipServiceServer()
 {
 	int argc = 0;
 	char **argv = 0;
 	ros::init(argc, argv, "relationship_server");
 
-	relationshipService = RelationshipServerNode.advertiseService("relationship", &Environment::setRelationshipMessage, this);
+	relationshipService = RelationshipServerNode.advertiseService("relationship", &Environment::setActualRelationshipMessage, this);
 	cout << "\n*** Now serving the " << relationshipService.getService() << " service from the environment ***\n\n";
 
 	ros::spinOnce();

@@ -49,11 +49,6 @@ Cell::Cell(const int ID)
 	{
 		simulatorFormationSubscriber = simulatorFormationNodeHandle.subscribe("seedFormationMessage", 1000, &Cell::receiveFormationFromSimulator, this);
 	}
-
-
-	// This can be used for debugging to set a default starting formation
-//	isFormationChanged = true;
-//	cellFormation.setFunctionFromFormationID(2);
 }
 
 Cell::~Cell()
@@ -102,7 +97,7 @@ void Cell::update()
 		{
 			// This cell is to the right of the seed.  Get relationship to our left neighbor.
 			receiveRelationshipFromEnvironment(0);
-			applySensorAndCommError(0);
+			applySensorError(0);
 			calculateDesiredRelationship(0);
 			move(0); 		// Move relative to this cell's left neighbor
 		}
@@ -110,7 +105,7 @@ void Cell::update()
 		{
 			// This cell is to the left of the seed.  Get relationship to our right neighbor.
 			receiveRelationshipFromEnvironment(1);
-			applySensorAndCommError(1);
+			applySensorError(1);
 			calculateDesiredRelationship(1);
 			move(1); 		// Move relative to this cell's right neighbor
 		}
@@ -183,9 +178,9 @@ bool Cell::calculateMovement() {
 void Cell::move(int neighborIndex)
 {
 	// At this point, we should know the cell's actual and desired relationship to its reference neighbor.
-;
+
 	// If a formation hasn't been set, don't move
-	if(cellFormation.formationID == NO_FUNCTION_FORMATION_ID)
+	if(cellFormation.formationID == NO_FUNCTION_FORMATION_ID || getCommunicationLostBasedOnError())
 		return;
 
 	PhysicsVector movementPhysicsVector;
@@ -199,19 +194,15 @@ void Cell::move(int neighborIndex)
 	movementPhysicsVector.z = cellState.desiredRelationships[neighborIndex].z - cellState.actualRelationships[neighborIndex].z;
 
 
-	// todo: this isn't right, havent yet figured out how to build the command velocity the right way
-//	if(cellID == 0)
-	{
-		commandVelocity.linear.x = movementPhysicsVector.x;
-		commandVelocity.linear.y = movementPhysicsVector.y;	// This shouldn't do anything but it is
-		commandVelocity.angular.z = 0;
-		cmd_velPub.publish(commandVelocity);
+	commandVelocity.linear.x = movementPhysicsVector.x;
+	commandVelocity.linear.y = movementPhysicsVector.y;
+	commandVelocity.angular.z = 0;
+	cmd_velPub.publish(commandVelocity);
 
-//		cout << "\nDesired - Actual = " << movementPhysicsVector.x << ", " << movementPhysicsVector.y << ", " << movementPhysicsVector.z;
-//		cout << "\nExecuting movement.  x = " << movementPhysicsVector.x << " towards angle " << movementPhysicsVector.z;
+//	cout << "\nDesired - Actual = " << movementPhysicsVector.x << ", " << movementPhysicsVector.y << ", " << movementPhysicsVector.z;
+//	cout << "\nExecuting movement.  x = " << movementPhysicsVector.x << " towards angle " << movementPhysicsVector.z;
 //
-//		outputCellInfo();
-	}
+//	outputCellInfo();
 
 	return;
 }
@@ -219,7 +210,7 @@ void Cell::move(int neighborIndex)
 // Uses a service client to get the relationship to your reference neighbor from Environment
 void Cell::receiveRelationshipFromEnvironment(int neighborIndex)
 {
-	if(neighborIndex == NO_NEIGHBOR)
+	if(neighborIndex == NO_NEIGHBOR || getCommunicationLostBasedOnError())
 		return;
 
 	ros::AsyncSpinner spinner(1);	// Uses an asynchronous spinner to account for the blocking service client call
@@ -296,8 +287,12 @@ void Cell::receiveFormationFromSimulator(const NewSimulator::FormationMessage::C
 	// If the formation count is higher than ours, then this is a newer formation than we currently have stored
 	if(formationMessage->formation_count > formationCount)
 	{
-		isFormationChanged = true;
+		cellFormation.setCommunicationError(formationMessage->communication_error);
 
+		if(getCommunicationLostBasedOnError())
+			return;
+
+		isFormationChanged = true;
 		cellFormation.radius = formationMessage->radius;
 		cellFormation.formationID = formationMessage->formation_id;
 		cellFormation.setFunctionFromFormationID(cellFormation.formationID);
@@ -319,6 +314,11 @@ void Cell::receiveFormationFromNeighbor(const NewSimulator::FormationMessage::Co
 	// If the formation count is higher than ours, then this is a newer formation than we currently have stored
 	if(formationMessage->formation_count > formationCount)
 	{
+		cellFormation.communicationError = formationMessage->communication_error;
+
+		if(getCommunicationLostBasedOnError())
+			return;
+
 		isFormationChanged = true;
 
 		cellFormation.radius = formationMessage->radius;
@@ -327,11 +327,11 @@ void Cell::receiveFormationFromNeighbor(const NewSimulator::FormationMessage::Co
 		formationCount = formationMessage->formation_count;
 		cellFormation.seedID = formationMessage->seed_id;
 		cellFormation.sensorError = formationMessage->sensor_error;
-		cellFormation.communicationError = formationMessage->communication_error;
+
 
 //		cout << "\nCell " << cellID << " got new formation: " << cellFormation.formationID << " from neighbor.\n";
 
-		outputCellInfo();
+//		outputCellInfo();
 		return;
 	}
 
@@ -632,13 +632,11 @@ int Cell::getNumberOfNeighbors()
 	return neighborhoodList.size();
 }
 
-// Applies the sensor and communication error set by the user and transmitted to this cell in the formation message
-void Cell::applySensorAndCommError(int neighborIndex)
+// Applies the sensor error set by the user and transmitted to this cell in the formation message
+void Cell::applySensorError(int neighborIndex)
 {
-	if(cellFormation.getSensorError() > 0.0f)
+	if(cellFormation.getSensorError() > FLOAT_ZERO_APPROXIMATION)
 	{
-		// Apply sensor error
-
 		// Generate a random multipler for the error between 0 and 2
 		float randomizer = rand() % 200;
 		randomizer /= 100;
@@ -651,18 +649,23 @@ void Cell::applySensorAndCommError(int neighborIndex)
 		randomizer = rand() % 200;
 		randomizer /= 100;
 		cellState.actualRelationships[neighborIndex].z += cellFormation.getSensorError() * randomizer;
-
-		cout << cellState.actualRelationships[neighborIndex].x << ", " << cellState.actualRelationships[neighborIndex].y << ", "
-				<< cellState.actualRelationships[neighborIndex].z << endl;
 	}
-
-	if(cellFormation.getCommunicationError() > 0.0f)
-	{
-		// Apply communication error
-	}
-
-
 }
+
+// Use communication error likelihood to determine if the communication is lost
+bool Cell::getCommunicationLostBasedOnError()
+{
+	if(cellFormation.getCommunicationError() > FLOAT_ZERO_APPROXIMATION)
+	{
+		// Get a random number between 0 and 100.  If it is less than or equal to the error percentage, the messge is lost.
+		// This effectively makes x% of every message get lost.
+		if((rand() % 100) <= cellFormation.getCommunicationError() || cellFormation.getCommunicationError() > 99.0f)
+			return true;
+	}
+
+	return false;
+}
+
 // Outputs all the useful info about this cell for debugging purposes
 void Cell::outputCellInfo()
 {

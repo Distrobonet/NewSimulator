@@ -48,8 +48,8 @@ class Environment
         // Relationship service server
         ros::NodeHandle RelationshipServerNode;
 		ros::ServiceServer relationshipService;
-		bool setRelationshipMessage(NewSimulator::Relationship::Request &request, NewSimulator::Relationship::Response &response);
-		void startRelationshipServiceServer();
+		bool setActualRelationshipMessage(NewSimulator::Relationship::Request &request, NewSimulator::Relationship::Response &response);
+		void startActualRelationshipServiceServer();
 
 		PhysicsVector getTransform(string tfOriginName, string tfTargetName);
 		PhysicsVector getActualPosition(string tfOriginName);

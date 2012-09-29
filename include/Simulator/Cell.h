@@ -35,6 +35,7 @@ enum Status{
 };
 
 const int NO_NEIGHBOR = -1;
+const float FLOAT_ZERO_APPROXIMATION = 0.0001f;
 
 class Cell
 {
@@ -68,7 +69,8 @@ class Cell
 		void setCurrentStatus(int newStatus);
 		void checkNeighborStatus();
 		void calculateDesiredRelationship(int neighborIndex);
-		void applySensorAndCommError(int neighborIndex);
+		void applySensorError(int neighborIndex);
+		bool getCommunicationLostBasedOnError();
 
 		ros::NodeHandle stateNode;
 		ros::Publisher state_pub;
