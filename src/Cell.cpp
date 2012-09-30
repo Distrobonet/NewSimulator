@@ -253,8 +253,8 @@ void Cell::calculateDesiredRelationship(int neighborIndex)
 
 
 	PhysicsVector originCellPosition(0,0,0);
-	PhysicsVector desiredRelationship = cellFormation.getDesiredRelationship(cellFormation.getFunction(), cellFormation.getRadius(), originCellPosition, rotationOfRelationship);
-
+//	PhysicsVector desiredRelationship = cellFormation.getDesiredRelationship(cellFormation.getFunction(), cellFormation.getRadius(), originCellPosition, rotationOfRelationship);
+	PhysicsVector desiredRelationship;
 
 	// According to thesis, the desired relationship gets rotated about the negation of the formation relative orientation
 	desiredRelationship.rotateRelative(-1 * cellFormation.getFormationRelativeOrientation());
