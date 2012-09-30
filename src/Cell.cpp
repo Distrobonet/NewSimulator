@@ -250,13 +250,16 @@ void Cell::calculateDesiredRelationship(int neighborIndex)
 	if(cellFormation.formationID == NO_FUNCTION_FORMATION_ID)
 		return;
 
-	float rotationOfRelationship = 0.0f;
-	if(cellID > cellFormation.getSeedID())
-		rotationOfRelationship = 180.0f;
+
+//	if(cellID < cellFormation.getSeedID())
+//		cellFormation.setFormationRelativeOrientation(180);
 
 
-	PhysicsVector originCellPosition(0,0,0);
-	PhysicsVector desiredRelationship = cellFormation.getDesiredRelationship(cellFormation.getFunction(), cellFormation.getRadius(), originCellPosition, rotationOfRelationship);
+//	cout << cellFormation.seedFormationRelativePosition.x << ", " << cellFormation.seedFormationRelativePosition.y
+//			<< ", " << cellFormation.seedFormationRelativePosition.z << endl;
+
+	PhysicsVector desiredRelationship = cellFormation.getDesiredRelationship(cellFormation.getFunction(), cellFormation.getRadius(),
+			cellFormation.getSeedFormationRelativePosition(), cellFormation.getFormationRelativeOrientation());
 
 
 	// According to thesis, the desired relationship gets rotated about the negation of the formation relative orientation

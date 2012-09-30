@@ -9,7 +9,6 @@ Formation::Formation()
 	seedID = DEFAULT_SEED_ID;
 	setRadius(DEFAULT_FORMATION_RADIUS);
 	setFormationID(NO_FUNCTION_FORMATION_ID);
-//	setSeedFormationRelativePosition();
 	setFormationRelativeOrientation(DEFAULT_FORMATION_RELATIVE_ORIENTATION);
 
 	seedFormationRelativePosition.x = 0.0f;
