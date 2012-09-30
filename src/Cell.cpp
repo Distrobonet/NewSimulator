@@ -247,14 +247,17 @@ void Cell::receiveActualRelationshipFromEnvironment(int neighborIndex)
 // Calculate this cell's desired relationship to its parameterized neighbor
 void Cell::calculateDesiredRelationship(int neighborIndex)
 {
+	if(cellFormation.formationID == NO_FUNCTION_FORMATION_ID)
+		return;
+
 	float rotationOfRelationship = 0.0f;
 	if(cellID > cellFormation.getSeedID())
 		rotationOfRelationship = 180.0f;
 
 
 	PhysicsVector originCellPosition(0,0,0);
-//	PhysicsVector desiredRelationship = cellFormation.getDesiredRelationship(cellFormation.getFunction(), cellFormation.getRadius(), originCellPosition, rotationOfRelationship);
-	PhysicsVector desiredRelationship;
+	PhysicsVector desiredRelationship = cellFormation.getDesiredRelationship(cellFormation.getFunction(), cellFormation.getRadius(), originCellPosition, rotationOfRelationship);
+
 
 	// According to thesis, the desired relationship gets rotated about the negation of the formation relative orientation
 	desiredRelationship.rotateRelative(-1 * cellFormation.getFormationRelativeOrientation());
