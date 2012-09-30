@@ -61,8 +61,6 @@ class Cell
 		void establishNeighborhoodCom();
 		State getState();
 		void setState(State state);
-		void translateRelative(float dx = 0.0f, float dy = 0.0f);
-		void rotateRelative(float theta);
 		void updateState();
 		void updateState(const NewSimulator::State::Response &incomingState);
 		int getCurrentStatus();

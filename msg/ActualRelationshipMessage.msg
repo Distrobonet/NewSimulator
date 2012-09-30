@@ -1,4 +1,3 @@
-VectorMessage desired_relationship
 VectorMessage actual_relationship
 int32 cell_id
 

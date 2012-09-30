@@ -76,11 +76,13 @@ bool Environment::setActualRelationshipMessage(NewSimulator::Relationship::Reque
 	response.theRelationship.actual_relationship.z = relationshipVector.z;
 
 
-	// This will return the ACTUAL POSITION of the requesting cell (for debugging purposes)
-//	PhysicsVector actualPosition = getActualPosition(requestingCell);
-//	response.theRelationship.actual_relationship.x = actualPosition.x;
-//	response.theRelationship.actual_relationship.y = actualPosition.y;
-//	response.theRelationship.actual_relationship.z = actualPosition.z;
+//	if(request.OriginID == 2)
+//	{
+//		// This will output the ACTUAL POSITION of the requesting cell (for debugging purposes)
+//		PhysicsVector actualPosition = getActualPosition(requestingCell);
+//		cout << "\nCell " << request.OriginID << "'s ACTUAL POSITION: " << actualPosition.x << ", "
+//				<< actualPosition.y << ", " << actualPosition.z;
+//	}
 	return true;
 }
 

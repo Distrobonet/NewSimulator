@@ -9,10 +9,10 @@ using namespace std;
 typedef float (*Function)(const float);
 
 // global constants
-static const int DEFAULT_SEED_ID = 3;		// Hard-coded seed ID because it is not selectable
+static const int      DEFAULT_SEED_ID = 3;		// Hard-coded seed ID because it is not selectable
 
 static const Function DEFAULT_FORMATION_FUNCTION = NULL;
-static const int      DEFAULT_FORMATION_RELATIVE_ORIENTATION = 0;
+static const float    DEFAULT_FORMATION_RELATIVE_ORIENTATION = 90.0f;
 static const float    DEFAULT_SENSOR_ERROR = 0;
 static const float    DEFAULT_COMMUNICATION_ERROR = 0;
 static const int      NO_FUNCTION_FORMATION_ID = -1;

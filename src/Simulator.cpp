@@ -35,7 +35,7 @@ void displayMenu();
 void keyboardInput();
 void clearScreen();
 
-const char CHAR_ESCAPE = char(27);    // 'ESCAPE' character key
+const char CHAR_ESCAPE = char(27);    			// 'ESCAPE' character key
 int LAST_SELECTION = -1;
 int CURRENT_SELECTION = -1;
 int FORMATION_COUNT = 0;
@@ -46,10 +46,10 @@ bool IS_RADIUS_CHANGED = false;
 float SENSOR_ERROR = 0.0f;
 bool IS_SENSOR_ERROR_CHANGED = false;
 float SENSOR_ERROR_INCREMENT = 0.01f;
-float COMMUNICATION_ERROR = 0.0f;		// Communication error means that x% of all ROS messages are lost
+float COMMUNICATION_ERROR = 0.0f;				// Communication error means that x% of all ROS messages are lost
 bool IS_COMMUNICATION_ERROR_CHANGED = false;
 float COMMUNICATION_ERROR_INCREMENT = 1.0f;
-int SEED_ID = 3;		// Can use this to change which cell is the seed
+int SEED_ID = 3;								// Can use this to change which cell is the seed
 
 NewSimulator::FormationMessage formationMessage;
 

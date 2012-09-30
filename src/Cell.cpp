@@ -192,13 +192,14 @@ void Cell::move(int neighborIndex)
 
 	commandVelocity.linear.x = movementPhysicsVector.x;
 	commandVelocity.linear.y = movementPhysicsVector.y;
-	commandVelocity.angular.z = 0;
+	commandVelocity.angular.z = movementPhysicsVector.z;
 	cmd_velPub.publish(commandVelocity);
 
 //	cout << "\nDesired - Actual = " << movementPhysicsVector.x << ", " << movementPhysicsVector.y << ", " << movementPhysicsVector.z;
 //	cout << "\nExecuting movement.  x = " << movementPhysicsVector.x << " towards angle " << movementPhysicsVector.z;
-//
-//	outputCellInfo();
+
+	if(cellID == 2)
+		outputCellInfo();
 
 	return;
 }
@@ -250,8 +251,13 @@ void Cell::calculateDesiredRelationship(int neighborIndex)
 	if(cellID > cellFormation.getSeedID())
 		rotationOfRelationship = 180.0f;
 
+
 	PhysicsVector originCellPosition(0,0,0);
 	PhysicsVector desiredRelationship = cellFormation.getDesiredRelationship(cellFormation.getFunction(), cellFormation.getRadius(), originCellPosition, rotationOfRelationship);
+
+
+	// According to thesis, the desired relationship gets rotated about the negation of the formation relative orientation
+	desiredRelationship.rotateRelative(-1 * cellFormation.getFormationRelativeOrientation());
 
 	cellState.desiredRelationships[neighborIndex].x = desiredRelationship.x;
 	cellState.desiredRelationships[neighborIndex].y = desiredRelationship.y;
@@ -407,22 +413,6 @@ void Cell::setState(State state)
 	cellState = state;
 }
 
-// Translates the cell relative to itself based on the parameterized translation vector.
-void Cell::translateRelative(float dx , float dy)
-{
-//	rotateRelative(0);
-//    x += dx;
-//    y += dy;
-}
-
-void Cell::rotateRelative(float theta)
-{
-//	theta = degreesToRadians(theta);
-//	x = x * cos(theta)- y * sin(theta);
-//	y = x * sin(theta) + y * cos(theta);
-	//z = z;
-
-}
 
 string Cell::generateFormationPubName(int cellID)
 {
