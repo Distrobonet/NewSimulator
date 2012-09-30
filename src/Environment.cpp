@@ -75,11 +75,13 @@ bool Environment::setActualRelationshipMessage(NewSimulator::Relationship::Reque
 	response.theRelationship.actual_relationship.y = relationshipVector.y;
 	response.theRelationship.actual_relationship.z = relationshipVector.z;
 
-	// This will return the ACTUAL POSITION of the origin cell
-	relationshipVector = getActualPosition(requestingCell);
+	// This will return the ACTUAL RELATIVE position to the SEED cell, which is used to get the FRP
+	string seedCell = "/sphero3/base_link";			// Change this once the seed is configurable
+	relationshipVector = getTransform(requestingCell, seedCell);
 	response.theRelationship.actual_position.x = relationshipVector.x;
 	response.theRelationship.actual_position.y = relationshipVector.y;
 	response.theRelationship.actual_position.z = relationshipVector.z;
+
 
 //	if(request.OriginID == 2)
 //	{

@@ -133,7 +133,6 @@ class Cell
 
     private:
 		bool isFormationChanged;
-		void publishState();
 		void outputCellInfo();	// This is useful for debugging
 };
 

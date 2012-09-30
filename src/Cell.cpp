@@ -74,22 +74,16 @@ void Cell::update()
 
 	while(ros::ok)
 	{
-		// If the cell's ID is the seedID set in Formation
-		if(cellID == cellFormation.seedID)
-		{
-			// Some stuff might need to be done uniquely for the seed cell here.
-		}
-
 		// If a neighbor published a message to this cell that the formation changed
 		if(isFormationChanged)
 		{
 			// Publish the formation change to this cell's non-reference neighbor (cell farthest from seed)
 			formationChangePublisher.publish(createFormationChangeMessage());
 			isFormationChanged = false;
-//			cout << "\n**** " << "cell" << cellID << "'s Formation ID: " << cellFormation.formationID << " - Formation count: " << formationCount << " ****\n";
+			//cout << "\n**** " << "cell" << cellID << "'s Formation ID: " << cellFormation.formationID << " - Formation count: " << formationCount << " ****\n";
 		}
 
-//		cout << "\n**** " << "cell" << cellID << "'s Formation ID: " << cellFormation.formationID << " - Formation count: " << formationCount << " ****\n";
+		//cout << "\n**** " << "cell" << cellID << "'s Formation ID: " << cellFormation.formationID << " - Formation count: " << formationCount << " ****\n";
 		receiveNeighborState();
 
 		// Send request to Environment for the cell's relationship with its reference neighbor, calculate the desired relationship, and do the movement.
@@ -143,10 +137,10 @@ void Cell::updateCurrentStatus() {
 			break;
 
 		case UPDATING:
-			if(calculateMovement()) {
+//			if(calculateMovement()) {
 				currentStatus = WAITING_TO_UPDATE;
 				break;
-			}
+//			}
 			break;
 
 		case WAITING_TO_MOVE:
@@ -168,11 +162,6 @@ void Cell::updateCurrentStatus() {
 	}
 }
 
-bool Cell::calculateMovement() {
-	receiveNeighborState();
-
-	return true;
-}
 
 // Movement =  desired relationship - actual relationship.  Movement is relative to the parameterized neighbor
 void Cell::move(int neighborIndex)
@@ -195,12 +184,6 @@ void Cell::move(int neighborIndex)
 	commandVelocity.angular.z = movementPhysicsVector.z;
 	cmd_velPub.publish(commandVelocity);
 
-//	cout << "\nDesired - Actual = " << movementPhysicsVector.x << ", " << movementPhysicsVector.y << ", " << movementPhysicsVector.z;
-//	cout << "\nExecuting movement.  x = " << movementPhysicsVector.x << " towards angle " << movementPhysicsVector.z;
-
-	if(cellID == 2)
-		outputCellInfo();
-
 	return;
 }
 
@@ -221,12 +204,12 @@ void Cell::receiveActualRelationshipFromEnvironment(int neighborIndex)
 
 	if (relationshipClient.call(relationshipService))
 	{
-		// Actual relationship
+		// Actual relationship to neighbor
 		cellState.actualRelationships[neighborIndex].x = relationshipService.response.theRelationship.actual_relationship.x;
 		cellState.actualRelationships[neighborIndex].y = relationshipService.response.theRelationship.actual_relationship.y;
 		cellState.actualRelationships[neighborIndex].z = relationshipService.response.theRelationship.actual_relationship.z;
 
-		// Actual position (frp)
+		// Actual relationship to seed (frp)
 		cellFormation.cellFormationRelativePosition.x = relationshipService.response.theRelationship.actual_position.x;
 		cellFormation.cellFormationRelativePosition.y = relationshipService.response.theRelationship.actual_position.y;
 		cellFormation.cellFormationRelativePosition.z = relationshipService.response.theRelationship.actual_position.z;
@@ -257,12 +240,11 @@ void Cell::calculateDesiredRelationship(int neighborIndex)
 		return;
 
 
+	// For cells to the left of the seed, flip their radius to use their other desired relationship intersection
 	float radius = cellFormation.getRadius();
 	if(cellID < cellFormation.getSeedID())
 		radius *= -1;
 
-//	cout << cellFormation.seedFormationRelativePosition.x << ", " << cellFormation.seedFormationRelativePosition.y
-//			<< ", " << cellFormation.seedFormationRelativePosition.z << endl;
 
 	PhysicsVector desiredRelationship = cellFormation.getDesiredRelationship(cellFormation.getFunction(), radius,
 			cellFormation.cellFormationRelativePosition, cellFormation.getFormationRelativeOrientation());
@@ -323,8 +305,6 @@ void Cell::receiveFormationFromSimulator(const NewSimulator::FormationMessage::C
 //		cout << "\nSeed Cell " << cellID << " got new formation: " << formationMessage->formation_id << " from Simulator.\n";
 		return;
 	}
-
-//	cout << "\nFormation received by cell " << cellID << " was not newer than its current formation.\n";
 }
 
 // This cell uses this to get the new formation from a neighbor who is publishing it (this is the callback)
@@ -347,15 +327,9 @@ void Cell::receiveFormationFromNeighbor(const NewSimulator::FormationMessage::Co
 		cellFormation.seedID = formationMessage->seed_id;
 		cellFormation.sensorError = formationMessage->sensor_error;
 
-
 //		cout << "\nCell " << cellID << " got new formation: " << cellFormation.formationID << " from neighbor.\n";
-
-//		outputCellInfo();
 		return;
 	}
-
-//	cout << "\nFormation received by cell " << cellID << " was not newer than its current formation.\n";
-
 }
 
 int Cell::getCellID()
@@ -506,88 +480,16 @@ void Cell::startStateServiceServer()
 // Sets the state message to this state's info.  This is the callback for the state service.
 bool Cell::setStateMessage(NewSimulator::State::Request &req, NewSimulator::State::Response &res )
 {
-  	//res.state.formation.heading = cellFormation.heading;
 	res.state.frp.x = cellFormation.seedFormationRelativePosition.x;
 	res.state.frp.y = cellFormation.seedFormationRelativePosition.y;
-  	//res.state.formation.seed_id = cellFormation.seedID;
-  	//res.state.in_position = inPosition;
 
-//	res.state.frp.x = frp.x;
-// 	res.state.frp.y = frp.y;
-
-// 	for(uint i = 0; i < rels.size(); i++)
-// 	{
-//        res.state.actual_relationships[i].id = rels[i].ID;
-//        res.state.actual_relationships[i].actual.x = rels[i].relActual.x;
-//        res.state.actual_relationships[i].actual.y = rels[i].relActual.y;
-//        res.state.desired_relationships[i].desired.x = rels[i].relDesired.x;
-//        res.state.desired_relationships[i].desired.y = rels[i].relDesired.y;
-// 	}
-
-//	res.state.linear_error.x = transError.x;
-//	res.state.linear_error.y = transError.y;
-//	res.state.angular_error = rotError;
-//	res.state.timestep = tStep;
-//	res.state.reference_id = refID;
-//	res.state.temperature = temperature;
-//	res.state.heat = heat;
-
-	//ROS_INFO("sending back response with state info");
 	return true;
 }
 
 void Cell::stateCallback(const NewSimulator::StateMessage &incomingState)
 {
-	//Proof of concept for cell communication
-//	cout << "Cell " << cellID << " hears Cell " << incomingState.formation.seed_id << " as is its neighbor" << endl;
 
-//		res.state.formation.radius = incomingState.formation.radius;
-//		res.state.formation.heading = incomingState.formation.heading;
-//		res.state.formation.seedFrp.x = incomingState.formation.seed_frp.x;
-//		res.state.formation.seedFrp.y = incomingState.formation.seed_frp.y;
-//		res.state.formation.seedID = incomingState.formation.seed_id;
-//		res.state.formation.formationID = incomingState.formation.formation_id;
-//		rightNbr.formation.radius = incomingState.formation.radius;
-//		rightNbr.formation.heading = incomingState.formation.heading;
-//		rightNbr.formation.seedFrp.x = incomingState.formation.seed_frp.x;
-//		rightNbr.formation.seedFrp.y = incomingState.formation.seed_frp.y;
-//		rightNbr.formation.seedID = incomingState.formation.seed_id;
-//		rightNbr.formation.formationID = incomingState.formation.formation_id;
-
-//
-//			changeFormation(formations[formation.formationID], rels[0].ID);
-//			Vector r = formation.calculateDesiredRelationship(formations[formation.formationID], 1.0f, frp, 0.0f);
-//			rels[0].relDesired.x = r.x;
-//			rels[0].relDesired.y = r.y;
-//			rels[0].relDesired.z = r.z;
-//			cout<<r.x<<endl;
-//			cout<<r.y<<endl;
-//		if((incomingState.in_position == true) && (inPosition == false) && (startMoving != true) && formation.formationID != -1)
-//		{
-//			startMoving = true;
-//			stateChanged = true;
-//		}
-//	}
-//	updateState();
 }
-
-//void Cell::publishState()
-//{
-//	NewSimulator::StateMessage state;
-////    state.formation.radius = formation.heading;
-////    state.formation.heading = formation.heading;
-////    state.formation.seed_frp.x = formation.seedFrp.x;
-////    state.formation.seed_frp.y = formation.seedFrp.y;
-////    state.formation.seed_id = formation.seedID;
-////    state.formation.formation_id = formation.formationID;
-////    state.in_position = inPosition;
-//
-//	//Proof of Concept
-////	state.formation.seed_id = cellID;		// statemessage doesn't contain this anymore
-//
-//    state_pub.publish(state);
-////    stateChanged = false;
-//}
 
 // This cell checks the state service of parameterized neighbor
 void Cell::makeStateClientCall(string neighbor)
@@ -648,10 +550,6 @@ void Cell::applySensorError(int neighborIndex)
 		randomizer = rand() % 200;
 		randomizer /= 100;
 		cellState.actualRelationships[neighborIndex].y += cellFormation.getSensorError() * randomizer;
-
-		randomizer = rand() % 200;
-		randomizer /= 100;
-		cellState.actualRelationships[neighborIndex].z += cellFormation.getSensorError() * randomizer;
 	}
 }
 
