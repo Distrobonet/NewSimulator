@@ -45,7 +45,6 @@ int main(int argc, char **argv)
 	thisCell.startStateServiceServer();
 
 	// Update this cell
-	//thisCell.update(argv[4]);
 	thisCell.update();
 
 	return 0;
