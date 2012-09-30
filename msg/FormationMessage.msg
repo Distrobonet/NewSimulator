@@ -1,5 +1,6 @@
 float64 		radius
 VectorMessage 	seed_frp
+float64 		seed_fro
 int32 			seed_id
 int32 			formation_id
 int32 			formation_count

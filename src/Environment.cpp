@@ -75,6 +75,11 @@ bool Environment::setActualRelationshipMessage(NewSimulator::Relationship::Reque
 	response.theRelationship.actual_relationship.y = relationshipVector.y;
 	response.theRelationship.actual_relationship.z = relationshipVector.z;
 
+	// This will return the ACTUAL POSITION of the origin cell
+	relationshipVector = getActualPosition(requestingCell);
+	response.theRelationship.actual_position.x = relationshipVector.x;
+	response.theRelationship.actual_position.y = relationshipVector.y;
+	response.theRelationship.actual_position.z = relationshipVector.z;
 
 //	if(request.OriginID == 2)
 //	{

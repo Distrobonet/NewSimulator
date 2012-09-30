@@ -221,9 +221,15 @@ void Cell::receiveActualRelationshipFromEnvironment(int neighborIndex)
 
 	if (relationshipClient.call(relationshipService))
 	{
+		// Actual relationship
 		cellState.actualRelationships[neighborIndex].x = relationshipService.response.theRelationship.actual_relationship.x;
 		cellState.actualRelationships[neighborIndex].y = relationshipService.response.theRelationship.actual_relationship.y;
 		cellState.actualRelationships[neighborIndex].z = relationshipService.response.theRelationship.actual_relationship.z;
+
+		// Actual position (frp)
+		cellFormation.cellFormationRelativePosition.x = relationshipService.response.theRelationship.actual_position.x;
+		cellFormation.cellFormationRelativePosition.y = relationshipService.response.theRelationship.actual_position.y;
+		cellFormation.cellFormationRelativePosition.z = relationshipService.response.theRelationship.actual_position.z;
 
 //		if(cellID == 0)
 //		{
@@ -251,15 +257,15 @@ void Cell::calculateDesiredRelationship(int neighborIndex)
 		return;
 
 
-//	if(cellID < cellFormation.getSeedID())
-//		cellFormation.setFormationRelativeOrientation(180);
-
+	float radius = cellFormation.getRadius();
+	if(cellID < cellFormation.getSeedID())
+		radius *= -1;
 
 //	cout << cellFormation.seedFormationRelativePosition.x << ", " << cellFormation.seedFormationRelativePosition.y
 //			<< ", " << cellFormation.seedFormationRelativePosition.z << endl;
 
-	PhysicsVector desiredRelationship = cellFormation.getDesiredRelationship(cellFormation.getFunction(), cellFormation.getRadius(),
-			cellFormation.getSeedFormationRelativePosition(), cellFormation.getFormationRelativeOrientation());
+	PhysicsVector desiredRelationship = cellFormation.getDesiredRelationship(cellFormation.getFunction(), radius,
+			cellFormation.cellFormationRelativePosition, cellFormation.getFormationRelativeOrientation());
 
 
 	// According to thesis, the desired relationship gets rotated about the negation of the formation relative orientation

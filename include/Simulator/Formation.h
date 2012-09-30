@@ -82,6 +82,7 @@ class Formation
 		float communicationError;
 		float formationRelativeOrientation;					// Orientation of each robot relative to the formation
 		PhysicsVector seedFormationRelativePosition;		// FRP that serves as starting point from which formation and relationships will propagate
+		PhysicsVector cellFormationRelativePosition;		// p_i in the thesis
 
 };
 

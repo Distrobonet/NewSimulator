@@ -17,6 +17,7 @@
 
 #include <ros/ros.h>
 #include "Simulator/Formation.h"
+#include "Simulator/PhysicsVector.h"
 
 // Formation publisher - Simulator publishes the formation to the seed cell, the ID of which is
 // determined by Formation.seedID (set to global variable in Formation for now)
@@ -39,6 +40,8 @@ const char CHAR_ESCAPE = char(27);    			// 'ESCAPE' character key
 int LAST_SELECTION = -1;
 int CURRENT_SELECTION = -1;
 int FORMATION_COUNT = 0;
+
+PhysicsVector SEED_FRP(0,0,0);
 float CELL_RADIUS = 1.0f;
 float CELL_RADIUS_MAXIMUM = 16.0f;
 float CELL_RADIUS_INCREMENT = 0.2f;
@@ -56,6 +59,10 @@ NewSimulator::FormationMessage formationMessage;
 // Service utility function to set the formation being served based on CURRENT_SELECTION
 void setFormationMessage()
 {
+	formationMessage.seed_frp.x = SEED_FRP.x;
+	formationMessage.seed_frp.y = SEED_FRP.y;
+	formationMessage.seed_frp.z = SEED_FRP.z;
+	formationMessage.seed_fro = 0.0f;
 	formationMessage.radius = CELL_RADIUS;
 	formationMessage.sensor_error = SENSOR_ERROR;
 	formationMessage.communication_error = COMMUNICATION_ERROR;
