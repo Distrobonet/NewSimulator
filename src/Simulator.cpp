@@ -54,11 +54,13 @@ bool IS_COMMUNICATION_ERROR_CHANGED = false;
 float COMMUNICATION_ERROR_INCREMENT = 1.0f;
 int SEED_ID = 3;								// Can use this to change which cell is the seed
 
-NewSimulator::FormationMessage formationMessage;
+
 
 // Service utility function to set the formation being served based on CURRENT_SELECTION
-void setFormationMessage()
+NewSimulator::FormationMessage setFormationMessage()
 {
+	NewSimulator::FormationMessage formationMessage;
+
 	formationMessage.seed_frp.x = SEED_FRP.x;
 	formationMessage.seed_frp.y = SEED_FRP.y;
 	formationMessage.seed_frp.z = SEED_FRP.z;
@@ -70,27 +72,19 @@ void setFormationMessage()
 	formationMessage.formation_id = CURRENT_SELECTION;
 	formationMessage.formation_count = FORMATION_COUNT;
 //	ROS_INFO("Setting the formation message");
+	return formationMessage;
 }
 
 int main(int argc, char **argv)
 {
-	ros::init(argc, argv, "simulator");
-
 	clearScreen();
 	displayMenu();
-
-	// Only continue program once a valid selection has been made
-	while(CURRENT_SELECTION < 0 || CURRENT_SELECTION > 9)
-	{
-		keyboardInput();
-	}
 
 	// Formation publisher to the seed cell
 	ros::init(argc, argv, "formation_publisher");
 	ros::NodeHandle formationPublisherNode;
 	ros::Publisher formationPublisher = formationPublisherNode.advertise<NewSimulator::FormationMessage>("seedFormationMessage", 1000);
 
-	cout << "\nNow publishing formations.  Current formation = " << CURRENT_SELECTION << endl;
 	ros::spinOnce();
 
 	// Create handler for interrupts (i.e., ^C)
@@ -106,13 +100,12 @@ int main(int argc, char **argv)
 		if(CURRENT_SELECTION != LAST_SELECTION || IS_RADIUS_CHANGED || IS_SENSOR_ERROR_CHANGED || IS_COMMUNICATION_ERROR_CHANGED)
 		{
 			FORMATION_COUNT += 1;
-//			cout << "\nformationCount: " << FORMATION_COUNT << " - New formation: " << CURRENT_SELECTION << endl;
 			LAST_SELECTION = CURRENT_SELECTION;
 			IS_RADIUS_CHANGED = false;
 			IS_SENSOR_ERROR_CHANGED = false;
 			IS_COMMUNICATION_ERROR_CHANGED = false;
-			setFormationMessage();
-			formationPublisher.publish(formationMessage);
+
+			formationPublisher.publish(setFormationMessage());
 		}
 
 		keyboardInput();
