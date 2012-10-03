@@ -151,7 +151,7 @@ void Environment::startActualRelationshipServiceServer()
 	ros::init(argc, argv, "relationship_server");
 
 	relationshipService = RelationshipServerNode.advertiseService("relationship", &Environment::setActualRelationshipMessage, this);
-	cout << "\n*** Now serving the " << relationshipService.getService() << " service from the environment ***\n\n";
+//	cout << "\n*** Now serving the " << relationshipService.getService() << " service from the environment ***\n\n";
 
 	ros::spinOnce();
 }

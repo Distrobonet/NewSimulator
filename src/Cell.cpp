@@ -35,13 +35,13 @@ Cell::Cell(const int ID)
 	{
 		// This cell is to the right of the seed.  Subscribe to our left neighbor.
 		formationChangeSubscriber = formationChangeSubscriberNode.subscribe(generateFormationPubName(getNeighborhood()[0]), 1000, &Cell::receiveFormationFromNeighbor, this);
-		cout << "\nCell " << cellID << " has subscribed to neighbor " << getNeighborhood()[0] << "'s formation change messages.\n";
+//		cout << "\nCell " << cellID << " has subscribed to neighbor " << getNeighborhood()[0] << "'s formation change messages.\n";
 	}
 	if(cellID < cellFormation.getSeedID() && getNeighborhood()[1] != NO_NEIGHBOR)
 	{
 		// This cell is to the left of the seed.  Subscribe to our right neighbor.
 		formationChangeSubscriber = formationChangeSubscriberNode.subscribe(generateFormationPubName(getNeighborhood()[1]), 1000, &Cell::receiveFormationFromNeighbor, this);
-		cout << "\nCell " << cellID << " has subscribed to neighbor " << getNeighborhood()[1] << "'s formation change messages.\n";
+//		cout << "\nCell " << cellID << " has subscribed to neighbor " << getNeighborhood()[1] << "'s formation change messages.\n";
 	}
 
 	// Set the seed cell to subscribe to the Simulator's formation messages
@@ -288,6 +288,8 @@ void Cell::receiveFormationFromSimulator(const NewSimulator::FormationMessage::C
 	// If the formation count is higher than ours, then this is a newer formation than we currently have stored
 	if(formationMessage->formation_count > formationCount)
 	{
+//		cout << endl << "#################Formation Change#################" << endl;
+
 		cellFormation.setCommunicationError(formationMessage->communication_error);
 
 		if(getCommunicationLostBasedOnError())
