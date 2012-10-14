@@ -38,7 +38,6 @@ void Environment::update(bool doSpin)
 	}
 }
 
-
 string Environment::generateSubMessage(int cellID)
 {
 	stringstream ss;						//create a stringstream
@@ -49,7 +48,6 @@ string Environment::generateSubMessage(int cellID)
 	subString.insert(7, nbrID);
 	return subString;
 }
-
 
 // Sets the response(relationship vector) based on the requests(IDs).  This is a callback.
 bool Environment::setActualRelationshipMessage(NewSimulator::Relationship::Request &request, NewSimulator::Relationship::Response &response)
@@ -133,7 +131,7 @@ PhysicsVector Environment::getTransform(string tfOriginName, string tfTargetName
 
 	// Get orientation (roll, pitch, yaw)
 	btScalar roll = 0.0, pitch = 0.0, yaw = 0.0;
-	btMatrix3x3 rotationMatrix(transform.getRotation());
+	btMatrix3x3 rotationMatrix(transform.getRotation().asBt());
 	rotationMatrix.getEulerYPR(yaw, pitch, roll);
 
 	transformValues.x = x;

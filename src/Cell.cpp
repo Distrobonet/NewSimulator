@@ -34,20 +34,20 @@ Cell::Cell(const int ID)
 	if(cellID > cellFormation.getSeedID() && getNeighborhood()[0] != NO_NEIGHBOR)
 	{
 		// This cell is to the right of the seed.  Subscribe to our left neighbor.
-		formationChangeSubscriber = formationChangeSubscriberNode.subscribe(generateFormationPubName(getNeighborhood()[0]), 1000, &Cell::receiveFormationFromNeighbor, this);
+		formationChangeSubscriber = formationChangeSubscriberNode.subscribe(generateFormationPubName(getNeighborhood()[0]), 100, &Cell::receiveFormationFromNeighbor, this);
 //		cout << "\nCell " << cellID << " has subscribed to neighbor " << getNeighborhood()[0] << "'s formation change messages.\n";
 	}
 	if(cellID < cellFormation.getSeedID() && getNeighborhood()[1] != NO_NEIGHBOR)
 	{
 		// This cell is to the left of the seed.  Subscribe to our right neighbor.
-		formationChangeSubscriber = formationChangeSubscriberNode.subscribe(generateFormationPubName(getNeighborhood()[1]), 1000, &Cell::receiveFormationFromNeighbor, this);
+		formationChangeSubscriber = formationChangeSubscriberNode.subscribe(generateFormationPubName(getNeighborhood()[1]), 100, &Cell::receiveFormationFromNeighbor, this);
 //		cout << "\nCell " << cellID << " has subscribed to neighbor " << getNeighborhood()[1] << "'s formation change messages.\n";
 	}
 
 	// Set the seed cell to subscribe to the Simulator's formation messages
 	if(cellID == cellFormation.getSeedID())
 	{
-		simulatorFormationSubscriber = simulatorFormationNodeHandle.subscribe("seedFormationMessage", 1000, &Cell::receiveFormationFromSimulator, this);
+		simulatorFormationSubscriber = simulatorFormationNodeHandle.subscribe("seedFormationMessage", 100, &Cell::receiveFormationFromSimulator, this);
 	}
 }
 
@@ -178,7 +178,23 @@ void Cell::move(int neighborIndex)
 	movementPhysicsVector.y = cellState.desiredRelationships[neighborIndex].y - cellState.actualRelationships[neighborIndex].y;
 	movementPhysicsVector.z = cellState.desiredRelationships[neighborIndex].z - cellState.actualRelationships[neighborIndex].z;
 
+	// Limit the translational and rotational velocities so that the cells move realistically.
+	if(movementPhysicsVector.x > 0 && movementPhysicsVector.x > MAX_TRANSLATIONAL_VELOCITY)
+		movementPhysicsVector.x = MAX_TRANSLATIONAL_VELOCITY;
+	else if(movementPhysicsVector.x < 0 && movementPhysicsVector.x < -MAX_TRANSLATIONAL_VELOCITY)
+		movementPhysicsVector.x = -MAX_TRANSLATIONAL_VELOCITY;
 
+	if(movementPhysicsVector.y > 0 && movementPhysicsVector.y > MAX_TRANSLATIONAL_VELOCITY)
+		movementPhysicsVector.y = MAX_TRANSLATIONAL_VELOCITY;
+	else if(movementPhysicsVector.y < 0 && movementPhysicsVector.y < -MAX_TRANSLATIONAL_VELOCITY)
+		movementPhysicsVector.y = -MAX_TRANSLATIONAL_VELOCITY;
+
+	if(movementPhysicsVector.z > 0 && movementPhysicsVector.z > MAX_ROTATIONAL_VELOCITY)
+		movementPhysicsVector.z = MAX_TRANSLATIONAL_VELOCITY;
+	else if(movementPhysicsVector.z < 0 && movementPhysicsVector.z < -MAX_ROTATIONAL_VELOCITY)
+		movementPhysicsVector.z = -MAX_TRANSLATIONAL_VELOCITY;
+
+	// Set the velocities and publish to the cells.
 	commandVelocity.linear.x = movementPhysicsVector.x;
 	commandVelocity.linear.y = movementPhysicsVector.y;
 	commandVelocity.angular.z = movementPhysicsVector.z;

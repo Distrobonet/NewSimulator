@@ -36,6 +36,8 @@ enum Status{
 
 const int NO_NEIGHBOR = -1;
 const float FLOAT_ZERO_APPROXIMATION = 0.0001f;
+const float MAX_TRANSLATIONAL_VELOCITY = 0.5f;
+const float MAX_ROTATIONAL_VELOCITY = 0.5f;
 
 class Cell
 {
