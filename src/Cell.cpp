@@ -162,7 +162,6 @@ void Cell::updateCurrentStatus() {
 	}
 }
 
-
 // Movement =  desired relationship - actual relationship.  Movement is relative to the parameterized neighbor
 void Cell::move(int neighborIndex)
 {
@@ -178,21 +177,8 @@ void Cell::move(int neighborIndex)
 	movementPhysicsVector.y = cellState.desiredRelationships[neighborIndex].y - cellState.actualRelationships[neighborIndex].y;
 	movementPhysicsVector.z = cellState.desiredRelationships[neighborIndex].z - cellState.actualRelationships[neighborIndex].z;
 
-	// Limit the translational and rotational velocities so that the cells move realistically.
-	if(movementPhysicsVector.x > 0 && movementPhysicsVector.x > MAX_TRANSLATIONAL_VELOCITY)
-		movementPhysicsVector.x = MAX_TRANSLATIONAL_VELOCITY;
-	else if(movementPhysicsVector.x < 0 && movementPhysicsVector.x < -MAX_TRANSLATIONAL_VELOCITY)
-		movementPhysicsVector.x = -MAX_TRANSLATIONAL_VELOCITY;
-
-	if(movementPhysicsVector.y > 0 && movementPhysicsVector.y > MAX_TRANSLATIONAL_VELOCITY)
-		movementPhysicsVector.y = MAX_TRANSLATIONAL_VELOCITY;
-	else if(movementPhysicsVector.y < 0 && movementPhysicsVector.y < -MAX_TRANSLATIONAL_VELOCITY)
-		movementPhysicsVector.y = -MAX_TRANSLATIONAL_VELOCITY;
-
-	if(movementPhysicsVector.z > 0 && movementPhysicsVector.z > MAX_ROTATIONAL_VELOCITY)
-		movementPhysicsVector.z = MAX_TRANSLATIONAL_VELOCITY;
-	else if(movementPhysicsVector.z < 0 && movementPhysicsVector.z < -MAX_ROTATIONAL_VELOCITY)
-		movementPhysicsVector.z = -MAX_TRANSLATIONAL_VELOCITY;
+	// Limit (and scale) the translational and rotational velocities so that the cells move realistically.
+	limitAndScaleVelocities(movementPhysicsVector);
 
 	// Set the velocities and publish to the cells.
 	commandVelocity.linear.x = movementPhysicsVector.x;
@@ -201,6 +187,27 @@ void Cell::move(int neighborIndex)
 	cmd_velPub.publish(commandVelocity);
 
 	return;
+}
+
+void Cell::limitAndScaleVelocities(PhysicsVector &velocities)
+{
+	// Scale the translational x and y velocities to be less than the MAX_TRANSLATIONAL_VELOCITY
+	float magnitude = sqrt(velocities.x * velocities.x + velocities.y * velocities.y);
+
+	if (magnitude > MAX_TRANSLATIONAL_VELOCITY)
+	{
+		velocities.x /= magnitude;
+		velocities.y /= magnitude;
+		velocities.x *= MAX_TRANSLATIONAL_VELOCITY;
+		velocities.y *= MAX_TRANSLATIONAL_VELOCITY;
+	}
+
+	// Rotational velocity just needs to be less than the maximum
+	if(velocities.z > 0 && velocities.z > MAX_ROTATIONAL_VELOCITY)
+		velocities.z = MAX_ROTATIONAL_VELOCITY;
+	else if(velocities.z < 0 && velocities.z < -MAX_ROTATIONAL_VELOCITY)
+		velocities.z = -MAX_ROTATIONAL_VELOCITY;
+
 }
 
 // Uses a service client to get the relationship to your reference neighbor from Environment
