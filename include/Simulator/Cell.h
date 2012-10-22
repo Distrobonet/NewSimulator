@@ -51,23 +51,29 @@ class Cell
 
 		bool calculateMovement();
 		void move(int neighborIndex);
+		void moveMultiFunction();
+		void moveSingleFunction();
 
 		int getCellID();
 		void setCellID(int ID);
 		Formation getFormation();
 		void setFormation(Formation formation);
-		vector<int> getNeighborhood();
-		void setNeighborhood();
+
+		void updateNeighborhood();
+		void createNeighborhood();
 		void setLeftNeighbor(const int nbr);
 		void setRightNeighbor(const int nbr);
 		void establishNeighborhoodCom();
+
 		State getState();
 		void setState(State state);
 		void updateState();
 		void updateState(const NewSimulator::State::Response &incomingState);
+
 		int getCurrentStatus();
 		void setCurrentStatus(int newStatus);
 		void checkNeighborStatus();
+
 		void calculateDesiredRelationship(int neighborIndex);
 		void applySensorError(int neighborIndex);
 		bool getCommunicationLostBasedOnError();
