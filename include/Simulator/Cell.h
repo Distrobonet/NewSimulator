@@ -59,7 +59,7 @@ class Cell
 		Formation getFormation();
 		void setFormation(Formation formation);
 
-		void updateNeighborhood();
+		vector<int> updateNeighborhood();
 		void createNeighborhood();
 		void setLeftNeighbor(const int nbr);
 		void setRightNeighbor(const int nbr);
@@ -142,6 +142,7 @@ class Cell
 
     private:
 		bool isFormationChanged;
+		bool isMultiFunction;
 		void outputCellInfo();	// This is useful for debugging
 };
 

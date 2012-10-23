@@ -15,6 +15,7 @@ Cell::Cell(const int ID)
 	currentStatus = WAITING_FOR_FORMATION;
 	formationCount = 0;
 	isFormationChanged = false;
+	isMultiFunction = false;
 
 	commandVelocity.linear.x = 0;
 	commandVelocity.linear.y = 0;
@@ -70,7 +71,7 @@ void Cell::update()
 		//cout << "\n**** " << "cell" << cellID << "'s Formation ID: " << cellFormation.formationID << " - Formation count: " << formationCount << " ****\n";
 		receiveNeighborState();
 
-		if(multiFunction)
+		if(isMultiFunction)
 			moveMultiFunction();
 		else
 			moveSingleFunction();
@@ -83,13 +84,13 @@ void Cell::update()
 	}
 }
 
-void moveMultiFunction() {
+void Cell::moveMultiFunction() {
 
 }
 
-void moveSingleFunction() {
+void Cell::moveSingleFunction() {
 	// Send request to Environment for the cell's relationship with its reference neighbor, calculate the desired relationship, and do the movement.
-	if(cellID > cellFormation.getSeedID() && getNeighborhood()[0] != NO_NEIGHBOR)
+	if(cellID > cellFormation.getSeedID() && updateNeighborhood()[0] != NO_NEIGHBOR)
 	{
 		// This cell is to the right of the seed.  Get relationship to our left neighbor.
 		receiveActualRelationshipFromEnvironment(0);
@@ -97,7 +98,7 @@ void moveSingleFunction() {
 		calculateDesiredRelationship(0);
 		move(0); 		// Move relative to this cell's left neighbor
 	}
-	if(cellID < cellFormation.getSeedID() && getNeighborhood()[1] != NO_NEIGHBOR)
+	if(cellID < cellFormation.getSeedID() && updateNeighborhood()[1] != NO_NEIGHBOR)
 	{
 		// This cell is to the left of the seed.  Get relationship to our right neighbor.
 		receiveActualRelationshipFromEnvironment(1);
@@ -372,15 +373,16 @@ void Cell::setFormation(Formation formation)
 	cellFormation = formation;
 }
 
-void Cell::updateNeighborhood()
+vector<int> Cell::updateNeighborhood()
 {
 	//This should be were we make a service request to environment to get the neighbors
+	return neighborhoodList;
 }
 
 // temp setNeighbohood - HARDCODED for 1-dimensional formations
 void Cell::createNeighborhood()
 {
-	if(!multiFormation) {
+	if(!isMultiFunction) {
 		// For 1-dimensional formations, just set 2 neighbor relationships for each cell
 		cellState.actualRelationships.resize(2, PhysicsVector());
 		cellState.desiredRelationships.resize(2, PhysicsVector());
@@ -401,10 +403,10 @@ void Cell::setLeftNeighbor(const int nbr)
 		neighborhoodList.insert(neighborhoodList.begin() + 0, nbr);
 
 		// Set up the subscriber callback for new formations between neighbors.  ONLY SUBSCRIBE TO YOUR REFERENCE NEIGHBOR
-		if(cellID > cellFormation.getSeedID() && getNeighborhood()[0] != NO_NEIGHBOR)
+		if(cellID > cellFormation.getSeedID() && updateNeighborhood()[0] != NO_NEIGHBOR)
 		{
 			// This cell is to the right of the seed.  Subscribe to our left neighbor.
-			formationChangeSubscriber = formationChangeSubscriberNode.subscribe(generateFormationPubName(getNeighborhood()[0]), 100, &Cell::receiveFormationFromNeighbor, this);
+			formationChangeSubscriber = formationChangeSubscriberNode.subscribe(generateFormationPubName(updateNeighborhood()[0]), 100, &Cell::receiveFormationFromNeighbor, this);
 		}
 	}
 }
@@ -419,10 +421,10 @@ void Cell::setRightNeighbor(const int nbr)
 	{
 		neighborhoodList.insert(neighborhoodList.begin() + 1, nbr);
 
-		if(cellID < cellFormation.getSeedID() && getNeighborhood()[1] != NO_NEIGHBOR)
+		if(cellID < cellFormation.getSeedID() && updateNeighborhood()[1] != NO_NEIGHBOR)
 		{
 			// This cell is to the left of the seed.  Subscribe to our right neighbor.
-			formationChangeSubscriber = formationChangeSubscriberNode.subscribe(generateFormationPubName(getNeighborhood()[1]), 100, &Cell::receiveFormationFromNeighbor, this);
+			formationChangeSubscriber = formationChangeSubscriberNode.subscribe(generateFormationPubName(updateNeighborhood()[1]), 100, &Cell::receiveFormationFromNeighbor, this);
 		}
 	}
 }
@@ -489,12 +491,12 @@ void Cell::receiveNeighborState()
 
 
 	// If this cell is to the right of the seed, get our left neighbor's state (it is our reference cell)
-	if(cellID > cellFormation.getSeedID() && getNeighborhood()[0] != NO_NEIGHBOR)
+	if(cellID > cellFormation.getSeedID() && updateNeighborhood()[0] != NO_NEIGHBOR)
 	{
 		makeStateClientCall(leftNeighborID);
 	}
 	// If this cell is to the left of the seed, get our right neighbor's state (it is our reference cell)
-	if(cellID < cellFormation.getSeedID() && getNeighborhood()[1] != NO_NEIGHBOR)
+	if(cellID < cellFormation.getSeedID() && updateNeighborhood()[1] != NO_NEIGHBOR)
 	{
 		makeStateClientCall(rightNeighborID);
 	}
