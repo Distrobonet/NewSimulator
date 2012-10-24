@@ -319,6 +319,7 @@ void Cell::receiveFormationFromSimulator(const NewSimulator::FormationMessage::C
 		isFormationChanged = true;
 		cellFormation.radius = formationMessage->radius;
 		cellFormation.formationID = formationMessage->formation_id;
+		checkMultifunction(cellFormation.formationID);
 		cellFormation.setFunctionFromFormationID(cellFormation.formationID);
 		formationCount = formationMessage->formation_count;
 		cellFormation.seedID = formationMessage->seed_id;
@@ -345,6 +346,7 @@ void Cell::receiveFormationFromNeighbor(const NewSimulator::FormationMessage::Co
 
 		cellFormation.radius = formationMessage->radius;
 		cellFormation.formationID = formationMessage->formation_id;
+		checkMultifunction(cellFormation.formationID);
 		cellFormation.setFunctionFromFormationID(cellFormation.formationID);
 		formationCount = formationMessage->formation_count;
 		cellFormation.seedID = formationMessage->seed_id;
@@ -353,6 +355,13 @@ void Cell::receiveFormationFromNeighbor(const NewSimulator::FormationMessage::Co
 //		cout << "\nCell " << cellID << " got new formation: " << cellFormation.formationID << " from neighbor.\n";
 		return;
 	}
+}
+
+void Cell::checkMultifunction(const int formationID) {
+	if(formationID == -2)
+		isMultiFunction = true;
+	else
+		isMultiFunction = false;
 }
 
 int Cell::getCellID()
