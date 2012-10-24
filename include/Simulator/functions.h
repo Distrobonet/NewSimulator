@@ -11,6 +11,11 @@ float x(const float x)
 {
 	return x;
 }
+// Returns formation function definition f(x) = -x.
+float negX(const float x)
+{
+	return -x;
+}
 // Returns formation function definition f(x) = |x|.
 float absX(const float x)
 {
