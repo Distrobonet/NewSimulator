@@ -265,16 +265,18 @@ void Cell::calculateDesiredRelationship(int neighborIndex)
 		radius *= -1;
 
 
-	PhysicsVector desiredRelationship = cellFormation.getDesiredRelationship(cellFormation.getFunction(), radius,
+	vector<PhysicsVector> desiredRelationship = cellFormation.getDesiredRelationships(cellFormation.getFunctions(), radius,
 			cellFormation.cellFormationRelativePosition, cellFormation.getFormationRelativeOrientation());
 
 
-	// According to thesis, the desired relationship gets rotated about the negation of the formation relative orientation
-	desiredRelationship.rotateRelative(-1 * cellFormation.getFormationRelativeOrientation());
+	for(uint i = 0; i < desiredRelationship.size(); i++) {
+		// According to thesis, the desired relationship gets rotated about the negation of the formation relative orientation
+		desiredRelationship.at(i).rotateRelative(-1 * cellFormation.getFormationRelativeOrientation());
 
-	cellState.desiredRelationships[neighborIndex].x = desiredRelationship.x;
-	cellState.desiredRelationships[neighborIndex].y = desiredRelationship.y;
-	cellState.desiredRelationships[neighborIndex].z = desiredRelationship.z;
+		cellState.desiredRelationships[neighborIndex].x = desiredRelationship.at(i).x;
+		cellState.desiredRelationships[neighborIndex].y = desiredRelationship.at(i).y;
+		cellState.desiredRelationships[neighborIndex].z = desiredRelationship.at(i).z;
+	}
 
 //	if(cellID == 4)
 //	{
@@ -610,34 +612,37 @@ bool Cell::getCommunicationLostBasedOnError()
 // Outputs all the useful info about this cell for debugging purposes
 void Cell::outputCellInfo()
 {
-//	if(cellID == 4)
-	{
-		cout << "\n\nCell stuff:\n"
-				<< "   cell ID: " << cellID << endl
-				<< "   isFormationChanged: " << isFormationChanged << endl
-				<< "   formationCount: " << formationCount << endl
-				<< "   cell state time step: " << cellState.timeStep << endl
-				<< "   getNumberOfNeighbors(): " << getNumberOfNeighbors() << endl
-				<< "Formation stuff:\n"
-				<< "   cellFormation.formationID: " << cellFormation.formationID << endl
-				<< "   cellFormation.currentFunction: " << cellFormation.currentFunction << endl
-				<< "   cellFormation.getRadius: " << cellFormation.getRadius() << endl
-				<< "   seed ID: " << cellFormation.seedID << endl
-				<< "   sensorError: " << cellFormation.getSensorError() << endl
-				<< "   communicationError: " << cellFormation.getCommunicationError() << endl
-				<< "Left neighbor: " << neighborhoodList[0] << endl
-				<< "   Actual relationship: " << cellState.actualRelationships[0].x << ", "
-						<< cellState.actualRelationships[0].y << ", "
-						<< cellState.actualRelationships[0].z << ", " << endl
-				<< "   Desired relationship: " << cellState.desiredRelationships[0].x << ", "
-						<< cellState.desiredRelationships[0].y << ", "
-						<< cellState.desiredRelationships[0].z << ", " << endl
-				<< "Right neighbor: " << neighborhoodList[1] << endl
-				<< "   Actual relationship: " << cellState.actualRelationships[1].x << ", "
-						<< cellState.actualRelationships[1].y << ", "
-						<< cellState.actualRelationships[1].z << ", " << endl
-				<< "   Desired relationship: " << cellState.desiredRelationships[1].x << ", "
-						<< cellState.desiredRelationships[1].y << ", "
-						<< cellState.desiredRelationships[1].z << ", " << endl << endl;
-	}
+
+	cout << "\n\nCell stuff:\n"
+		<< "   cell ID: " << cellID << endl
+		<< "   isFormationChanged: " << isFormationChanged << endl
+		<< "   formationCount: " << formationCount << endl
+		<< "   cell state time step: " << cellState.timeStep << endl
+		<< "   getNumberOfNeighbors(): " << getNumberOfNeighbors() << endl
+		<< "Formation stuff:\n"
+		<< "   cellFormation.formationID: " << cellFormation.formationID << endl
+		<< "   cellFormation.currentFunction: " << cellFormation.currentFunctions.at(0) << endl;
+
+	if(isMultiFunction)
+		cout << "   cellFormation.currentFunction: " << cellFormation.currentFunctions.at(1) << endl;
+
+	cout << "   cellFormation.getRadius: " << cellFormation.getRadius() << endl
+		<< "   seed ID: " << cellFormation.seedID << endl
+		<< "   sensorError: " << cellFormation.getSensorError() << endl
+		<< "   communicationError: " << cellFormation.getCommunicationError() << endl
+		<< "Left neighbor: " << neighborhoodList[0] << endl
+		<< "   Actual relationship: " << cellState.actualRelationships[0].x << ", "
+				<< cellState.actualRelationships[0].y << ", "
+				<< cellState.actualRelationships[0].z << ", " << endl
+		<< "   Desired relationship: " << cellState.desiredRelationships[0].x << ", "
+				<< cellState.desiredRelationships[0].y << ", "
+				<< cellState.desiredRelationships[0].z << ", " << endl
+		<< "Right neighbor: " << neighborhoodList[1] << endl
+		<< "   Actual relationship: " << cellState.actualRelationships[1].x << ", "
+				<< cellState.actualRelationships[1].y << ", "
+				<< cellState.actualRelationships[1].z << ", " << endl
+		<< "   Desired relationship: " << cellState.desiredRelationships[1].x << ", "
+				<< cellState.desiredRelationships[1].y << ", "
+				<< cellState.desiredRelationships[1].z << ", " << endl << endl;
+
 }

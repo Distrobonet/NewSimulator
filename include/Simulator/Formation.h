@@ -34,6 +34,7 @@ class Formation
 
 		// Mutators
 		void setFunction(const Function newFunction = DEFAULT_FORMATION_FUNCTION);
+		void clearFunctions();
 		void setFunctionFromFormationID(int newFormationId);
 		void setFormationID(int newFormationID);
 		void setRadius(float newRadius);
@@ -44,7 +45,7 @@ class Formation
 
 
 		// Accessors
-		Function getFunction();
+		vector<Function> getFunctions();
 		int getFormationID();
 		float getRadius();
 		float getFormationRelativeOrientation();
@@ -55,15 +56,15 @@ class Formation
 		float getSensorError();
 		float getCommunicationError();
 
-		PhysicsVector getDesiredRelationship( const Function intersectingFunction = DEFAULT_FORMATION_FUNCTION,
+		vector<PhysicsVector> getDesiredRelationships( const vector<Function> intersectingFunctions,
 		                               const float intersectingCircleRadius = DEFAULT_FORMATION_RADIUS,
 		                               const PhysicsVector centerPosition = PhysicsVector(),
 		                               const float  rotationOfRelationship = 0.0f);
 
-		PhysicsVector getDesiredRelationship( const int   positionOfDesiredFunction   = 0,
-		                       	   	   const float intersectingCircleRadius     = DEFAULT_FORMATION_RADIUS,
-		                       	   	   const PhysicsVector  centerPosition     = PhysicsVector(),
-		                       	   	   const float rotationOfRelationship = 0.0f);
+//		PhysicsVector getDesiredRelationship( const int   positionOfDesiredFunction   = 0,
+//		                       	   	   const float intersectingCircleRadius     = DEFAULT_FORMATION_RADIUS,
+//		                       	   	   const PhysicsVector  centerPosition     = PhysicsVector(),
+//		                       	   	   const float rotationOfRelationship = 0.0f);
 
 		float getFunctionIntersection(const Function formationToCopy = DEFAULT_FORMATION_FUNCTION,
 		                 	 	 	  const float  intersectingCircleRadius = DEFAULT_FORMATION_RADIUS,
@@ -75,7 +76,7 @@ class Formation
 		// Member variables
 		int seedID;
 		Formation fx(int formationId);
-		Function currentFunction;
+		vector<Function> currentFunctions;
 		int formationID;									// The identifier for the current formation function
 		float radius;										// The desired distance between neighbors
 		float sensorError;
