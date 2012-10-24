@@ -10,3 +10,15 @@
 *.lai
 *.la
 *.a
+
+# Project Specific
+.cproject
+.project
+.pydevproject
+bin/
+build/
+cmake_install.cmake
+msg_gen/
+src/NewSimulator/msg/
+src/NewSimulator/srv/
+srv_gen
