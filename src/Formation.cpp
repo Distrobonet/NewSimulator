@@ -57,6 +57,9 @@ void Formation::setFunctionFromFormationID(int newFormationId)
 {
 	switch(newFormationId)
 	{
+		case -2:
+			// waiting for a response from Ross
+			break;
 		case 0:
 			setFunction(line);
 			break;
