@@ -1,0 +1,6 @@
+VectorMessage frp
+RelationshipMessage[] desired_relationships
+RelationshipMessage[] actual_relationships
+float64 rotational_error
+VectorMessage translational_error
+int32 timestep
