@@ -19,6 +19,7 @@
 #include "Simulator/PhysicsVector.h"
 
 #include "../srv_gen/cpp/include/NewSimulator/Relationship.h"
+#include "../srv_gen/cpp/include/NewSimulator/Neighborhood.h"
 
 using namespace std;
 
@@ -51,8 +52,16 @@ class Environment
 		bool setActualRelationshipMessage(NewSimulator::Relationship::Request &request, NewSimulator::Relationship::Response &response);
 		void startActualRelationshipServiceServer();
 
+        // Neighborhood service server
+        ros::NodeHandle NeighborhoodServerNode;
+		ros::ServiceServer neighborhoodService;
+		bool setNeighborhoodMessage(NewSimulator::Neighborhood::Request &request, NewSimulator::Neighborhood::Response &response);
+		void startNeighborhoodServiceServer();
+
 		PhysicsVector getTransform(string tfOriginName, string tfTargetName);
 		PhysicsVector getActualPosition(string tfOriginName);
+
+		string createTargetIdString(int idNumber);
 
 
     protected:

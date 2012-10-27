@@ -14,6 +14,9 @@ int main(int argc, char **argv)
 	// Relationship service server
 	environmentNode.startActualRelationshipServiceServer();
 
+	// Neighborhood service server
+	environmentNode.startNeighborhoodServiceServer();
+
 	environmentNode.update(argv[2]);
 
 	return 0;
