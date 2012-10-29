@@ -95,44 +95,54 @@ bool Environment::setActualRelationshipMessage(NewSimulator::Relationship::Reque
 // Sets the response(neighborhood id vector) based on the requests(IDs) and number of functions.  This is a callback.
 bool Environment::setNeighborhoodMessage(NewSimulator::Neighborhood::Request &request, NewSimulator::Neighborhood::Response &response)
 {
-	string requestingCell = "/sphero/base_link";
-	string targetCell = "/sphero/base_link";
-
+	string requestingCell = createTargetIdString(request.OriginID);
 	PhysicsVector relationshipVector;
+	int numberOfNeighbors = request.NumberOfFormations*2;
 
-	float oldMagnitude = 0;
-	float newMagnitude = 0;
+	// add an iterator value, otherwise vector will crash the service message
+	vector<int>::iterator iter = response.neighborIds.end();
+	response.neighborIds.insert(iter,99);
 
-	stringstream originStringStream;
-	originStringStream << (request.OriginID);
-	string  originID = originStringStream.str();
-	requestingCell.insert(7, originID);
-	for(int i = 0; i<(request.NumberOfFormations*2); i++)
-	{
-		vector<int>::iterator it = response.neighborIds.end();
-		targetCell = createTargetIdString(i);
-		response.neighborIds.insert(it,99);
+    vector<int> closestNeighbors = findClosestNeighbors(numberOfNeighbors, requestingCell, request.OriginID);
+    copy(closestNeighbors.begin(),closestNeighbors.end(),back_inserter(response.neighborIds));
 
-		for(int j = 0; j<numOfRobots; j++)
-		{
-			targetCell = createTargetIdString(j);
-
-		    float oldMagnitude = getTransform(requestingCell, createTargetIdString(response.neighborIds[i])).magnitude();
-		    float newMagnitude = getTransform(requestingCell, targetCell).magnitude();
-		    bool containsAlready = response.neighborIds.end() != find(response.neighborIds.begin(), response.neighborIds.end(), j);
-		    // if magnitude is greater than the neighbor is already has && it does not already have that neighbor in the vector) replace the old id with the new id
-		    if(oldMagnitude < newMagnitude && !containsAlready)
-		    {
-		    	response.neighborIds.erase(response.neighborIds.end(), response.neighborIds.end());
-		    	response.neighborIds.insert(response.neighborIds.end(),j);
-		    }
-		}
-	}
 	if(response.neighborIds.end() != find(response.neighborIds.begin(), response.neighborIds.end(), 99)){
 		response.neighborIds.erase(find(response.neighborIds.begin(), response.neighborIds.end(), 99));
 	}
+
 	return true;
 }
+
+vector<int> Environment::findClosestNeighbors(const int numberOfNeighbors, const string requestingCell, const int cellID) {
+	vector<neighborMagnitudes> closestNeighbors;
+	string targetCell = "/sphero/base_link";
+
+	// finds magnitude of all neighbors and adds them to vector
+	for(int j = 0; j<numOfRobots; j++)
+	{
+		neighborMagnitudes temp;
+		temp.cellID = j;
+		targetCell = createTargetIdString(j);
+	    temp.magnitude = getTransform(requestingCell, targetCell).magnitude();
+
+	    if(temp.cellID != cellID) {
+	    	closestNeighbors.push_back(temp);
+	    }
+	}
+
+	// sorts vector by magnitude size
+	sort(closestNeighbors.begin(), closestNeighbors.end());
+
+	closestNeighbors.resize(numberOfNeighbors);
+	vector<int> neighbors;
+	for(int i = 0; i < numberOfNeighbors; i++) {
+		neighbors.push_back(closestNeighbors.at(i).cellID);
+//		cout << "Cell's neighbor: " << closestNeighbors.at(i).cellID << endl;
+	}
+
+	return neighbors;
+}
+
 
 
 // Get the actual position of a cell relative to the world frame.
