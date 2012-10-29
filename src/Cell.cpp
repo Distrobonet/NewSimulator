@@ -252,6 +252,37 @@ void Cell::receiveActualRelationshipFromEnvironment(int neighborIndex)
 	return;
 }
 
+
+
+// Uses a service client to get the relationship to your reference neighbor from Environment
+void Cell::receiveNeighborhoodIdsFromEnvironment(int originId)
+{
+	ros::AsyncSpinner spinner(1);	// Uses an asynchronous spinner to account for the blocking service client call
+	spinner.start();
+
+	neighborhoodClient = neighborhoodNodeHandle.serviceClient<NewSimulator::Neighborhood>("neighborhood");
+
+	// Set the request values here
+	neighborhoodService.request.OriginID = cellID;
+	neighborhoodService.request.NumberOfFormations = 1;
+	if (neighborhoodClient.call(neighborhoodService))
+	{
+		neighborhoodIds.swap(neighborhoodService.response.neighborIds);
+		for(int i = 0; i < neighborhoodIds.size(); i++)
+		{
+			cout<<"Neighborhood Ids for cell: "<<cellID<<" - "<<neighborhoodIds[i]<<endl;
+		}
+
+		neighborhoodNodeHandle.shutdown();
+		spinner.stop();
+		return;
+	}
+
+	neighborhoodNodeHandle.shutdown();
+	spinner.stop();
+	return;
+}
+
 // Calculate this cell's desired relationship to its parameterized neighbor
 void Cell::calculateDesiredRelationship(int neighborIndex)
 {
@@ -387,6 +418,7 @@ void Cell::setFormation(Formation formation)
 vector<int> Cell::updateNeighborhood()
 {
 	//This should be were we make a service request to environment to get the neighbors
+	receiveNeighborhoodIdsFromEnvironment(cellID);
 	return neighborhoodList;
 }
 

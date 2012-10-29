@@ -23,6 +23,9 @@
 // Relationship service
 #include "../srv_gen/cpp/include/NewSimulator/Relationship.h"
 
+// Neighborhood service
+#include "../srv_gen/cpp/include/NewSimulator/Neighborhood.h"
+
 using namespace std;
 
 enum Status{
@@ -116,6 +119,12 @@ class Cell
 		ros::NodeHandle formationChangePublisherNode;
 		ros::Publisher formationChangePublisher;
 
+		// Neighborhood service client
+		ros::NodeHandle neighborhoodNodeHandle;
+		ros::ServiceClient neighborhoodClient;
+		NewSimulator::Neighborhood neighborhoodService;
+		vector<int> neighborhoodIds;
+		void receiveNeighborhoodIdsFromEnvironment(int originId);
 
 
 		// State service client

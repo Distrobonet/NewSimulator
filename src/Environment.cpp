@@ -91,6 +91,50 @@ bool Environment::setActualRelationshipMessage(NewSimulator::Relationship::Reque
 	return true;
 }
 
+
+// Sets the response(neighborhood id vector) based on the requests(IDs) and number of functions.  This is a callback.
+bool Environment::setNeighborhoodMessage(NewSimulator::Neighborhood::Request &request, NewSimulator::Neighborhood::Response &response)
+{
+	string requestingCell = "/sphero/base_link";
+	string targetCell = "/sphero/base_link";
+
+	PhysicsVector relationshipVector;
+
+	float oldMagnitude = 0;
+	float newMagnitude = 0;
+
+	stringstream originStringStream;
+	originStringStream << (request.OriginID);
+	string  originID = originStringStream.str();
+	requestingCell.insert(7, originID);
+	for(int i = 0; i<(request.NumberOfFormations*2); i++)
+	{
+		vector<int>::iterator it = response.neighborIds.end();
+		targetCell = createTargetIdString(i);
+		response.neighborIds.insert(it,99);
+
+		for(int j = 0; j<numOfRobots; j++)
+		{
+			targetCell = createTargetIdString(j);
+
+		    float oldMagnitude = getTransform(requestingCell, createTargetIdString(response.neighborIds[i])).magnitude();
+		    float newMagnitude = getTransform(requestingCell, targetCell).magnitude();
+		    bool containsAlready = response.neighborIds.end() != find(response.neighborIds.begin(), response.neighborIds.end(), j);
+		    // if magnitude is greater than the neighbor is already has && it does not already have that neighbor in the vector) replace the old id with the new id
+		    if(oldMagnitude < newMagnitude && !containsAlready)
+		    {
+		    	response.neighborIds.erase(response.neighborIds.end(), response.neighborIds.end());
+		    	response.neighborIds.insert(response.neighborIds.end(),j);
+		    }
+		}
+	}
+	if(response.neighborIds.end() != find(response.neighborIds.begin(), response.neighborIds.end(), 99)){
+		response.neighborIds.erase(find(response.neighborIds.begin(), response.neighborIds.end(), 99));
+	}
+	return true;
+}
+
+
 // Get the actual position of a cell relative to the world frame.
 PhysicsVector Environment::getActualPosition(string tfOriginName)
 {
@@ -153,5 +197,28 @@ void Environment::startActualRelationshipServiceServer()
 //	cout << "\n*** Now serving the " << relationshipService.getService() << " service from the environment ***\n\n";
 
 	ros::spinOnce();
+}
+
+// Starts the environment's neighborhood service server
+void Environment::startNeighborhoodServiceServer()
+{
+	int argc = 0;
+	char **argv = 0;
+	ros::init(argc, argv, "neighborhood_server");
+
+	neighborhoodService = NeighborhoodServerNode.advertiseService("neighborhood", &Environment::setNeighborhoodMessage, this);
+//	cout << "\n*** Now serving the " << relationshipService.getService() << " service from the environment ***\n\n";
+
+	ros::spinOnce();
+}
+
+string Environment::createTargetIdString(int idNumber)
+{
+	string targetCell = "/sphero/base_link";
+	stringstream targetStringStream;
+	targetStringStream << (idNumber);
+	string  targetID = targetStringStream.str();
+	targetCell.insert(7, targetID);
+	return targetCell;
 }
 
