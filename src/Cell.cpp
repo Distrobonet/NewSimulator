@@ -264,7 +264,12 @@ void Cell::receiveNeighborhoodIdsFromEnvironment(int originId)
 
 	// Set the request values here
 	neighborhoodService.request.OriginID = cellID;
-	neighborhoodService.request.NumberOfFormations = 1;
+
+	if(!isMultiFunction)
+		neighborhoodService.request.NumberOfFormations = 1;
+	else
+		neighborhoodService.request.NumberOfFormations = 2;
+
 	if (neighborhoodClient.call(neighborhoodService))
 	{
 		neighborhoodIds.swap(neighborhoodService.response.neighborIds);

@@ -62,9 +62,6 @@ NewSimulator::FormationMessage setFormationMessage()
 {
 	NewSimulator::FormationMessage formationMessage;
 
-	if(CURRENT_SELECTION == 'm')
-		CURRENT_SELECTION = -2;
-
 	formationMessage.seed_frp.x = SEED_FRP.x;
 	formationMessage.seed_frp.y = SEED_FRP.y;
 	formationMessage.seed_frp.z = SEED_FRP.z;
@@ -162,7 +159,7 @@ void keyboardInput()
 		if(keyPressed >= '0' && keyPressed <= '9')
 		{
 			if(MULTIFUNCTION) {
-				cout << "You are currently in Multi-function mode. Functions 0 - 9 are disabled." << endl
+				cout << endl << "You are currently in Multi-function mode. Functions 0 - 9 are disabled." << endl
 					 << "Your current functions are [f(x) = x] and [f(x) = -x]." << endl;
 			} else {
 				CURRENT_SELECTION = keyPressed-48;	// convert from ascii char to int
@@ -172,7 +169,10 @@ void keyboardInput()
 		else if(keyPressed == 'm')
 		{
 			MULTIFUNCTION = !MULTIFUNCTION;
-			cout << "Multi-function is toggled to " << MULTIFUNCTION << endl;
+			if(MULTIFUNCTION){
+				CURRENT_SELECTION = -2;
+			}
+			cout << endl << "Multi-function is toggled to " << MULTIFUNCTION << endl;
 
 		}
 		else if(keyPressed == '+')
