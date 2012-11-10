@@ -22,3 +22,6 @@ msg_gen/
 src/NewSimulator/msg/
 src/NewSimulator/srv/
 srv_gen
+
+# Mac things to ignore
+.DS_Store
