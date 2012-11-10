@@ -52,7 +52,7 @@ float condSqrt(const float x)
 // Returns formation function definition f(x) = sin(x).
 float sine(const float x)
 {
-	return sin(x);
+	return 0.2f * sin(10.0f * x);
 }
 // Returns formation function definition f(x) = x sqrt(3).
 float xRoot3(const float x)
