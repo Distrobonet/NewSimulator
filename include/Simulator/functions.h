@@ -35,7 +35,7 @@ float negAbsX(const float x)
 // Returns formation function definition f(x) = x^2.
 float parabola(const float x)
 {
-	return x * x;
+	return 5 * (x * x);
   //return pow(x, 2.0f);
 }
 // Returns formation function definition f(x) = x^3.

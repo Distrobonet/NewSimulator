@@ -249,7 +249,7 @@ void displayMenu()
 		<< "3) f(x) = -0.5 x"                                << endl
 		<< "4) f(x) = -|0.5 x|"                              << endl
 		<< "5) f(x) = -|x|"                                  << endl
-		<< "6) f(x) = x^2"                                   << endl
+		<< "6) f(x) = 5(x^2)"                                   << endl
 		<< "7) f(x) = x^3"                                   << endl
 		<< "8) f(x) = {sqrt(x),  x >= 0 | -sqrt|x|, x < 0}"  << endl
 		<< "9) f(x) = sin(x)"                        		 << endl << endl
