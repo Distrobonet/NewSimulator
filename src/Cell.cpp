@@ -204,6 +204,14 @@ void Cell::limitAndScaleVelocities(PhysicsVector &velocities)
 	else if(velocities.z < 0 && velocities.z < -MAX_ROTATIONAL_VELOCITY)
 		velocities.z = -MAX_ROTATIONAL_VELOCITY;
 
+	if(velocities.x < FLOAT_ZERO_APPROXIMATION && velocities.x > -FLOAT_ZERO_APPROXIMATION) {
+		velocities.x = 0;
+	} if(velocities.y < FLOAT_ZERO_APPROXIMATION && velocities.y > -FLOAT_ZERO_APPROXIMATION) {
+		velocities.y = 0;
+	} if(velocities.z < FLOAT_ZERO_APPROXIMATION && velocities.z > -FLOAT_ZERO_APPROXIMATION) {
+		velocities.z = 0;
+	}
+
 }
 
 // Uses a service client to get the relationship to your reference neighbor from Environment
