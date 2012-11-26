@@ -219,13 +219,12 @@ vector<PhysicsVector> Formation::getDesiredRelationships(const vector<Function> 
 			xn           -= error;
 		}
 
-		PhysicsVector tempDesiredRelationship;
-
-		tempDesiredRelationship =  PhysicsVector(xn, intersectingFunctions.at(fx)(xn)) - centerPosition;
+		Function intFunction = intersectingFunctions.at(fx);
+		PhysicsVector tempDesiredRelationship = (PhysicsVector(xn, intFunction(xn)) - centerPosition);
 		tempDesiredRelationship.rotateRelative(-rotationOfRelationship);
 
 		desiredRelationships.push_back(tempDesiredRelationship);
-}
+    }
     return desiredRelationships;
 }
 
