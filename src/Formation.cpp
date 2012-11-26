@@ -214,7 +214,11 @@ vector<PhysicsVector> Formation::getDesiredRelationships(const vector<Function> 
 			intersect     = getFunctionIntersection(intersectingFunctions.at(fx), intersectingCircleRadius, centerPosition, xn);
 			error         = intersect * (xn - xn_1) /
 						   (intersect - getFunctionIntersection(intersectingFunctions.at(fx), intersectingCircleRadius, centerPosition, xn_1));
-			if (abs(error) <= X_ROOT_THRESHOLD) break;
+			if(error > 0)
+				error = 0;
+			if (abs(error) <= X_ROOT_THRESHOLD){
+				break;
+			}
 			xn_1          = xn;
 			xn           -= error;
 		}
