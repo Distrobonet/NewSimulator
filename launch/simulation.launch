@@ -9,5 +9,5 @@
 	<node pkg="NewSimulator" type="cell_node" name="cell4" args="4 1" output="screen"/>
 	<node pkg="NewSimulator" type="cell_node" name="cell5" args="5 1" output="screen"/>
 	<node pkg="NewSimulator" type="cell_node" name="cell6" args="6 1" output="screen"/>
-	<node pkg="NewSimulator" type="Simulator" name="Simulator"/>
+	<node pkg="NewSimulator" type="Simulator" output="screen" name="Simulator"/>
 </launch>
