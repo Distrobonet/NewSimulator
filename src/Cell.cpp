@@ -273,10 +273,10 @@ void Cell::receiveNeighborhoodIdsFromEnvironment(int originId)
 	if (neighborhoodClient.call(neighborhoodService))
 	{
 		neighborhoodIds.swap(neighborhoodService.response.neighborIds);
-		for(int i = 0; i < neighborhoodIds.size(); i++)
-		{
-			cout<<"Neighborhood Ids for cell: "<<cellID<<" - "<<neighborhoodIds[i]<<endl;
-		}
+//		for(int i = 0; i < neighborhoodIds.size(); i++)
+//		{
+//			cout<<"Neighborhood Ids for cell: "<<cellID<<" - "<<neighborhoodIds[i]<<endl;
+//		}
 
 		neighborhoodNodeHandle.shutdown();
 		spinner.stop();
