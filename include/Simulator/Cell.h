@@ -56,7 +56,6 @@ class Cell
 		void move(int neighborIndex);
 		void moveMultiFunction();
 		void moveSingleFunction();
-		void checkMultifunction(const int formationID);
 
 		int getCellID();
 		void setCellID(int ID);
@@ -152,7 +151,6 @@ class Cell
 
     private:
 		bool isFormationChanged;
-		bool isMultiFunction;
 		void outputCellInfo();	// This is useful for debugging
 };
 

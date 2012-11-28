@@ -15,7 +15,6 @@ Cell::Cell(const int ID)
 	currentStatus = WAITING_FOR_FORMATION;
 	formationCount = 0;
 	isFormationChanged = false;
-	isMultiFunction = false;
 
 	commandVelocity.linear.x = 0;
 	commandVelocity.linear.y = 0;
@@ -275,10 +274,8 @@ void Cell::receiveNeighborhoodIdsFromEnvironment(int originId)
 	// Set the request values here
 	neighborhoodService.request.OriginID = cellID;
 
-	if(!isMultiFunction)
-		neighborhoodService.request.NumberOfFormations = 1;
-	else
-		neighborhoodService.request.NumberOfFormations = 2;
+	// TODO: create method to return number of formations
+	neighborhoodService.request.NumberOfFormations = 1;
 
 	if (neighborhoodClient.call(neighborhoodService))
 	{
@@ -365,7 +362,6 @@ void Cell::receiveFormationFromSimulator(const NewSimulator::FormationMessage::C
 		isFormationChanged = true;
 		cellFormation.radius = formationMessage->radius;
 		cellFormation.formationID = formationMessage->formation_id;
-		checkMultifunction(cellFormation.formationID);
 		cellFormation.setFunctionFromFormationID(cellFormation.formationID);
 		formationCount = formationMessage->formation_count;
 		cellFormation.seedID = formationMessage->seed_id;
@@ -392,7 +388,6 @@ void Cell::receiveFormationFromNeighbor(const NewSimulator::FormationMessage::Co
 
 		cellFormation.radius = formationMessage->radius;
 		cellFormation.formationID = formationMessage->formation_id;
-		checkMultifunction(cellFormation.formationID);
 		cellFormation.setFunctionFromFormationID(cellFormation.formationID);
 		formationCount = formationMessage->formation_count;
 		cellFormation.seedID = formationMessage->seed_id;
@@ -401,13 +396,6 @@ void Cell::receiveFormationFromNeighbor(const NewSimulator::FormationMessage::Co
 //		cout << "\nCell " << cellID << " got new formation: " << cellFormation.formationID << " from neighbor.\n";
 		return;
 	}
-}
-
-void Cell::checkMultifunction(const int formationID) {
-	if(formationID == -2)
-		isMultiFunction = true;
-	else
-		isMultiFunction = false;
 }
 
 int Cell::getCellID()
@@ -679,26 +667,26 @@ void Cell::outputCellInfo()
 		<< "   cellFormation.formationID: " << cellFormation.formationID << endl
 		<< "   cellFormation.currentFunction: " << cellFormation.currentFunctions.at(0) << endl;
 
-	if(isMultiFunction)
-		cout << "   cellFormation.currentFunction: " << cellFormation.currentFunctions.at(1) << endl;
-
-	cout << "   cellFormation.getRadius: " << cellFormation.getRadius() << endl
-		<< "   seed ID: " << cellFormation.seedID << endl
-		<< "   sensorError: " << cellFormation.getSensorError() << endl
-		<< "   communicationError: " << cellFormation.getCommunicationError() << endl
-		<< "Left neighbor: " << neighborhoodList[0] << endl
-		<< "   Actual relationship: " << cellState.actualRelationships[0].x << ", "
-				<< cellState.actualRelationships[0].y << ", "
-				<< cellState.actualRelationships[0].z << ", " << endl
-		<< "   Desired relationship: " << cellState.desiredRelationships[0].x << ", "
-				<< cellState.desiredRelationships[0].y << ", "
-				<< cellState.desiredRelationships[0].z << ", " << endl
-		<< "Right neighbor: " << neighborhoodList[1] << endl
-		<< "   Actual relationship: " << cellState.actualRelationships[1].x << ", "
-				<< cellState.actualRelationships[1].y << ", "
-				<< cellState.actualRelationships[1].z << ", " << endl
-		<< "   Desired relationship: " << cellState.desiredRelationships[1].x << ", "
-				<< cellState.desiredRelationships[1].y << ", "
-				<< cellState.desiredRelationships[1].z << ", " << endl << endl;
+//	if(isMultiFunction)
+//		cout << "   cellFormation.currentFunction: " << cellFormation.currentFunctions.at(1) << endl;
+//
+//	cout << "   cellFormation.getRadius: " << cellFormation.getRadius() << endl
+//		<< "   seed ID: " << cellFormation.seedID << endl
+//		<< "   sensorError: " << cellFormation.getSensorError() << endl
+//		<< "   communicationError: " << cellFormation.getCommunicationError() << endl
+//		<< "Left neighbor: " << neighborhoodList[0] << endl
+//		<< "   Actual relationship: " << cellState.actualRelationships[0].x << ", "
+//				<< cellState.actualRelationships[0].y << ", "
+//				<< cellState.actualRelationships[0].z << ", " << endl
+//		<< "   Desired relationship: " << cellState.desiredRelationships[0].x << ", "
+//				<< cellState.desiredRelationships[0].y << ", "
+//				<< cellState.desiredRelationships[0].z << ", " << endl
+//		<< "Right neighbor: " << neighborhoodList[1] << endl
+//		<< "   Actual relationship: " << cellState.actualRelationships[1].x << ", "
+//				<< cellState.actualRelationships[1].y << ", "
+//				<< cellState.actualRelationships[1].z << ", " << endl
+//		<< "   Desired relationship: " << cellState.desiredRelationships[1].x << ", "
+//				<< cellState.desiredRelationships[1].y << ", "
+//				<< cellState.desiredRelationships[1].z << ", " << endl << endl;
 
 }
