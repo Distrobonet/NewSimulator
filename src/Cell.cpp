@@ -680,7 +680,28 @@ void Cell::startAuctionServiceServer(){
 
 bool Cell::setAuctionMessage(NewSimulator::Auctioning::Request &request, NewSimulator::Auctioning::Response &response){
 	if(request.makeOrBreakConnection){
+		if(checkIfNeedNeighbors()){
+			if(neighborhoodList.size() == getNumberOfNeededNeighbors()){
+				vector<int>::iterator iterator = find(neighborhoodList.begin(), neighborhoodList.end(), -1);
+				neighborhoodList.at(neighborhoodList.begin()-iterator) = request.OriginID;
+			}else{
+				neighborhoodList.push_back(request.OriginID);
+			}
+			response.acceptOrDecline = true;
+		}else{
+			int indexToRemove = isCellBetterMatch(request.OriginID);
+			if(indexToRemove != -1){
+				//The index to remove is the weakest connection, replacing with the new connection
+				vector<int>::iterator iterator = find(neighborhoodList.begin(), neighborhoodList.end(), indexToRemove);
 
+				//Sets id of cell that connection needs to be broken with
+				idToBreakConnection = neighborhoodList.at(neighborhoodList.begin() - iterator);
+				neighborhoodList.at(neighborhoodList.begin()-iterator) = request.OriginID;
+				response.acceptOrDecline = true;
+			}else{
+				response.acceptOrDecline = false;
+			}
+		}
 	}else{
 		//Removing neighbor because that neighbor is breaking the connection
 		vector<int>::iterator iterator = find(neighborhoodList.begin(), neighborhoodList.end(), request.OriginID);
@@ -689,6 +710,27 @@ bool Cell::setAuctionMessage(NewSimulator::Auctioning::Request &request, NewSimu
 		response.acceptOrDecline = true;
 	}
 	return true;
+}
+
+int Cell::isCellBetterMatch(int originId){
+	vector<int> indexsOfCurrentNeighbors;
+	int indexToRemove = -1;
+	// Get all the indexs of current neighbors
+	for(int i = 0; i < neighborhoodList.size(); i++){
+		vector<int>::iterator iterator = find(neighborhoodIds.begin(), neighborhoodIds.end(), neighborhoodList.at(i));
+		indexsOfCurrentNeighbors.push_back(neighborhoodIds.begin()-iterator);
+	}
+	// Get the index of possible new neighbor and find worst connection it can replace if any
+	vector<int>::iterator iterator = find(neighborhoodIds.begin(), neighborhoodIds.end(), originId);
+	int indexOfPossibleNewNeighbor = neighborhoodIds.begin()-iterator;
+	for(int i = 0; i < indexsOfCurrentNeighbors.size(); i++){
+		if(indexsOfCurrentNeighbors < indexOfPossibleNewNeighbor){
+			if(indexToRemove < indexOfPossibleNewNeighbor){
+				indexToRemove = indexOfPossibleNewNeighbor;
+			}
+		}
+	}
+	return indexToRemove;
 }
 
 bool Cell::checkIfNeedNeighbors(){

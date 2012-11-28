@@ -87,8 +87,10 @@ class Cell
 		void limitAndScaleVelocities(PhysicsVector &velocities);
 
 		bool checkIfNeedNeighbors();
+		int isCellBetterMatch(int originId);
 		int getNumberOfNeededNeighbors();
 		bool needNeighbors = true;
+		int idToBreakConnection = -1;
 
 		ros::NodeHandle stateNode;
 		ros::Publisher state_pub;
