@@ -79,9 +79,6 @@ void Cell::moveFunction() {
 	for(uint i = 0; i < neighborhoodList.size(); i++)
 	{
 		int neighbor = neighborhoodList.at(i);
-		if(cellID == 0) {
-			cout << neighbor;
-		}
 		if(neighbor != NO_NEIGHBOR)
 		{
 			receiveActualRelationshipFromEnvironment(neighbor);
@@ -403,13 +400,6 @@ vector<int> Cell::updateNeighborhood()
 		setLeftNeighbor(cellID - 1);
 		neighborhoodList.push_back(cellID + 1);
 		setRightNeighbor(cellID + 1);
-
-		// Set up the subscriber callback for new formations between neighbors.  ONLY SUBSCRIBE TO YOUR REFERENCE NEIGHBOR
-		if(cellID > cellFormation.getSeedID() && updateNeighborhood()[0] != NO_NEIGHBOR)
-		{
-			// This cell is to the right of the seed.  Subscribe to our left neighbor.
-			formationChangeSubscriber = formationChangeSubscriberNode.subscribe(generateFormationPubName(updateNeighborhood()[0]), 100, &Cell::receiveFormation, this);
-		}
 	}
 	else
 	{
