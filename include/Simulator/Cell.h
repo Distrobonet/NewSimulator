@@ -54,13 +54,11 @@ class Cell
 
 		bool calculateMovement();
 		void move(int neighborIndex);
-		void moveMultiFunction();
-		void moveSingleFunction();
+		void moveFunction();
 
 		int getCellID();
 		void setCellID(int ID);
 		Formation getFormation();
-		void setFormation(Formation formation);
 
 		vector<int> updateNeighborhood();
 		void createNeighborhood();
@@ -105,12 +103,11 @@ class Cell
 		// Simulator formation subscriber - only used by seed cell to get formation from Simulator
 		ros::NodeHandle simulatorFormationNodeHandle;
 		ros::Subscriber simulatorFormationSubscriber;
-		void receiveFormationFromSimulator(const NewSimulator::FormationMessage::ConstPtr &formationMessage);
 
 		// Neighbor formation change subscriber
 		ros::NodeHandle formationChangeSubscriberNode;
 		ros::Subscriber formationChangeSubscriber;
-		void receiveFormationFromNeighbor(const NewSimulator::FormationMessage::ConstPtr &formationMessage);
+		void receiveFormation(const NewSimulator::FormationMessage::ConstPtr &formationMessage);
 		NewSimulator::FormationMessage createFormationChangeMessage();
 
 		// Formation change publisher to neighbors

@@ -29,7 +29,7 @@ Cell::Cell(const int ID)
 	// Set the seed cell to subscribe to the Simulator's formation messages
 	if(cellID == cellFormation.getSeedID())
 	{
-		simulatorFormationSubscriber = simulatorFormationNodeHandle.subscribe("seedFormationMessage", 100, &Cell::receiveFormationFromSimulator, this);
+		simulatorFormationSubscriber = simulatorFormationNodeHandle.subscribe("seedFormationMessage", 100, &Cell::receiveFormation, this);
 	}
 }
 
@@ -173,7 +173,8 @@ void Cell::move(int neighborIndex)
 	// At this point, we should know the cell's actual and desired relationship to its reference neighbor.
 
 	// If a formation hasn't been set, don't move
-	if(cellFormation.formationID == NO_FUNCTION_FORMATION_ID || getCommunicationLostBasedOnError())
+	// if first formationID is nothing, the rest will be nothing
+	if(cellFormation.formationIDs.at(0) == NO_FUNCTION_FORMATION_ID || getCommunicationLostBasedOnError())
 		return;
 
 	PhysicsVector movementPhysicsVector;
@@ -298,7 +299,8 @@ void Cell::receiveNeighborhoodIdsFromEnvironment(int originId)
 // Calculate this cell's desired relationship to its parameterized neighbor
 void Cell::calculateDesiredRelationship(int neighborIndex)
 {
-	if(cellFormation.formationID == NO_FUNCTION_FORMATION_ID)
+	// if first formationID is nothing, the rest will be nothing
+	if(cellFormation.formationIDs.at(0) == NO_FUNCTION_FORMATION_ID)
 		return;
 
 
@@ -337,63 +339,44 @@ NewSimulator::FormationMessage Cell::createFormationChangeMessage()
 	NewSimulator::FormationMessage formationChangeMessage;
 
 	formationChangeMessage.radius = cellFormation.radius;
-	formationChangeMessage.formation_id = cellFormation.formationID;
 	formationChangeMessage.formation_count = formationCount;
 	formationChangeMessage.seed_id = cellFormation.seedID;
 	formationChangeMessage.sensor_error = cellFormation.getSensorError();
 	formationChangeMessage.communication_error = cellFormation.getCommunicationError();
 
+	vector<int> formationList = cellFormation.formationIDs;
+	for(uint i = 0; i < formationList.size(); i++)
+	{
+		formationChangeMessage.formation_ids.push_back(formationList.at(i));
+	}
+
 	return formationChangeMessage;
 }
 
-// Uses a subscriber to get the formation from Simulator (this is the callback).  Only the seed does this.
-void Cell::receiveFormationFromSimulator(const NewSimulator::FormationMessage::ConstPtr &formationMessage)
-{
-	// If the formation count is higher than ours, then this is a newer formation than we currently have stored
-	if(formationMessage->formation_count > formationCount)
-	{
-//		cout << endl << "#################Formation Change#################" << endl;
-
-		cellFormation.setCommunicationError(formationMessage->communication_error);
-
-		if(getCommunicationLostBasedOnError())
-			return;
-
-		isFormationChanged = true;
-		cellFormation.radius = formationMessage->radius;
-		cellFormation.formationID = formationMessage->formation_id;
-		cellFormation.setFunctionFromFormationID(cellFormation.formationID);
-		formationCount = formationMessage->formation_count;
-		cellFormation.seedID = formationMessage->seed_id;
-		cellFormation.setSensorError(formationMessage->sensor_error);
-		cellFormation.setCommunicationError(formationMessage->communication_error);
-
-//		cout << "\nSeed Cell " << cellID << " got new formation: " << formationMessage->formation_id << " from Simulator.\n";
-		return;
-	}
-}
-
 // This cell uses this to get the new formation from a neighbor who is publishing it (this is the callback)
-void Cell::receiveFormationFromNeighbor(const NewSimulator::FormationMessage::ConstPtr &formationMessage)
+void Cell::receiveFormation(const NewSimulator::FormationMessage::ConstPtr &formationMessage)
 {
 	// If the formation count is higher than ours, then this is a newer formation than we currently have stored
 	if(formationMessage->formation_count > formationCount)
 	{
-		cellFormation.communicationError = formationMessage->communication_error;
-
+		cellFormation.setCommunicationError(formationMessage->communication_error);
 		if(getCommunicationLostBasedOnError())
 			return;
 
 		isFormationChanged = true;
-
-		cellFormation.radius = formationMessage->radius;
-		cellFormation.formationID = formationMessage->formation_id;
-		cellFormation.setFunctionFromFormationID(cellFormation.formationID);
 		formationCount = formationMessage->formation_count;
+		cellFormation.radius = formationMessage->radius;
+		cellFormation.setFunctionFromFormationID(cellFormation.formationIDs);
 		cellFormation.seedID = formationMessage->seed_id;
 		cellFormation.sensorError = formationMessage->sensor_error;
+		cellFormation.setCommunicationError(formationMessage->communication_error);
 
-//		cout << "\nCell " << cellID << " got new formation: " << cellFormation.formationID << " from neighbor.\n";
+		vector<int> formationList = formationMessage->formation_ids;
+		for(uint i = 0; i < formationList.size(); i++)
+		{
+			cellFormation.formationIDs.push_back(formationList.at(i));
+		}
+
 		return;
 	}
 }
@@ -411,11 +394,6 @@ void Cell::setCellID(int newID)
 Formation Cell::getFormation()
 {
 	return cellFormation;
-}
-
-void Cell::setFormation(Formation formation)
-{
-	cellFormation = formation;
 }
 
 vector<int> Cell::updateNeighborhood()
@@ -452,7 +430,7 @@ vector<int> Cell::updateNeighborhood()
 //		if(cellID > cellFormation.getSeedID() && updateNeighborhood()[0] != NO_NEIGHBOR)
 //		{
 //			// This cell is to the right of the seed.  Subscribe to our left neighbor.
-//			formationChangeSubscriber = formationChangeSubscriberNode.subscribe(generateFormationPubName(updateNeighborhood()[0]), 100, &Cell::receiveFormationFromNeighbor, this);
+//			formationChangeSubscriber = formationChangeSubscriberNode.subscribe(generateFormationPubName(updateNeighborhood()[0]), 100, &Cell::receiveFormation, this);
 //		}
 //	}
 //}
@@ -470,7 +448,7 @@ vector<int> Cell::updateNeighborhood()
 //		if(cellID < cellFormation.getSeedID() && updateNeighborhood()[1] != NO_NEIGHBOR)
 //		{
 //			// This cell is to the left of the seed.  Subscribe to our right neighbor.
-//			formationChangeSubscriber = formationChangeSubscriberNode.subscribe(generateFormationPubName(updateNeighborhood()[1]), 100, &Cell::receiveFormationFromNeighbor, this);
+//			formationChangeSubscriber = formationChangeSubscriberNode.subscribe(generateFormationPubName(updateNeighborhood()[1]), 100, &Cell::receiveFormation, this);
 //		}
 //	}
 //}
@@ -656,16 +634,16 @@ bool Cell::getCommunicationLostBasedOnError()
 // Outputs all the useful info about this cell for debugging purposes
 void Cell::outputCellInfo()
 {
-
-	cout << "\n\nCell stuff:\n"
-		<< "   cell ID: " << cellID << endl
-		<< "   isFormationChanged: " << isFormationChanged << endl
-		<< "   formationCount: " << formationCount << endl
-		<< "   cell state time step: " << cellState.timeStep << endl
-		<< "   getNumberOfNeighbors(): " << getNumberOfNeighbors() << endl
-		<< "Formation stuff:\n"
-		<< "   cellFormation.formationID: " << cellFormation.formationID << endl
-		<< "   cellFormation.currentFunction: " << cellFormation.currentFunctions.at(0) << endl;
+//
+//	cout << "\n\nCell stuff:\n"
+//		<< "   cell ID: " << cellID << endl
+//		<< "   isFormationChanged: " << isFormationChanged << endl
+//		<< "   formationCount: " << formationCount << endl
+//		<< "   cell state time step: " << cellState.timeStep << endl
+//		<< "   getNumberOfNeighbors(): " << getNumberOfNeighbors() << endl
+//		<< "Formation stuff:\n"
+//		<< "   cellFormation.formationID: " << cellFormation.formationID << endl
+//		<< "   cellFormation.currentFunction: " << cellFormation.currentFunctions.at(0) << endl;
 
 //	if(isMultiFunction)
 //		cout << "   cellFormation.currentFunction: " << cellFormation.currentFunctions.at(1) << endl;
