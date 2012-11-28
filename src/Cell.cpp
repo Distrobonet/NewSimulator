@@ -85,7 +85,17 @@ void Cell::update()
 }
 
 void Cell::moveMultiFunction() {
-
+	for(uint i = 0; i < neighborhoodList.size(); i++)
+	{
+		int neighbor = neighborhoodList.at(i);
+		if(neighbor != NO_NEIGHBOR)
+		{
+			receiveActualRelationshipFromEnvironment(neighbor);
+			applySensorError(neighbor);
+			calculateDesiredRelationship(neighbor);
+			move(neighbor);
+		}
+	}
 }
 
 void Cell::moveSingleFunction() {
