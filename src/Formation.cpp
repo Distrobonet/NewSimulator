@@ -47,7 +47,13 @@ Formation::~Formation()
 
 void Formation::setFunction(const Function newFunction)
 {
+	currentFunctions.clear();
 	currentFunctions.push_back(newFunction);
+}
+
+void Formation::addFunction(const Function additionalFunction)
+{
+	currentFunctions.push_back(additionalFunction);
 }
 
 void Formation::clearFunctions() {
@@ -62,10 +68,6 @@ void Formation::setFunctionFromFormationID(vector<int> newFormationId)
 
 	switch(tempNewFormationID)
 	{
-		case -2:
-			setFunction(x);
-			setFunction(negX);
-			break;
 		case 0:
 			setFunction(line);
 			break;
@@ -97,9 +99,13 @@ void Formation::setFunctionFromFormationID(vector<int> newFormationId)
 			setFunction(sine);
 			break;
 		case 10:
-			setFunction(xRoot3);
+			setFunction(x);
+			addFunction(negX);
 			break;
 		case 11:
+			setFunction(xRoot3);
+			break;
+		case 12:
 			setFunction(negXRoot3);
 			break;
 		default:

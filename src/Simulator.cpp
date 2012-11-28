@@ -40,7 +40,6 @@ const char CHAR_ESCAPE = char(27);    			// 'ESCAPE' character key
 int LAST_SELECTION = -1;
 int CURRENT_SELECTION = -1;
 int FORMATION_COUNT = 0;
-bool MULTIFUNCTION = false;
 
 PhysicsVector SEED_FRP(0,0,0);
 float CELL_RADIUS = 1.0f;
@@ -158,22 +157,8 @@ void keyboardInput()
 
 		if(keyPressed >= '0' && keyPressed <= '9')
 		{
-			if(MULTIFUNCTION) {
-				cout << endl << "You are currently in Multi-function mode. Functions 0 - 9 are disabled." << endl
-					 << "Your current functions are [f(x) = x] and [f(x) = -x]." << endl;
-			} else {
-				CURRENT_SELECTION = keyPressed-48;	// convert from ascii char to int
-				cout << "   Setting CURRENT_SELECTION to " << CURRENT_SELECTION << endl;
-			}
-		}
-		else if(keyPressed == 'm')
-		{
-			MULTIFUNCTION = !MULTIFUNCTION;
-			if(MULTIFUNCTION){
-				CURRENT_SELECTION = -2;
-			}
-			cout << endl << "Multi-function is toggled to " << MULTIFUNCTION << endl;
-
+			CURRENT_SELECTION = keyPressed-48;	// convert from ascii char to int
+			cout << "   Setting CURRENT_SELECTION to " << CURRENT_SELECTION << endl;
 		}
 		else if(keyPressed == '+')
 		{
@@ -268,7 +253,7 @@ void displayMenu()
 		<< "7) f(x) = x^3"                                   << endl
 		<< "8) f(x) = {sqrt(x),  x >= 0 | -sqrt|x|, x < 0}"  << endl
 		<< "9) f(x) = sin(x)"                        		 << endl << endl
-		<< "Use m to toggle Multi-function Mode" << endl << endl
+		<< "10) f(x) = x & f(x) = -x" << endl << endl
 		<< "Use - and + to adjust the cell radius"    		 << endl
 		<< "Use s and d to adjust the sensor error"    		 << endl
 		<< "Use c and v to adjust the communication error (0 - 100% message loss)"	 << endl

@@ -34,6 +34,7 @@ class Formation
 
 		// Mutators
 		void setFunction(const Function newFunction = DEFAULT_FORMATION_FUNCTION);
+		void addFunction(const Function additionalFunction);
 		void clearFunctions();
 		void setFunctionFromFormationID(vector<int> newFormationId);
 		void setFormationIDs(int newFormationID);
