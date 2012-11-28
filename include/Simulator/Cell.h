@@ -26,6 +26,9 @@
 // Neighborhood service
 #include "../srv_gen/cpp/include/NewSimulator/Neighborhood.h"
 
+// Actioning service
+#include "../srv_gen/cpp/include/NewSimulator/Auctioning.h"
+
 using namespace std;
 
 enum Status{
@@ -125,6 +128,17 @@ class Cell
 		NewSimulator::Neighborhood neighborhoodService;
 		vector<int> neighborhoodIds;
 		void receiveNeighborhoodIdsFromEnvironment(int originId);
+
+		// Auction service client
+		ros::NodeHandle auctioningNodeHandle;
+		ros::ServiceClient auctioningClient;
+		NewSimulator::Auctioning auctioningService;
+
+		// Auction server client
+        ros::NodeHandle AuctioningServerNode;
+		ros::ServiceServer auctionService;
+		bool setAuctioningMessage(NewSimulator::Auctioning::Request &request, NewSimulator::Auctioning::Response &response);
+		void startAuctioningServiceServer();
 
 
 		// State service client
