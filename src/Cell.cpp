@@ -25,7 +25,7 @@ Cell::Cell(const int ID)
 	commandVelocity.angular.y = 0;
 	commandVelocity.angular.z = 0;
 
-	createNeighborhood();
+	updateNeighborhood();
 
 	// Set the seed cell to subscribe to the Simulator's formation messages
 	if(cellID == cellFormation.getSeedID())
@@ -71,10 +71,10 @@ void Cell::update()
 		//cout << "\n**** " << "cell" << cellID << "'s Formation ID: " << cellFormation.formationID << " - Formation count: " << formationCount << " ****\n";
 		receiveNeighborState();
 
-		if(isMultiFunction)
-			moveMultiFunction();
-		else
-			moveSingleFunction();
+//		if(isMultiFunction)
+			moveFunction();
+//		else
+//			moveSingleFunction();
 
 
 		updateCurrentStatus();
@@ -84,7 +84,7 @@ void Cell::update()
 	}
 }
 
-void Cell::moveMultiFunction() {
+void Cell::moveFunction() {
 	for(uint i = 0; i < neighborhoodList.size(); i++)
 	{
 		int neighbor = neighborhoodList.at(i);
@@ -98,25 +98,25 @@ void Cell::moveMultiFunction() {
 	}
 }
 
-void Cell::moveSingleFunction() {
-	// Send request to Environment for the cell's relationship with its reference neighbor, calculate the desired relationship, and do the movement.
-	if(cellID > cellFormation.getSeedID() && updateNeighborhood()[0] != NO_NEIGHBOR)
-	{
-		// This cell is to the right of the seed.  Get relationship to our left neighbor.
-		receiveActualRelationshipFromEnvironment(0);
-		applySensorError(0);
-		calculateDesiredRelationship(0);
-		move(0); 		// Move relative to this cell's left neighbor
-	}
-	if(cellID < cellFormation.getSeedID() && updateNeighborhood()[1] != NO_NEIGHBOR)
-	{
-		// This cell is to the left of the seed.  Get relationship to our right neighbor.
-		receiveActualRelationshipFromEnvironment(1);
-		applySensorError(1);
-		calculateDesiredRelationship(1);
-		move(1); 		// Move relative to this cell's right neighbor
-	}
-}
+//void Cell::moveSingleFunction() {
+//	// Send request to Environment for the cell's relationship with its reference neighbor, calculate the desired relationship, and do the movement.
+//	if(cellID > cellFormation.getSeedID() && updateNeighborhood()[0] != NO_NEIGHBOR)
+//	{
+//		// This cell is to the right of the seed.  Get relationship to our left neighbor.
+//		receiveActualRelationshipFromEnvironment(0);
+//		applySensorError(0);
+//		calculateDesiredRelationship(0);
+//		move(0); 		// Move relative to this cell's left neighbor
+//	}
+//	if(cellID < cellFormation.getSeedID() && updateNeighborhood()[1] != NO_NEIGHBOR)
+//	{
+//		// This cell is to the left of the seed.  Get relationship to our right neighbor.
+//		receiveActualRelationshipFromEnvironment(1);
+//		applySensorError(1);
+//		calculateDesiredRelationship(1);
+//		move(1); 		// Move relative to this cell's right neighbor
+//	}
+//}
 
 void Cell::updateCurrentStatus() {
 
@@ -437,55 +437,55 @@ vector<int> Cell::updateNeighborhood()
 	return neighborhoodList;
 }
 
-// temp setNeighbohood - HARDCODED for 1-dimensional formations
-void Cell::createNeighborhood()
-{
-	if(!isMultiFunction) {
-		// For 1-dimensional formations, just set 2 neighbor relationships for each cell
-		cellState.actualRelationships.resize(2, PhysicsVector());
-		cellState.desiredRelationships.resize(2, PhysicsVector());
-
-		setLeftNeighbor(cellID - 1);
-		setRightNeighbor(cellID + 1);
-	} else {
-		updateNeighborhood();
-	}
-}
-
-// temp setLeftNeighbor - HARDCODED for 1-dimensional formations
-void Cell::setLeftNeighbor(const int nbr)
-{
-	if (cellID == 0)
-		neighborhoodList.insert(neighborhoodList.begin() + 0, NO_NEIGHBOR);
-	else {
-		neighborhoodList.insert(neighborhoodList.begin() + 0, nbr);
-
-		// Set up the subscriber callback for new formations between neighbors.  ONLY SUBSCRIBE TO YOUR REFERENCE NEIGHBOR
-		if(cellID > cellFormation.getSeedID() && updateNeighborhood()[0] != NO_NEIGHBOR)
-		{
-			// This cell is to the right of the seed.  Subscribe to our left neighbor.
-			formationChangeSubscriber = formationChangeSubscriberNode.subscribe(generateFormationPubName(updateNeighborhood()[0]), 100, &Cell::receiveFormationFromNeighbor, this);
-		}
-	}
-}
-
-// temp setRightNeighbor - HARDCODED for 1-dimensional formations
-void Cell::setRightNeighbor(const int nbr)
-{
-	// Temp max number of cells (6)
-	if (cellID == 6)
-		neighborhoodList.insert(neighborhoodList.begin() + 1, -1);
-	else
-	{
-		neighborhoodList.insert(neighborhoodList.begin() + 1, nbr);
-
-		if(cellID < cellFormation.getSeedID() && updateNeighborhood()[1] != NO_NEIGHBOR)
-		{
-			// This cell is to the left of the seed.  Subscribe to our right neighbor.
-			formationChangeSubscriber = formationChangeSubscriberNode.subscribe(generateFormationPubName(updateNeighborhood()[1]), 100, &Cell::receiveFormationFromNeighbor, this);
-		}
-	}
-}
+//// temp setNeighbohood - HARDCODED for 1-dimensional formations
+//void Cell::setNeighborhood()
+//{
+//	if(!isMultiFunction) {
+//		// For 1-dimensional formations, just set 2 neighbor relationships for each cell
+//		cellState.actualRelationships.resize(2, PhysicsVector());
+//		cellState.desiredRelationships.resize(2, PhysicsVector());
+//
+//		setLeftNeighbor(cellID - 1);
+//		setRightNeighbor(cellID + 1);
+//	} else {
+//		updateNeighborhood();
+//	}
+//}
+//
+//// temp setLeftNeighbor - HARDCODED for 1-dimensional formations
+//void Cell::setLeftNeighbor(const int nbr)
+//{
+//	if (cellID == 0)
+//		neighborhoodList.insert(neighborhoodList.begin() + 0, NO_NEIGHBOR);
+//	else {
+//		neighborhoodList.insert(neighborhoodList.begin() + 0, nbr);
+//
+//		// Set up the subscriber callback for new formations between neighbors.  ONLY SUBSCRIBE TO YOUR REFERENCE NEIGHBOR
+//		if(cellID > cellFormation.getSeedID() && updateNeighborhood()[0] != NO_NEIGHBOR)
+//		{
+//			// This cell is to the right of the seed.  Subscribe to our left neighbor.
+//			formationChangeSubscriber = formationChangeSubscriberNode.subscribe(generateFormationPubName(updateNeighborhood()[0]), 100, &Cell::receiveFormationFromNeighbor, this);
+//		}
+//	}
+//}
+//
+//// temp setRightNeighbor - HARDCODED for 1-dimensional formations
+//void Cell::setRightNeighbor(const int nbr)
+//{
+//	// Temp max number of cells (6)
+//	if (cellID == 6)
+//		neighborhoodList.insert(neighborhoodList.begin() + 1, -1);
+//	else
+//	{
+//		neighborhoodList.insert(neighborhoodList.begin() + 1, nbr);
+//
+//		if(cellID < cellFormation.getSeedID() && updateNeighborhood()[1] != NO_NEIGHBOR)
+//		{
+//			// This cell is to the left of the seed.  Subscribe to our right neighbor.
+//			formationChangeSubscriber = formationChangeSubscriberNode.subscribe(generateFormationPubName(updateNeighborhood()[1]), 100, &Cell::receiveFormationFromNeighbor, this);
+//		}
+//	}
+//}
 
 State Cell::getState()
 {
