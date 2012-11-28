@@ -130,15 +130,17 @@ class Cell
 		void receiveNeighborhoodIdsFromEnvironment(int originId);
 
 		// Auction service client
-		ros::NodeHandle auctioningNodeHandle;
-		ros::ServiceClient auctioningClient;
-		NewSimulator::Auctioning auctioningService;
+		ros::NodeHandle auctionNodeHandle;
+		ros::ServiceClient auctionClient;
+		NewSimulator::Auctioning auctionService;
+		void makeAuctionMakeConnectionCall(int toCallCellId);
+		void makeAuctionBreakConnectionCall(int toCallCellId);
 
 		// Auction server client
-        ros::NodeHandle AuctioningServerNode;
-		ros::ServiceServer auctionService;
-		bool setAuctioningMessage(NewSimulator::Auctioning::Request &request, NewSimulator::Auctioning::Response &response);
-		void startAuctioningServiceServer();
+        ros::NodeHandle AuctionServerNode;
+		ros::ServiceServer auctionServer;
+		bool setAuctionMessage(NewSimulator::Auctioning::Request &request, NewSimulator::Auctioning::Response &response);
+		void startAuctionServiceServer();
 
 
 		// State service client

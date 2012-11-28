@@ -620,6 +620,68 @@ int Cell::getNumberOfNeighbors()
 	return neighborhoodList.size();
 }
 
+void Cell::makeAuctionBreakConnectionCall(int toCallCellId)
+{
+	ros::AsyncSpinner spinner(1);	// Uses an asynchronous spinner to account for the blocking service client call
+	spinner.start();
+
+	string name = "cell_auctioning_";
+	name = name + boost::lexical_cast<std::string>(toCallCellId);	// add the index to the name string
+	auctionService.request.OriginID = cellID;
+	auctionService.request.makeOrBreakConnection = false;
+
+	auctionClient = auctionNodeHandle.serviceClient<NewSimulator::Auctioning>(name);
+
+	if (auctionClient.call(auctionService))
+	{
+		auctionNodeHandle.shutdown();
+		spinner.stop();
+		return;
+	}
+	auctionClient.shutdown();
+	spinner.stop();
+	return;
+}
+
+void Cell::makeAuctionMakeConnectionCall(int toCallCellId)
+{
+	ros::AsyncSpinner spinner(1);	// Uses an asynchronous spinner to account for the blocking service client call
+	spinner.start();
+
+	string name = "cell_auctioning_";
+	name = name + boost::lexical_cast<std::string>(toCallCellId);	// add the index to the name string
+	auctionService.request.OriginID = cellID;
+	auctionService.request.makeOrBreakConnection = true;
+
+	auctionClient = auctionNodeHandle.serviceClient<NewSimulator::Auctioning>(name);
+
+	if (auctionClient.call(auctionService))
+	{
+		auctionNodeHandle.shutdown();
+		spinner.stop();
+		return;
+	}
+	auctionClient.shutdown();
+	spinner.stop();
+	return;
+}
+
+
+// Auctioning server
+void Cell::startAuctionServiceServer(){
+	ros::NodeHandle AuctionServerNode;
+	string name = "cell_auctioning_";
+	name = name + boost::lexical_cast<std::string>(cellID);	// add the index to the name string
+
+	auctionServer = AuctionServerNode.advertiseService(name, &Cell::setAuctionMessage, this);
+
+	ros::spinOnce();
+}
+
+bool Cell::setAuctionMessage(NewSimulator::Auctioning::Request &request, NewSimulator::Auctioning::Response &response){
+	//TODO: Need to setup logic to deal with incoming make and break requests to the cell
+}
+
 // Applies the sensor error set by the user and transmitted to this cell in the formation message
 void Cell::applySensorError(int neighborIndex)
 {
