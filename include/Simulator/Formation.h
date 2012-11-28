@@ -27,7 +27,7 @@ class Formation
 	public:
 		Formation();
 		Formation(const float radius, const PhysicsVector frp,
-				  const int formationID, const float formationRelativeOrientation);
+				  const vector<int> formationID, const float formationRelativeOrientation);
 		Formation(const Formation &f);
 		virtual ~Formation();
 		Formation& operator=(const Formation &newFormation);
@@ -35,8 +35,9 @@ class Formation
 		// Mutators
 		void setFunction(const Function newFunction = DEFAULT_FORMATION_FUNCTION);
 		void clearFunctions();
-		void setFunctionFromFormationID(int newFormationId);
-		void setFormationID(int newFormationID);
+		void setFunctionFromFormationID(vector<int> newFormationId);
+		void setFormationIDs(int newFormationID);
+		void setFormationIDs(vector<int> newFormationIDs);
 		void setRadius(float newRadius);
 		void setFormationRelativeOrientation(float newFormationRelativeOrientation);
 		void setSeedFormationRelativePosition(PhysicsVector newFormationRelativePosition);
@@ -46,7 +47,7 @@ class Formation
 
 		// Accessors
 		vector<Function> getFunctions();
-		int getFormationID();
+		vector<int> getFormationIDs();
 		float getRadius();
 		float getFormationRelativeOrientation();
 		PhysicsVector getSeedFormationRelativePosition();
@@ -77,7 +78,7 @@ class Formation
 		int seedID;
 		Formation fx(int formationId);
 		vector<Function> currentFunctions;
-		int formationID;									// The identifier for the current formation function
+		vector<int> formationIDs;									// The identifier for the current formation function
 		float radius;										// The desired distance between neighbors
 		float sensorError;
 		float communicationError;

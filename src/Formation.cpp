@@ -8,7 +8,7 @@ Formation::Formation()
 {
 	seedID = DEFAULT_SEED_ID;
 	setRadius(DEFAULT_FORMATION_RADIUS);
-	setFormationID(NO_FUNCTION_FORMATION_ID);
+	setFormationIDs(NO_FUNCTION_FORMATION_ID);
 	setFormationRelativeOrientation(DEFAULT_FORMATION_RELATIVE_ORIENTATION);
 
 	seedFormationRelativePosition.x = 0.0f;
@@ -16,11 +16,11 @@ Formation::Formation()
 	seedFormationRelativePosition.z = 0.0f;
 }
 
-Formation::Formation(const float radius, const PhysicsVector frp, const int formationID, const float formationRelativeOrientation)
+Formation::Formation(const float radius, const PhysicsVector frp, const vector<int> formationIDs, const float formationRelativeOrientation)
 {
 	seedID = DEFAULT_SEED_ID;
 	setRadius(radius);
-	setFormationID(formationID);
+	setFormationIDs(formationIDs);
 	setSeedFormationRelativePosition(frp);
 	setFormationRelativeOrientation(formationRelativeOrientation);
 }
@@ -34,7 +34,7 @@ Formation::Formation(const Formation &newFormation)
 Formation& Formation::operator=(const Formation &newFormation)
 {
 	radius = newFormation.radius;
-	formationID = newFormation.formationID;
+	setFormationIDs(newFormation.formationIDs);
 	formationRelativeOrientation = newFormation.formationRelativeOrientation;
 	setSeedFormationRelativePosition(newFormation.seedFormationRelativePosition);
 
@@ -54,11 +54,13 @@ void Formation::clearFunctions() {
 	currentFunctions.clear();
 }
 
-void Formation::setFunctionFromFormationID(int newFormationId)
+void Formation::setFunctionFromFormationID(vector<int> newFormationId)
 {
+	// TODO: fix the vector coming in...
+	int tempNewFormationID = newFormationId.at(0);
 	clearFunctions();
 
-	switch(newFormationId)
+	switch(tempNewFormationID)
 	{
 		case -2:
 			setFunction(x);
@@ -111,14 +113,24 @@ vector<Function> Formation::getFunctions()
 	return currentFunctions;
 }
 
-int Formation::getFormationID()
+vector<int> Formation::getFormationIDs()
 {
-	return formationID;
+	return formationIDs;
 }
 
-void Formation::setFormationID(int newFormationID)
+void Formation::setFormationIDs(int newFormationID)
 {
-	formationID = newFormationID;
+	formationIDs.clear();
+	formationIDs.push_back(newFormationID);
+}
+
+void Formation::setFormationIDs(vector<int> newFormationIDs)
+{
+	formationIDs.clear();
+	for(uint i = 0; i < newFormationIDs.size(); i++)
+	{
+		formationIDs.push_back(newFormationIDs.at(i));
+	}
 }
 
 float Formation::getRadius()
@@ -253,7 +265,8 @@ float Formation::getFunctionIntersection(const Function formationToCopy, const f
 
 bool Formation::isValid()
 {
-	if(formationID != NO_FUNCTION_FORMATION_ID)
+	// if the first formationID is empty, they all should be
+	if(formationIDs.at(0) != NO_FUNCTION_FORMATION_ID)
 		return true;
 	return false;
 }
