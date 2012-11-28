@@ -70,7 +70,7 @@ NewSimulator::FormationMessage setFormationMessage()
 	formationMessage.sensor_error = SENSOR_ERROR;
 	formationMessage.communication_error = COMMUNICATION_ERROR;
 	formationMessage.seed_id = SEED_ID;
-	formationMessage.formation_id = CURRENT_SELECTION;
+	formationMessage.formation_ids.push_back(CURRENT_SELECTION);
 	formationMessage.formation_count = FORMATION_COUNT;
 //	ROS_INFO("Setting the formation message");
 	return formationMessage;
