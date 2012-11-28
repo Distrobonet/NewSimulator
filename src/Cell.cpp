@@ -679,7 +679,36 @@ void Cell::startAuctionServiceServer(){
 }
 
 bool Cell::setAuctionMessage(NewSimulator::Auctioning::Request &request, NewSimulator::Auctioning::Response &response){
-	//TODO: Need to setup logic to deal with incoming make and break requests to the cell
+	if(request.makeOrBreakConnection){
+
+	}else{
+		//Removing neighbor because that neighbor is breaking the connection
+		vector<int>::iterator iterator = find(neighborhoodList.begin(), neighborhoodList.end(), request.OriginID);
+		neighborhoodList.at(neighborhoodList.begin()-iterator) = -1;
+		needNeighbors = true;
+		response.acceptOrDecline = true;
+	}
+	return true;
+}
+
+bool Cell::checkIfNeedNeighbors(){
+	if(getNumberOfNeighbors() < getNumberOfNeededNeighbors())
+	{
+		return true;
+	}
+	if(needNeighbors){
+		needNeighbors = false;
+		return true;
+	}
+	return false;
+}
+
+int Cell::getNumberOfNeededNeighbors(){
+	if(isMultiFunction){
+		return 4;
+	//TODO:Need to know how many formations there are to know how many neighbors to have
+	}
+	return 2;
 }
 
 // Applies the sensor error set by the user and transmitted to this cell in the formation message

@@ -86,6 +86,10 @@ class Cell
 		bool getCommunicationLostBasedOnError();
 		void limitAndScaleVelocities(PhysicsVector &velocities);
 
+		bool checkIfNeedNeighbors();
+		int getNumberOfNeededNeighbors();
+		bool needNeighbors = true;
+
 		ros::NodeHandle stateNode;
 		ros::Publisher state_pub;
 		geometry_msgs::Twist commandVelocity;
