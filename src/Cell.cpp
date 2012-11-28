@@ -25,7 +25,7 @@ Cell::Cell(const int ID)
 	commandVelocity.angular.y = 0;
 	commandVelocity.angular.z = 0;
 
-	createNeighborhood();
+	updateNeighborhood();
 
 	// Set the seed cell to subscribe to the Simulator's formation messages
 	if(cellID == cellFormation.getSeedID())
@@ -419,23 +419,36 @@ vector<int> Cell::updateNeighborhood()
 {
 	//This should be were we make a service request to environment to get the neighbors
 	receiveNeighborhoodIdsFromEnvironment(cellID);
+	while(true){
+		int i = 0;
+		if(checkIfNeedNeighbors()){
+			if(i != cellID){
+				makeAuctionMakeConnectionCall(i);
+			}
+		}
+		if(idToBreakConnection != -1){
+			makeAuctionBreakConnectionCall(idToBreakConnection);
+		}
+		break;
+	}
 	return neighborhoodList;
 }
 
 // temp setNeighbohood - HARDCODED for 1-dimensional formations
-void Cell::createNeighborhood()
-{
-	if(!isMultiFunction) {
-		// For 1-dimensional formations, just set 2 neighbor relationships for each cell
-		cellState.actualRelationships.resize(2, PhysicsVector());
-		cellState.desiredRelationships.resize(2, PhysicsVector());
-
-		setLeftNeighbor(cellID - 1);
-		setRightNeighbor(cellID + 1);
-	} else {
-		updateNeighborhood();
-	}
-}
+//void Cell::createNeighborhood()
+//{
+//	if(!isMultiFunction) {
+//		// For 1-dimensional formations, just set 2 neighbor relationships for each cell
+//		//TODO:Do we need to do something with this for multifunctions?
+//		cellState.actualRelationships.resize(2, PhysicsVector());
+//		cellState.desiredRelationships.resize(2, PhysicsVector());
+//
+//		setLeftNeighbor(cellID - 1);
+//		setRightNeighbor(cellID + 1);
+//	} else {
+//		updateNeighborhood();
+//	}
+//}
 
 // temp setLeftNeighbor - HARDCODED for 1-dimensional formations
 void Cell::setLeftNeighbor(const int nbr)
@@ -634,6 +647,7 @@ void Cell::makeAuctionBreakConnectionCall(int toCallCellId)
 
 	if (auctionClient.call(auctionService))
 	{
+		idToBreakConnection = -1;
 		auctionNodeHandle.shutdown();
 		spinner.stop();
 		return;
@@ -657,6 +671,17 @@ void Cell::makeAuctionMakeConnectionCall(int toCallCellId)
 
 	if (auctionClient.call(auctionService))
 	{
+		if(auctionService.response.acceptOrDecline){
+			if(neighborhoodList.size() == getNumberOfNeededNeighbors()){
+				vector<int>::iterator iterator = find(neighborhoodList.begin(), neighborhoodList.end(), -1);
+				neighborhoodList.at(neighborhoodList.begin()-iterator) = toCallCellId;
+			}else{
+				neighborhoodList.push_back(toCallCellId);
+				if(neighborhoodList.size() > getNumberOfNeededNeighbors()){
+					cout<<"ERROR neighborhood list to big"<<endl;
+				}
+			}
+		}
 		auctionNodeHandle.shutdown();
 		spinner.stop();
 		return;
