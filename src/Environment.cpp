@@ -97,13 +97,12 @@ bool Environment::setNeighborhoodMessage(NewSimulator::Neighborhood::Request &re
 {
 	string requestingCell = createTargetIdString(request.OriginID);
 	PhysicsVector relationshipVector;
-	int numberOfNeighbors = request.NumberOfFormations*2;
 
 	// add an iterator value, otherwise vector will crash the service message
 	vector<int>::iterator iter = response.neighborIds.end();
 	response.neighborIds.insert(iter,99);
 
-    vector<int> closestNeighbors = findClosestNeighbors(numberOfNeighbors, requestingCell, request.OriginID);
+    vector<int> closestNeighbors = findClosestNeighbors(requestingCell, request.OriginID);
     copy(closestNeighbors.begin(),closestNeighbors.end(),back_inserter(response.neighborIds));
 
 	if(response.neighborIds.end() != find(response.neighborIds.begin(), response.neighborIds.end(), 99)){
@@ -113,7 +112,7 @@ bool Environment::setNeighborhoodMessage(NewSimulator::Neighborhood::Request &re
 	return true;
 }
 
-vector<int> Environment::findClosestNeighbors(const int numberOfNeighbors, const string requestingCell, const int cellID) {
+vector<int> Environment::findClosestNeighbors(const string requestingCell, const int cellID) {
 	vector<neighborMagnitudes> closestNeighbors;
 	string targetCell = "/sphero/base_link";
 
@@ -133,9 +132,8 @@ vector<int> Environment::findClosestNeighbors(const int numberOfNeighbors, const
 	// sorts vector by magnitude size
 	sort(closestNeighbors.begin(), closestNeighbors.end());
 
-	closestNeighbors.resize(numberOfNeighbors);
 	vector<int> neighbors;
-	for(int i = 0; i < numberOfNeighbors; i++) {
+	for(int i = 0; i < closestNeighbors.size(); i++) {
 		neighbors.push_back(closestNeighbors.at(i).cellID);
 //		cout << "Cell's neighbor: " << closestNeighbors.at(i).cellID << endl;
 	}

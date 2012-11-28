@@ -1,4 +1,3 @@
 int32 OriginID
-int32 NumberOfFormations
 ---
 int32[] neighborIds

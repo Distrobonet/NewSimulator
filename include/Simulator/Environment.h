@@ -65,7 +65,7 @@ class Environment
         ros::NodeHandle NeighborhoodServerNode;
 		ros::ServiceServer neighborhoodService;
 		bool setNeighborhoodMessage(NewSimulator::Neighborhood::Request &request, NewSimulator::Neighborhood::Response &response);
-		vector<int> findClosestNeighbors(const int numberOfNeighbors, const string requestingCell, const int cellID);
+		vector<int> findClosestNeighbors(const string requestingCell, const int cellID);
 		bool smallestMagnitudeSorter(neighborMagnitudes const& lhs, neighborMagnitudes const& rhs);
 		void startNeighborhoodServiceServer();
 
