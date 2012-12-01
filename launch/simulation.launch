@@ -1,5 +1,4 @@
 <launch>
-	<node pkg="rviz" type="rviz" output="screen" name="rviz"/>
 	<include file="$(find fake_sphero)/launch/multi_sphero.launch"/>
 	<node pkg="NewSimulator" type="environment_node" name="environment" args="7 1"/>
 	<node pkg="NewSimulator" type="cell_node" name="cell0" args="0 1" output="screen"/>
