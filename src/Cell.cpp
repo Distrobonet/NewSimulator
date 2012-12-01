@@ -673,12 +673,7 @@ void Cell::startAuctionServiceServer() {
 bool Cell::setAuctionMessage(NewSimulator::Auctioning::Request &request, NewSimulator::Auctioning::Response &response){
 	if(request.makeOrBreakConnection){
 		if(checkIfNeedNeighbors()){
-			if(neighborhoodList.size() == getNumberOfNeededNeighbors()){
-				vector<int>::iterator iterator = find(neighborhoodList.begin(), neighborhoodList.end(), -1);
-				neighborhoodList.at(neighborhoodList.begin()-iterator) = request.OriginID;
-			}else{
-				neighborhoodList.push_back(request.OriginID);
-			}
+			neighborhoodList.push_back(request.OriginID);
 			response.acceptOrDecline = true;
 		}else{
 			int indexToRemove = isCellBetterMatch(request.OriginID);
@@ -696,8 +691,10 @@ bool Cell::setAuctionMessage(NewSimulator::Auctioning::Request &request, NewSimu
 		}
 	}else{
 		//Removing neighbor because that neighbor is breaking the connection
-		vector<int>::iterator iterator = find(neighborhoodList.begin(), neighborhoodList.end(), request.OriginID);
-		neighborhoodList.at(neighborhoodList.begin()-iterator) = -1;
+		for(uint i = 0; i < neighborhoodList.size(); i++) {
+			if(neighborhoodList[i] == request.OriginID)
+				neighborhoodList.erase(neighborhoodList.begin() + i);
+		}
 		needNeighbors = true;
 		response.acceptOrDecline = true;
 	}
