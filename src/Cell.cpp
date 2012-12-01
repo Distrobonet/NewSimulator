@@ -707,21 +707,24 @@ bool Cell::setAuctionMessage(NewSimulator::Auctioning::Request &request, NewSimu
 int Cell::isCellBetterMatch(int originId){
 	vector<int> indexsOfCurrentNeighbors;
 	int indexToRemove = -1;
+
 	// Get all the indexs of current neighbors
-	for(int i = 0; i < neighborhoodList.size(); i++){
+	for(uint i = 0; i < neighborhoodList.size(); i++){
 		vector<int>::iterator iterator = find(neighborhoodIds.begin(), neighborhoodIds.end(), neighborhoodList.at(i));
 		indexsOfCurrentNeighbors.push_back(neighborhoodIds.begin()-iterator);
 	}
+
 	// Get the index of possible new neighbor and find worst connection it can replace if any
 	vector<int>::iterator iterator = find(neighborhoodIds.begin(), neighborhoodIds.end(), originId);
 	int indexOfPossibleNewNeighbor = neighborhoodIds.begin()-iterator;
-	for(int i = 0; i < indexsOfCurrentNeighbors.size(); i++){
-		if(indexsOfCurrentNeighbors < indexOfPossibleNewNeighbor){
+	for(uint i = 0; i < indexsOfCurrentNeighbors.size(); i++){
+		if(indexsOfCurrentNeighbors[i] < indexOfPossibleNewNeighbor){
 			if(indexToRemove < indexOfPossibleNewNeighbor){
 				indexToRemove = indexOfPossibleNewNeighbor;
 			}
 		}
 	}
+
 	return indexToRemove;
 }
 
