@@ -17,6 +17,7 @@ Cell::Cell(const int ID)
 	isFormationChanged = false;
 	isMultiFunction = false;
 	needNeighbors = true;
+	madeConnection = false;
 	idToBreakConnection = -1;
 
 	commandVelocity.linear.x = 0;
@@ -26,8 +27,6 @@ Cell::Cell(const int ID)
 	commandVelocity.angular.x = 0;
 	commandVelocity.angular.y = 0;
 	commandVelocity.angular.z = 0;
-
-	updateNeighborhood();
 
 	// Set the seed cell to subscribe to the Simulator's formation messages
 	if(cellID == cellFormation.getSeedID())
@@ -71,15 +70,15 @@ void Cell::update()
 		}
 
 		//cout << "\n**** " << "cell" << cellID << "'s Formation ID: " << cellFormation.formationID << " - Formation count: " << formationCount << " ****\n";
-		receiveNeighborState();
-
-		if(isMultiFunction)
-			moveMultiFunction();
-		else
+//		receiveNeighborState();
+//
+//		if(isMultiFunction)
+//			moveMultiFunction();
+//		else
 			moveSingleFunction();
 
 
-		updateCurrentStatus();
+//		updateCurrentStatus();
 
 		ros::spinOnce();
 		loop_rate.sleep();
@@ -92,21 +91,14 @@ void Cell::moveMultiFunction() {
 
 void Cell::moveSingleFunction() {
 	// Send request to Environment for the cell's relationship with its reference neighbor, calculate the desired relationship, and do the movement.
-	if(cellID > cellFormation.getSeedID() && updateNeighborhood()[0] != NO_NEIGHBOR)
+	if(!neighborhoodList.empty())
 	{
-		// This cell is to the right of the seed.  Get relationship to our left neighbor.
-		receiveActualRelationshipFromEnvironment(0);
-		applySensorError(0);
-		calculateDesiredRelationship(0);
-		move(0); 		// Move relative to this cell's left neighbor
-	}
-	if(cellID < cellFormation.getSeedID() && updateNeighborhood()[1] != NO_NEIGHBOR)
-	{
-		// This cell is to the left of the seed.  Get relationship to our right neighbor.
-		receiveActualRelationshipFromEnvironment(1);
-		applySensorError(1);
-		calculateDesiredRelationship(1);
-		move(1); 		// Move relative to this cell's right neighbor
+		for(uint i = 0; i < neighborhoodList.size(); i++){
+			receiveActualRelationshipFromEnvironment(i);
+			applySensorError(i);
+			calculateDesiredRelationship(i);
+			move(i);
+		}
 	}
 }
 
@@ -292,9 +284,10 @@ void Cell::calculateDesiredRelationship(int neighborIndex)
 		return;
 
 
+	// TODO: Efficiency!!
 	// For cells to the left of the seed, flip their radius to use their other desired relationship intersection
 	float radius = cellFormation.getRadius();
-	if(cellID < cellFormation.getSeedID())
+	if(neighborIndex % 2)
 		radius *= -1;
 
 
@@ -321,7 +314,7 @@ void Cell::calculateDesiredRelationship(int neighborIndex)
 //	}
 }
 
-// Creates a message to send to neighhbor cells informing them of the new formation
+// Creates a message to send to neighbor cells informing them of the new formation
 NewSimulator::FormationMessage Cell::createFormationChangeMessage()
 {
 	NewSimulator::FormationMessage formationChangeMessage;
@@ -421,11 +414,16 @@ vector<int> Cell::updateNeighborhood()
 {
 	//This should be were we make a service request to environment to get the neighbors
 	receiveNeighborhoodIdsFromEnvironment(cellID);
-	while(true){
-		int i = 0;
-		if(checkIfNeedNeighbors()){
-			if(i != cellID){
-				makeAuctionConnectionCall(i, true);
+	for(uint i = 0; i < bestMatchNeighbors.size(); i++)
+	{
+		int idToCall = bestMatchNeighbors[i];
+		if(checkIfNeedNeighbors() && !bestMatchNeighbors.empty()){
+			if(count(neighborhoodList.begin(), neighborhoodList.end(), idToCall) == 0){
+				makeAuctionConnectionCall(idToCall, true);
+				if(madeConnection){
+					neighborhoodList.push_back(idToCall);
+					madeConnection = false;
+				}
 			}
 		}
 		if(idToBreakConnection != -1){
@@ -539,24 +537,26 @@ string Cell::generateCommandVelocityPubMessage(int cellID)
 // This should prevent cells from getting conflicting states
 void Cell::receiveNeighborState()
 {
-	stringstream leftSS;					//create a stringstream
-	leftSS << (neighborhoodList[0]);		//add number to the stream
-	string leftNeighborID = leftSS.str();
+	if(neighborhoodList.size() >= 2){
+		stringstream leftSS;					//create a stringstream
+		leftSS << (neighborhoodList[0]);		//add number to the stream
+		string leftNeighborID = leftSS.str();
 
-	stringstream rightSS;					//create a stringstream
-	rightSS << (neighborhoodList[1]);		//add number to the stream
-	string rightNeighborID = rightSS.str();
+		stringstream rightSS;					//create a stringstream
+		rightSS << (neighborhoodList[1]);		//add number to the stream
+		string rightNeighborID = rightSS.str();
 
 
-	// If this cell is to the right of the seed, get our left neighbor's state (it is our reference cell)
-	if(cellID > cellFormation.getSeedID() && updateNeighborhood()[0] != NO_NEIGHBOR)
-	{
-		makeStateClientCall(leftNeighborID);
-	}
-	// If this cell is to the left of the seed, get our right neighbor's state (it is our reference cell)
-	if(cellID < cellFormation.getSeedID() && updateNeighborhood()[1] != NO_NEIGHBOR)
-	{
-		makeStateClientCall(rightNeighborID);
+		// If this cell is to the right of the seed, get our left neighbor's state (it is our reference cell)
+		if(cellID > cellFormation.getSeedID() && updateNeighborhood()[0] != NO_NEIGHBOR)
+		{
+			makeStateClientCall(leftNeighborID);
+		}
+		// If this cell is to the left of the seed, get our right neighbor's state (it is our reference cell)
+		if(cellID < cellFormation.getSeedID() && updateNeighborhood()[1] != NO_NEIGHBOR)
+		{
+			makeStateClientCall(rightNeighborID);
+		}
 	}
 }
 
@@ -649,6 +649,7 @@ void Cell::makeAuctionConnectionCall(int toCallCellId, bool makeConnection)
 
 	if (auctionClient.call(auctionService))
 	{
+		madeConnection = auctionService.response.acceptOrDecline;
 		idToBreakConnection = -1;
 		auctionNodeHandle.shutdown();
 		spinner.stop();
@@ -676,14 +677,15 @@ bool Cell::setAuctionMessage(NewSimulator::Auctioning::Request &request, NewSimu
 			neighborhoodList.push_back(request.OriginID);
 			response.acceptOrDecline = true;
 		}else{
-			int indexToRemove = isCellBetterMatch(request.OriginID);
-			if(indexToRemove != -1){
-				//The index to remove is the weakest connection, replacing with the new connection
-				vector<int>::iterator iterator = find(neighborhoodList.begin(), neighborhoodList.end(), indexToRemove);
-
+			int idToRemove = isCellBetterMatch(request.OriginID);
+			if(idToRemove != -1){
+				//The idToRemove is the weakest connection, replacing with the new connection
+				for(uint i = 0; i < neighborhoodList.size(); i++) {
+					if(neighborhoodList[i] == idToRemove)
+						neighborhoodList.erase(neighborhoodList.begin() + i);
+				}
 				//Sets id of cell that connection needs to be broken with
-				idToBreakConnection = neighborhoodList.at(iterator - neighborhoodList.begin());
-				neighborhoodList.at(iterator - neighborhoodList.begin()) = request.OriginID;
+				idToBreakConnection = idToRemove;
 				response.acceptOrDecline = true;
 			}else{
 				response.acceptOrDecline = false;
@@ -702,28 +704,33 @@ bool Cell::setAuctionMessage(NewSimulator::Auctioning::Request &request, NewSimu
 }
 
 int Cell::isCellBetterMatch(int requestingCellID){
-	vector<int> indexsOfCurrentNeighbors;
+	vector<int> indicesOfCurrentNeighbors;
+	int idToRemove = -1;
 	int indexToRemove = -1;
 
 	// Get all the indices of current neighbors
 	for(uint i = 0; i < neighborhoodList.size(); i++){
 		vector<int>::iterator iterator = find(bestMatchNeighbors.begin(), bestMatchNeighbors.end(), neighborhoodList.at(i));
-		indexsOfCurrentNeighbors.push_back(iterator - bestMatchNeighbors.begin());
+		indicesOfCurrentNeighbors.push_back(iterator - bestMatchNeighbors.begin());
 	}
 
 	// Get the index of possible new neighbor and find worst connection it can replace if any
 	vector<int>::iterator iterator = find(bestMatchNeighbors.begin(), bestMatchNeighbors.end(), requestingCellID);
 	int indexOfPossibleNewNeighbor = iterator - bestMatchNeighbors.begin();
 
-	for(uint i = 0; i < indexsOfCurrentNeighbors.size(); i++){
-		if(indexsOfCurrentNeighbors[i] > indexOfPossibleNewNeighbor){
+	for(uint i = 0; i < indicesOfCurrentNeighbors.size(); i++){
+		if(indicesOfCurrentNeighbors[i] > indexOfPossibleNewNeighbor){
 			if(indexToRemove > indexOfPossibleNewNeighbor){
 				indexToRemove = indexOfPossibleNewNeighbor;
 			}
 		}
 	}
+	if(indexToRemove != -1){
+		idToRemove = neighborhoodList.at(idToRemove);
+	}
 
-	return indexToRemove;
+
+	return idToRemove;
 }
 
 bool Cell::checkIfNeedNeighbors(){

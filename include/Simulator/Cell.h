@@ -91,6 +91,7 @@ class Cell
 		int getNumberOfNeededNeighbors();
 		bool needNeighbors;
 		int idToBreakConnection;
+		bool madeConnection;
 
 		ros::NodeHandle stateNode;
 		ros::Publisher state_pub;
