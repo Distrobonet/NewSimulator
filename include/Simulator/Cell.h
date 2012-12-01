@@ -89,8 +89,8 @@ class Cell
 		bool checkIfNeedNeighbors();
 		int isCellBetterMatch(int originId);
 		int getNumberOfNeededNeighbors();
-		bool needNeighbors = true;
-		int idToBreakConnection = -1;
+		bool needNeighbors;
+		int idToBreakConnection;
 
 		ros::NodeHandle stateNode;
 		ros::Publisher state_pub;

@@ -16,6 +16,8 @@ Cell::Cell(const int ID)
 	formationCount = 0;
 	isFormationChanged = false;
 	isMultiFunction = false;
+	needNeighbors = true;
+	idToBreakConnection = -1;
 
 	commandVelocity.linear.x = 0;
 	commandVelocity.linear.y = 0;
