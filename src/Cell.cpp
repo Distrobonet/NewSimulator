@@ -423,11 +423,11 @@ vector<int> Cell::updateNeighborhood()
 		int i = 0;
 		if(checkIfNeedNeighbors()){
 			if(i != cellID){
-				makeAuctionMakeConnectionCall(i);
+				makeAuctionConnectionCall(i, true);
 			}
 		}
 		if(idToBreakConnection != -1){
-			makeAuctionBreakConnectionCall(idToBreakConnection);
+			makeAuctionConnectionCall(idToBreakConnection, false);
 		}
 		break;
 	}
@@ -633,7 +633,7 @@ int Cell::getNumberOfNeighbors()
 	return neighborhoodList.size();
 }
 
-void Cell::makeAuctionBreakConnectionCall(int toCallCellId)
+void Cell::makeAuctionConnectionCall(int toCallCellId, bool makeConnection)
 {
 	ros::AsyncSpinner spinner(1);	// Uses an asynchronous spinner to account for the blocking service client call
 	spinner.start();
@@ -641,7 +641,7 @@ void Cell::makeAuctionBreakConnectionCall(int toCallCellId)
 	string name = "cell_auctioning_";
 	name = name + boost::lexical_cast<std::string>(toCallCellId);	// add the index to the name string
 	auctionService.request.OriginID = cellID;
-	auctionService.request.makeOrBreakConnection = false;
+	auctionService.request.makeOrBreakConnection = makeConnection;
 
 	auctionClient = auctionNodeHandle.serviceClient<NewSimulator::Auctioning>(name);
 
@@ -657,43 +657,8 @@ void Cell::makeAuctionBreakConnectionCall(int toCallCellId)
 	return;
 }
 
-void Cell::makeAuctionMakeConnectionCall(int toCallCellId)
-{
-	ros::AsyncSpinner spinner(1);	// Uses an asynchronous spinner to account for the blocking service client call
-	spinner.start();
-
-	string name = "cell_auctioning_";
-	name = name + boost::lexical_cast<std::string>(toCallCellId);	// add the index to the name string
-	auctionService.request.OriginID = cellID;
-	auctionService.request.makeOrBreakConnection = true;
-
-	auctionClient = auctionNodeHandle.serviceClient<NewSimulator::Auctioning>(name);
-
-	if (auctionClient.call(auctionService))
-	{
-		if(auctionService.response.acceptOrDecline){
-			if(neighborhoodList.size() == getNumberOfNeededNeighbors()){
-				vector<int>::iterator iterator = find(neighborhoodList.begin(), neighborhoodList.end(), -1);
-				neighborhoodList.at(neighborhoodList.begin()-iterator) = toCallCellId;
-			}else{
-				neighborhoodList.push_back(toCallCellId);
-				if(neighborhoodList.size() > getNumberOfNeededNeighbors()){
-					cout<<"ERROR neighborhood list to big"<<endl;
-				}
-			}
-		}
-		auctionNodeHandle.shutdown();
-		spinner.stop();
-		return;
-	}
-	auctionClient.shutdown();
-	spinner.stop();
-	return;
-}
-
-
 // Auctioning server
-void Cell::startAuctionServiceServer(){
+void Cell::startAuctionServiceServer() {
 	ros::NodeHandle AuctionServerNode;
 	string name = "cell_auctioning_";
 	name = name + boost::lexical_cast<std::string>(cellID);	// add the index to the name string
