@@ -682,8 +682,8 @@ bool Cell::setAuctionMessage(NewSimulator::Auctioning::Request &request, NewSimu
 				vector<int>::iterator iterator = find(neighborhoodList.begin(), neighborhoodList.end(), indexToRemove);
 
 				//Sets id of cell that connection needs to be broken with
-				idToBreakConnection = neighborhoodList.at(neighborhoodList.begin() - iterator);
-				neighborhoodList.at(neighborhoodList.begin()-iterator) = request.OriginID;
+				idToBreakConnection = neighborhoodList.at(iterator - neighborhoodList.begin());
+				neighborhoodList.at(iterator - neighborhoodList.begin()) = request.OriginID;
 				response.acceptOrDecline = true;
 			}else{
 				response.acceptOrDecline = false;
@@ -708,12 +708,12 @@ int Cell::isCellBetterMatch(int requestingCellID){
 	// Get all the indices of current neighbors
 	for(uint i = 0; i < neighborhoodList.size(); i++){
 		vector<int>::iterator iterator = find(bestMatchNeighbors.begin(), bestMatchNeighbors.end(), neighborhoodList.at(i));
-		indexsOfCurrentNeighbors.push_back(bestMatchNeighbors.begin()-iterator);
+		indexsOfCurrentNeighbors.push_back(iterator - bestMatchNeighbors.begin());
 	}
 
 	// Get the index of possible new neighbor and find worst connection it can replace if any
 	vector<int>::iterator iterator = find(bestMatchNeighbors.begin(), bestMatchNeighbors.end(), requestingCellID);
-	int indexOfPossibleNewNeighbor = bestMatchNeighbors.begin()-iterator;
+	int indexOfPossibleNewNeighbor = iterator - bestMatchNeighbors.begin();
 
 	for(uint i = 0; i < indexsOfCurrentNeighbors.size(); i++){
 		if(indexsOfCurrentNeighbors[i] > indexOfPossibleNewNeighbor){
