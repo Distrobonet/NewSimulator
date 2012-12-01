@@ -269,10 +269,10 @@ void Cell::receiveNeighborhoodIdsFromEnvironment(int originId)
 
 	if (neighborhoodClient.call(neighborhoodService))
 	{
-		neighborhoodIds.swap(neighborhoodService.response.neighborIds);
-//		for(int i = 0; i < neighborhoodIds.size(); i++)
+		bestMatchNeighbors.swap(neighborhoodService.response.neighborIds);
+//		for(int i = 0; i < bestMatchNeighbors.size(); i++)
 //		{
-//			cout<<"Neighborhood Ids for cell: "<<cellID<<" - "<<neighborhoodIds[i]<<endl;
+//			cout<<"Neighborhood Ids for cell: "<<cellID<<" - "<<bestMatchNeighbors[i]<<endl;
 //		}
 
 		neighborhoodNodeHandle.shutdown();
@@ -704,22 +704,23 @@ bool Cell::setAuctionMessage(NewSimulator::Auctioning::Request &request, NewSimu
 	return true;
 }
 
-int Cell::isCellBetterMatch(int originId){
+int Cell::isCellBetterMatch(int requestingCellID){
 	vector<int> indexsOfCurrentNeighbors;
 	int indexToRemove = -1;
 
-	// Get all the indexs of current neighbors
+	// Get all the indices of current neighbors
 	for(uint i = 0; i < neighborhoodList.size(); i++){
-		vector<int>::iterator iterator = find(neighborhoodIds.begin(), neighborhoodIds.end(), neighborhoodList.at(i));
-		indexsOfCurrentNeighbors.push_back(neighborhoodIds.begin()-iterator);
+		vector<int>::iterator iterator = find(bestMatchNeighbors.begin(), bestMatchNeighbors.end(), neighborhoodList.at(i));
+		indexsOfCurrentNeighbors.push_back(bestMatchNeighbors.begin()-iterator);
 	}
 
 	// Get the index of possible new neighbor and find worst connection it can replace if any
-	vector<int>::iterator iterator = find(neighborhoodIds.begin(), neighborhoodIds.end(), originId);
-	int indexOfPossibleNewNeighbor = neighborhoodIds.begin()-iterator;
+	vector<int>::iterator iterator = find(bestMatchNeighbors.begin(), bestMatchNeighbors.end(), requestingCellID);
+	int indexOfPossibleNewNeighbor = bestMatchNeighbors.begin()-iterator;
+
 	for(uint i = 0; i < indexsOfCurrentNeighbors.size(); i++){
-		if(indexsOfCurrentNeighbors[i] < indexOfPossibleNewNeighbor){
-			if(indexToRemove < indexOfPossibleNewNeighbor){
+		if(indexsOfCurrentNeighbors[i] > indexOfPossibleNewNeighbor){
+			if(indexToRemove > indexOfPossibleNewNeighbor){
 				indexToRemove = indexOfPossibleNewNeighbor;
 			}
 		}

@@ -132,7 +132,7 @@ class Cell
 		ros::NodeHandle neighborhoodNodeHandle;
 		ros::ServiceClient neighborhoodClient;
 		NewSimulator::Neighborhood neighborhoodService;
-		vector<int> neighborhoodIds;
+		vector<int> bestMatchNeighbors;
 		void receiveNeighborhoodIdsFromEnvironment(int originId);
 
 		// Auction service client
