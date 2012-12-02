@@ -32,6 +32,7 @@ Cell::Cell(const int ID)
 	{
 		simulatorFormationSubscriber = simulatorFormationNodeHandle.subscribe("seedFormationMessage", 100, &Cell::receiveFormation, this);
 	}
+	startAuctionServiceServer();
 }
 
 Cell::~Cell()
@@ -74,6 +75,14 @@ void Cell::update()
 
 //		updateCurrentStatus();
 		receiveNeighborhoodIdsFromEnvironment(cellID);
+
+		if(cellID == 4)
+		{
+			for(uint i = 0; i < neighborhoodList.size(); i++)
+			{
+				makeAuctionConnectionCall(neighborhoodList[i], true);
+			}
+		}
 
 		ros::spinOnce();
 		loop_rate.sleep();
@@ -647,3 +656,90 @@ void Cell::receiveNeighborhoodIdsFromEnvironment(int originId)
 	return;
 }
 
+void Cell::makeAuctionConnectionCall(int toCallCellId, bool makeConnection)
+{
+	ros::AsyncSpinner spinner(1);	// Uses an asynchronous spinner to account for the blocking service client call
+	spinner.start();
+
+	string name = "cell_auctioning_";
+	name = name + boost::lexical_cast<std::string>(toCallCellId);	// add the index to the name string
+	auctionService.request.OriginID = cellID;
+	auctionService.request.makeOrBreakConnection = makeConnection;
+
+	auctionClient = auctionNodeHandle.serviceClient<NewSimulator::Auctioning>(name);
+
+	if (auctionClient.call(auctionService))
+	{
+		if(auctionService.response.acceptOrDecline)
+			cout << "\n Response from neighbor " << toCallCellId << " was " << "true" << "\n";
+		else
+			cout << "\n Response from neighbor " << toCallCellId << " was " << "false" << "\n";
+//		madeConnection = auctionService.response.acceptOrDecline;
+//		idToBreakConnection = -1;
+		auctionNodeHandle.shutdown();
+		spinner.stop();
+		return;
+	}
+	auctionClient.shutdown();
+	spinner.stop();
+	return;
+}
+
+// Auctioning server
+void Cell::startAuctionServiceServer() {
+	ros::NodeHandle AuctionServerNode;
+	string name = "cell_auctioning_";
+	name = name + boost::lexical_cast<std::string>(cellID);	// add the index to the name string
+
+	auctionServer = AuctionServerNode.advertiseService(name, &Cell::setAuctionMessage, this);
+
+	ros::spinOnce();
+}
+
+bool Cell::setAuctionMessage(NewSimulator::Auctioning::Request &request, NewSimulator::Auctioning::Response &response){
+//	if(request.makeOrBreakConnection){
+//		if(checkIfNeedNeighbors()){
+//			neighborhoodList.push_back(request.OriginID);
+//			response.acceptOrDecline = true;
+//		}else{
+//			int idToRemove = isCellBetterMatch(request.OriginID);
+//			if(idToRemove != -1){
+//				//The idToRemove is the weakest connection, replacing with the new connection
+//				for(uint i = 0; i < neighborhoodList.size(); i++) {
+//					if(neighborhoodList[i] == idToRemove)
+//						neighborhoodList.erase(neighborhoodList.begin() + i);
+//				}
+//				//Sets id of cell that connection needs to be broken with
+//				idToBreakConnection = idToRemove;
+//				response.acceptOrDecline = true;
+//			}else{
+//				response.acceptOrDecline = false;
+//			}
+//		}
+//	}else{
+//		//Removing neighbor because that neighbor is breaking the connection
+//		for(uint i = 0; i < neighborhoodList.size(); i++) {
+//			if(neighborhoodList[i] == request.OriginID)
+//				neighborhoodList.erase(neighborhoodList.begin() + i);
+//		}
+//		needNeighbors = true;
+//		response.acceptOrDecline = true;
+
+	int numberOfFunctions = cellFormation.getFunctions().size();
+	cout << "\nSIZE = " << numberOfFunctions << endl;
+
+	response.acceptOrDecline = false;
+//	if(numberOfFunctions == 1)
+//	{
+//		response.acceptOrDecline = true;
+//	}
+//	if(numberOfFunctions == 2)
+//	{
+//		response.acceptOrDecline = false;
+//	}
+//	if(numberOfFunctions == 3)
+//	{
+//		response.acceptOrDecline = true;
+//	}
+	return true;
+}

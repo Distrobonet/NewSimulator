@@ -1,0 +1,4 @@
+int32 OriginID
+bool makeOrBreakConnection
+---
+bool acceptOrDecline

@@ -49,8 +49,6 @@ void Formation::setFunction(const Function newFunction)
 {
 	currentFunctions.clear();
 	currentFunctions.push_back(newFunction);
-	if(newFunction == line)
-		cout << "\nFUNCTION DEFAULTED\n";
 }
 
 void Formation::addFunction(const Function additionalFunction)
@@ -104,15 +102,24 @@ void Formation::setFunctionFromFormationID(int newFormationId)
 			setFunction(negXRoot3);
 			break;
 		case 13:
+		{
 			setFunction(x);
 			addFunction(negX);
+			break;
+		}
 		case 14:
+		{
 			setFunction(line);
 			addFunction(xRoot3);
 			addFunction(negXRoot3);
+			break;
+		}
 		default:
+		{
+			cout << "\nFUNCTION DEFAULTED\n";
 			setFunction(line);
 			break;
+		}
 	}
 }
 
