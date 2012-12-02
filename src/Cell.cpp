@@ -30,7 +30,7 @@ Cell::Cell(const int ID)
 	// Set the seed cell to subscribe to the Simulator's formation messages
 	if(cellID == cellFormation.getSeedID())
 	{
-		simulatorFormationSubscriber = simulatorFormationNodeHandle.subscribe("seedFormationMessage", 100, &Cell::receiveFormationFromSimulator, this);
+		simulatorFormationSubscriber = simulatorFormationNodeHandle.subscribe("seedFormationMessage", 100, &Cell::receiveFormation, this);
 	}
 }
 
@@ -253,14 +253,13 @@ void Cell::calculateDesiredRelationship(int neighborIndex)
 	if(cellFormation.formationID == NO_FUNCTION_FORMATION_ID)
 		return;
 
-
 	// For cells to the left of the seed, flip their radius to use their other desired relationship intersection
 	float radius = cellFormation.getRadius();
-	if(cellID < cellFormation.getSeedID())
+	if(neighborIndex % 2 == 0)
 		radius *= -1;
 
-
-	PhysicsVector desiredRelationship = cellFormation.getDesiredRelationship(cellFormation.getFunction(), radius,
+	// TODO: need to fix this function........
+	PhysicsVector desiredRelationship = cellFormation.getDesiredRelationship(cellFormation.getFunctions()[0], radius,
 			cellFormation.cellFormationRelativePosition, cellFormation.getFormationRelativeOrientation());
 
 
@@ -270,6 +269,7 @@ void Cell::calculateDesiredRelationship(int neighborIndex)
 	cellState.desiredRelationships[neighborIndex].x = desiredRelationship.x;
 	cellState.desiredRelationships[neighborIndex].y = desiredRelationship.y;
 	cellState.desiredRelationships[neighborIndex].z = desiredRelationship.z;
+
 
 //	if(cellID == 4)
 //	{
@@ -281,7 +281,7 @@ void Cell::calculateDesiredRelationship(int neighborIndex)
 //	}
 }
 
-// Creates a message to send to neighhbor cells informing them of the new formation
+// Creates a message to send to neighbor cells informing them of the new formation
 NewSimulator::FormationMessage Cell::createFormationChangeMessage()
 {
 	NewSimulator::FormationMessage formationChangeMessage;
@@ -298,12 +298,11 @@ NewSimulator::FormationMessage Cell::createFormationChangeMessage()
 }
 
 // Uses a subscriber to get the formation from Simulator (this is the callback).  Only the seed does this.
-void Cell::receiveFormationFromSimulator(const NewSimulator::FormationMessage::ConstPtr &formationMessage)
+void Cell::receiveFormation(const NewSimulator::FormationMessage::ConstPtr &formationMessage)
 {
 	// If the formation count is higher than ours, then this is a newer formation than we currently have stored
 	if(formationMessage->formation_count > formationCount)
 	{
-//		cout << endl << "#################Formation Change#################" << endl;
 
 		cellFormation.setCommunicationError(formationMessage->communication_error);
 
@@ -317,37 +316,16 @@ void Cell::receiveFormationFromSimulator(const NewSimulator::FormationMessage::C
 		formationCount = formationMessage->formation_count;
 		cellFormation.seedID = formationMessage->seed_id;
 		cellFormation.referenceNbrID = cellID;
-		cellFormation.setSensorError(formationMessage->sensor_error);
-		cellFormation.setCommunicationError(formationMessage->communication_error);
+
+		if(cellID == cellFormation.seedID)
+		{
+			cellFormation.setSensorError(formationMessage->sensor_error);
+			cellFormation.setCommunicationError(formationMessage->communication_error);
+		}else {
+			cellFormation.communicationError = formationMessage->communication_error;
+		}
 
 //		cout << "\nSeed Cell " << cellID << " got new formation: " << formationMessage->formation_id << " from Simulator.\n";
-		return;
-	}
-}
-
-// TODO: We do not need two receive formation methods...
-// This cell uses this to get the new formation from a neighbor who is publishing it (this is the callback)
-void Cell::receiveFormationFromNeighbor(const NewSimulator::FormationMessage::ConstPtr &formationMessage)
-{
-	// If the formation count is higher than ours, then this is a newer formation than we currently have stored
-	if(formationMessage->formation_count > formationCount)
-	{
-		cellFormation.communicationError = formationMessage->communication_error;
-
-		if(getCommunicationLostBasedOnError())
-			return;
-
-		isFormationChanged = true;
-
-		cellFormation.radius = formationMessage->radius;
-		cellFormation.formationID = formationMessage->formation_id;
-		cellFormation.setFunctionFromFormationID(cellFormation.formationID);
-		formationCount = formationMessage->formation_count;
-		cellFormation.seedID = formationMessage->seed_id;
-		cellFormation.referenceNbrID = formationMessage->reference_nbr_id;
-		cellFormation.sensorError = formationMessage->sensor_error;
-
-//		cout << "\nCell " << cellID << " got new formation: " << cellFormation.formationID << " from neighbor.\n";
 		return;
 	}
 }
@@ -378,19 +356,17 @@ vector<int> Cell::updateNeighborhood()
 	return neighborhoodList;
 }
 
-// temp setNeighbohood - HARDCODED for 1-dimensional formations
 void Cell::createNeighborhood()
 {
-	if(!isMultiFunction) {
-		// For 1-dimensional formations, just set 2 neighbor relationships for each cell
-		cellState.actualRelationships.resize(2, PhysicsVector());
-		cellState.desiredRelationships.resize(2, PhysicsVector());
+	// For 1-dimensional formations, just set 2 neighbor relationships for each cell
+	cellState.actualRelationships.resize(2, PhysicsVector());
+	cellState.desiredRelationships.resize(2, PhysicsVector());
 
-		setLeftNeighbor(cellID - 1);
-		setRightNeighbor(cellID + 1);
-	} else {
-		updateNeighborhood();
-	}
+	setLeftNeighbor(cellID - 1);
+	setRightNeighbor(cellID + 1);
+//	} else {
+//		updateNeighborhood();
+//	}
 }
 
 // temp setLeftNeighbor - HARDCODED for 1-dimensional formations
@@ -405,7 +381,7 @@ void Cell::setLeftNeighbor(const int nbr)
 		if(cellID > cellFormation.getSeedID() && updateNeighborhood()[0] != NO_NEIGHBOR)
 		{
 			// This cell is to the right of the seed.  Subscribe to our left neighbor.
-			formationChangeSubscriber = formationChangeSubscriberNode.subscribe(generateFormationPubName(updateNeighborhood()[0]), 100, &Cell::receiveFormationFromNeighbor, this);
+			formationChangeSubscriber = formationChangeSubscriberNode.subscribe(generateFormationPubName(updateNeighborhood()[0]), 100, &Cell::receiveFormation, this);
 		}
 	}
 }
@@ -423,7 +399,7 @@ void Cell::setRightNeighbor(const int nbr)
 		if(cellID < cellFormation.getSeedID() && updateNeighborhood()[1] != NO_NEIGHBOR)
 		{
 			// This cell is to the left of the seed.  Subscribe to our right neighbor.
-			formationChangeSubscriber = formationChangeSubscriberNode.subscribe(generateFormationPubName(updateNeighborhood()[1]), 100, &Cell::receiveFormationFromNeighbor, this);
+			formationChangeSubscriber = formationChangeSubscriberNode.subscribe(generateFormationPubName(updateNeighborhood()[1]), 100, &Cell::receiveFormation, this);
 		}
 	}
 }
@@ -609,34 +585,34 @@ bool Cell::getCommunicationLostBasedOnError()
 // Outputs all the useful info about this cell for debugging purposes
 void Cell::outputCellInfo()
 {
-//	if(cellID == 4)
-	{
-		cout << "\n\nCell stuff:\n"
-				<< "   cell ID: " << cellID << endl
-				<< "   isFormationChanged: " << isFormationChanged << endl
-				<< "   formationCount: " << formationCount << endl
-				<< "   cell state time step: " << cellState.timeStep << endl
-				<< "   getNumberOfNeighbors(): " << getNumberOfNeighbors() << endl
-				<< "Formation stuff:\n"
-				<< "   cellFormation.formationID: " << cellFormation.formationID << endl
-				<< "   cellFormation.currentFunction: " << cellFormation.currentFunction << endl
-				<< "   cellFormation.getRadius: " << cellFormation.getRadius() << endl
-				<< "   seed ID: " << cellFormation.seedID << endl
-				<< "   sensorError: " << cellFormation.getSensorError() << endl
-				<< "   communicationError: " << cellFormation.getCommunicationError() << endl
-				<< "Left neighbor: " << neighborhoodList[0] << endl
-				<< "   Actual relationship: " << cellState.actualRelationships[0].x << ", "
-						<< cellState.actualRelationships[0].y << ", "
-						<< cellState.actualRelationships[0].z << ", " << endl
-				<< "   Desired relationship: " << cellState.desiredRelationships[0].x << ", "
-						<< cellState.desiredRelationships[0].y << ", "
-						<< cellState.desiredRelationships[0].z << ", " << endl
-				<< "Right neighbor: " << neighborhoodList[1] << endl
-				<< "   Actual relationship: " << cellState.actualRelationships[1].x << ", "
-						<< cellState.actualRelationships[1].y << ", "
-						<< cellState.actualRelationships[1].z << ", " << endl
-				<< "   Desired relationship: " << cellState.desiredRelationships[1].x << ", "
-						<< cellState.desiredRelationships[1].y << ", "
-						<< cellState.desiredRelationships[1].z << ", " << endl << endl;
-	}
+////	if(cellID == 4)
+//	{
+//		cout << "\n\nCell stuff:\n"
+//				<< "   cell ID: " << cellID << endl
+//				<< "   isFormationChanged: " << isFormationChanged << endl
+//				<< "   formationCount: " << formationCount << endl
+//				<< "   cell state time step: " << cellState.timeStep << endl
+//				<< "   getNumberOfNeighbors(): " << getNumberOfNeighbors() << endl
+//				<< "Formation stuff:\n"
+//				<< "   cellFormation.formationID: " << cellFormation.formationID << endl
+//				<< "   cellFormation.currentFunction: " << cellFormation.currentFunction << endl
+//				<< "   cellFormation.getRadius: " << cellFormation.getRadius() << endl
+//				<< "   seed ID: " << cellFormation.seedID << endl
+//				<< "   sensorError: " << cellFormation.getSensorError() << endl
+//				<< "   communicationError: " << cellFormation.getCommunicationError() << endl
+//				<< "Left neighbor: " << neighborhoodList[0] << endl
+//				<< "   Actual relationship: " << cellState.actualRelationships[0].x << ", "
+//						<< cellState.actualRelationships[0].y << ", "
+//						<< cellState.actualRelationships[0].z << ", " << endl
+//				<< "   Desired relationship: " << cellState.desiredRelationships[0].x << ", "
+//						<< cellState.desiredRelationships[0].y << ", "
+//						<< cellState.desiredRelationships[0].z << ", " << endl
+//				<< "Right neighbor: " << neighborhoodList[1] << endl
+//				<< "   Actual relationship: " << cellState.actualRelationships[1].x << ", "
+//						<< cellState.actualRelationships[1].y << ", "
+//						<< cellState.actualRelationships[1].z << ", " << endl
+//				<< "   Desired relationship: " << cellState.desiredRelationships[1].x << ", "
+//						<< cellState.desiredRelationships[1].y << ", "
+//						<< cellState.desiredRelationships[1].z << ", " << endl << endl;
+//	}
 }

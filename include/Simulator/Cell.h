@@ -102,7 +102,7 @@ class Cell
 		// Simulator formation subscriber - only used by seed cell to get formation from Simulator
 		ros::NodeHandle simulatorFormationNodeHandle;
 		ros::Subscriber simulatorFormationSubscriber;
-		void receiveFormationFromSimulator(const NewSimulator::FormationMessage::ConstPtr &formationMessage);
+		void receiveFormation(const NewSimulator::FormationMessage::ConstPtr &formationMessage);
 
 		// Neighbor formation change subscriber
 		ros::NodeHandle formationChangeSubscriberNode;
