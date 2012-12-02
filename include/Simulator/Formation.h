@@ -74,6 +74,7 @@ class Formation
 
 		// Member variables
 		int seedID;
+		int referenceNbrID;
 		Formation fx(int formationId);
 		Function currentFunction;
 		int formationID;									// The identifier for the current formation function

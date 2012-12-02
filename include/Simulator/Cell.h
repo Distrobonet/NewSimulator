@@ -52,7 +52,7 @@ class Cell
 		bool calculateMovement();
 		void move(int neighborIndex);
 		void moveMultiFunction();
-		void moveSingleFunction();
+		void moveFunction();
 
 		int getCellID();
 		void setCellID(int ID);

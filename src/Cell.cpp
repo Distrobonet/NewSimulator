@@ -70,41 +70,28 @@ void Cell::update()
 
 		//cout << "\n**** " << "cell" << cellID << "'s Formation ID: " << cellFormation.formationID << " - Formation count: " << formationCount << " ****\n";
 		receiveNeighborState();
+		moveFunction();
 
-		if(isMultiFunction)
-			moveMultiFunction();
-		else
-			moveSingleFunction();
-
-
-		updateCurrentStatus();
+//		updateCurrentStatus();
 
 		ros::spinOnce();
 		loop_rate.sleep();
 	}
 }
 
-void Cell::moveMultiFunction() {
+void Cell::moveFunction() {
+	int referenceIndex = -1;
 
-}
-
-void Cell::moveSingleFunction() {
-	// Send request to Environment for the cell's relationship with its reference neighbor, calculate the desired relationship, and do the movement.
-	if(cellID > cellFormation.getSeedID() && updateNeighborhood()[0] != NO_NEIGHBOR)
-	{
-		// This cell is to the right of the seed.  Get relationship to our left neighbor.
-		receiveActualRelationshipFromEnvironment(0);
-		applySensorError(0);
-		calculateDesiredRelationship(0);
-		move(0); 		// Move relative to this cell's left neighbor
+	for(uint i = 0; i < neighborhoodList.size(); i++) {
+		if(neighborhoodList[i] == cellFormation.referenceNbrID)
+			referenceIndex = i;
 	}
-	if(cellID < cellFormation.getSeedID() && updateNeighborhood()[1] != NO_NEIGHBOR)
-	{
-		// This cell is to the left of the seed.  Get relationship to our right neighbor.
-		receiveActualRelationshipFromEnvironment(1);
-		applySensorError(1);
-		calculateDesiredRelationship(1);
-		move(1); 		// Move relative to this cell's right neighbor
+
+	if(referenceIndex != NO_NEIGHBOR) {
+		receiveActualRelationshipFromEnvironment(referenceIndex);
+		applySensorError(referenceIndex);
+		calculateDesiredRelationship(referenceIndex);
+		move(referenceIndex);
 	}
 }
 
@@ -303,6 +290,7 @@ NewSimulator::FormationMessage Cell::createFormationChangeMessage()
 	formationChangeMessage.formation_id = cellFormation.formationID;
 	formationChangeMessage.formation_count = formationCount;
 	formationChangeMessage.seed_id = cellFormation.seedID;
+	formationChangeMessage.reference_nbr_id = cellID;
 	formationChangeMessage.sensor_error = cellFormation.getSensorError();
 	formationChangeMessage.communication_error = cellFormation.getCommunicationError();
 
@@ -328,6 +316,7 @@ void Cell::receiveFormationFromSimulator(const NewSimulator::FormationMessage::C
 		cellFormation.setFunctionFromFormationID(cellFormation.formationID);
 		formationCount = formationMessage->formation_count;
 		cellFormation.seedID = formationMessage->seed_id;
+		cellFormation.referenceNbrID = cellID;
 		cellFormation.setSensorError(formationMessage->sensor_error);
 		cellFormation.setCommunicationError(formationMessage->communication_error);
 
@@ -336,6 +325,7 @@ void Cell::receiveFormationFromSimulator(const NewSimulator::FormationMessage::C
 	}
 }
 
+// TODO: We do not need two receive formation methods...
 // This cell uses this to get the new formation from a neighbor who is publishing it (this is the callback)
 void Cell::receiveFormationFromNeighbor(const NewSimulator::FormationMessage::ConstPtr &formationMessage)
 {
@@ -354,6 +344,7 @@ void Cell::receiveFormationFromNeighbor(const NewSimulator::FormationMessage::Co
 		cellFormation.setFunctionFromFormationID(cellFormation.formationID);
 		formationCount = formationMessage->formation_count;
 		cellFormation.seedID = formationMessage->seed_id;
+		cellFormation.referenceNbrID = formationMessage->reference_nbr_id;
 		cellFormation.sensorError = formationMessage->sensor_error;
 
 //		cout << "\nCell " << cellID << " got new formation: " << cellFormation.formationID << " from neighbor.\n";
