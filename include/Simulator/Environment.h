@@ -19,9 +19,19 @@
 #include "Simulator/PhysicsVector.h"
 
 #include "../srv_gen/cpp/include/NewSimulator/Relationship.h"
+#include "../srv_gen/cpp/include/NewSimulator/Neighborhood.h"
 
 using namespace std;
 
+struct neighborMagnitudes {
+	public:
+	int cellID;
+	int magnitude;
+
+	bool operator< (neighborMagnitudes const& rhs) const {
+        return magnitude < rhs.magnitude;
+	}
+};
 
 // Describes an environment through which robots figure out their actual and desired positioning.
 class Environment
@@ -54,6 +64,15 @@ class Environment
 		PhysicsVector getTransform(string tfOriginName, string tfTargetName);
 		PhysicsVector getActualPosition(string tfOriginName);
 
+		// Neighborhood service server
+		ros::NodeHandle NeighborhoodServerNode;
+		ros::ServiceServer neighborhoodService;
+		bool setNeighborhoodMessage(NewSimulator::Neighborhood::Request &request, NewSimulator::Neighborhood::Response &response);
+		vector<int> findClosestNeighbors(const string requestingCell, const int cellID);
+		bool smallestMagnitudeSorter(neighborMagnitudes const& lhs, neighborMagnitudes const& rhs);
+		void startNeighborhoodServiceServer();
+
+		string createTargetIdString(int idNumber);
 
     protected:
         int numOfRobots;

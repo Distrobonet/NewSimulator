@@ -73,6 +73,7 @@ void Cell::update()
 		moveFunction();
 
 //		updateCurrentStatus();
+		receiveNeighborhoodIdsFromEnvironment(cellID);
 
 		ros::spinOnce();
 		loop_rate.sleep();
@@ -616,3 +617,33 @@ void Cell::outputCellInfo()
 //						<< cellState.desiredRelationships[1].z << ", " << endl << endl;
 //	}
 }
+
+// Uses a service client to get the relationship to your reference neighbor from Environment
+void Cell::receiveNeighborhoodIdsFromEnvironment(int originId)
+{
+	ros::AsyncSpinner spinner(1);	// Uses an asynchronous spinner to account for the blocking service client call
+	spinner.start();
+
+	neighborhoodClient = neighborhoodNodeHandle.serviceClient<NewSimulator::Neighborhood>("neighborhood");
+
+	// Set the request values here
+	neighborhoodService.request.OriginID = cellID;
+
+	if (neighborhoodClient.call(neighborhoodService))
+	{
+		possibleNeighborList = neighborhoodService.response.neighborIds;
+//		for(int i = 0; i < possibleNeighborList.size(); i++)
+//		{
+//			cout<<"Neighborhood Ids for cell: "<< cellID << " - "<<possibleNeighborList[i] << endl;
+//		}
+
+		neighborhoodNodeHandle.shutdown();
+		spinner.stop();
+		return;
+	}
+
+	neighborhoodNodeHandle.shutdown();
+	spinner.stop();
+	return;
+}
+

@@ -23,6 +23,9 @@
 // Relationship service
 #include "../srv_gen/cpp/include/NewSimulator/Relationship.h"
 
+// Neighborhood service
+#include "../srv_gen/cpp/include/NewSimulator/Neighborhood.h"
+
 using namespace std;
 
 enum Status{
@@ -91,13 +94,11 @@ class Cell
 		string generateStateSubMessage(int cellID);
 		string generateCommandVelocityPubMessage(int cellID);
 
-
 		// Relationship service client
 		ros::NodeHandle relationshipNodeHandle;
 		ros::ServiceClient relationshipClient;
 		NewSimulator::Relationship relationshipService;
 		void receiveActualRelationshipFromEnvironment(int neighborIndex);
-
 
 		// Simulator formation subscriber - only used by seed cell to get formation from Simulator
 		ros::NodeHandle simulatorFormationNodeHandle;
@@ -115,7 +116,12 @@ class Cell
 		ros::NodeHandle formationChangePublisherNode;
 		ros::Publisher formationChangePublisher;
 
-
+		// Neighborhood service client
+		ros::NodeHandle neighborhoodNodeHandle;
+		ros::ServiceClient neighborhoodClient;
+		NewSimulator::Neighborhood neighborhoodService;
+		vector<int> possibleNeighborList;
+		void receiveNeighborhoodIdsFromEnvironment(int originId);
 
 		// State service client
 		void receiveNeighborState();

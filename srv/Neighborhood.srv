@@ -1,0 +1,3 @@
+int32 OriginID
+---
+int32[] neighborIds

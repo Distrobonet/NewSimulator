@@ -16,6 +16,7 @@ Environment::Environment()
 // Default constructor that initializes this environment to the parameterized values.
 Environment::Environment(int numRobots)
 {
+	startNeighborhoodServiceServer();
 	numOfRobots = numRobots;
 }
 
@@ -153,5 +154,77 @@ void Environment::startActualRelationshipServiceServer()
 //	cout << "\n*** Now serving the " << relationshipService.getService() << " service from the environment ***\n\n";
 
 	ros::spinOnce();
+}
+
+// Sets the response(neighborhood id vector) based on the requests(IDs) and number of functions.  This is a callback.
+bool Environment::setNeighborhoodMessage(NewSimulator::Neighborhood::Request &request, NewSimulator::Neighborhood::Response &response)
+{
+	string requestingCell = createTargetIdString(request.OriginID);
+	PhysicsVector relationshipVector;
+
+	// add an iterator value, otherwise vector will crash the service message
+	vector<int>::iterator iter = response.neighborIds.end();
+	response.neighborIds.insert(iter,99);
+
+    vector<int> closestNeighbors = findClosestNeighbors(requestingCell, request.OriginID);
+    copy(closestNeighbors.begin(),closestNeighbors.end(),back_inserter(response.neighborIds));
+
+	if(response.neighborIds.end() != find(response.neighborIds.begin(), response.neighborIds.end(), 99)){
+		response.neighborIds.erase(find(response.neighborIds.begin(), response.neighborIds.end(), 99));
+	}
+
+	return true;
+}
+
+vector<int> Environment::findClosestNeighbors(const string requestingCell, const int cellID) {
+	vector<neighborMagnitudes> closestNeighbors;
+	string targetCell = "/sphero/base_link";
+
+	// finds magnitude of all neighbors and adds them to vector
+	for(int j = 0; j<numOfRobots; j++)
+	{
+		neighborMagnitudes temp;
+		temp.cellID = j;
+		targetCell = createTargetIdString(j);
+	    temp.magnitude = getTransform(requestingCell, targetCell).magnitude();
+
+	    if(temp.cellID != cellID) {
+	    	closestNeighbors.push_back(temp);
+	    }
+	}
+
+	// sorts vector by magnitude size
+	sort(closestNeighbors.begin(), closestNeighbors.end());
+
+	vector<int> neighbors;
+	for(int i = 0; i < closestNeighbors.size(); i++) {
+		neighbors.push_back(closestNeighbors.at(i).cellID);
+//		cout << "Cell's neighbor: " << closestNeighbors.at(i).cellID << endl;
+	}
+
+	return neighbors;
+}
+
+// Starts the environment's neighborhood service server
+void Environment::startNeighborhoodServiceServer()
+{
+	int argc = 0;
+	char **argv = 0;
+	ros::init(argc, argv, "neighborhood_server");
+
+	neighborhoodService = NeighborhoodServerNode.advertiseService("neighborhood", &Environment::setNeighborhoodMessage, this);
+//	cout << "\n*** Now serving the " << relationshipService.getService() << " service from the environment ***\n\n";
+
+	ros::spinOnce();
+}
+
+string Environment::createTargetIdString(int idNumber)
+{
+	string targetCell = "/sphero/base_link";
+	stringstream targetStringStream;
+	targetStringStream << (idNumber);
+	string  targetID = targetStringStream.str();
+	targetCell.insert(7, targetID);
+	return targetCell;
 }
 
