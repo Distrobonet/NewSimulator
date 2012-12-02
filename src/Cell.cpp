@@ -76,11 +76,17 @@ void Cell::update()
 //		updateCurrentStatus();
 		receiveNeighborhoodIdsFromEnvironment(cellID);
 
-		if(cellID == 4)
+		// We now have the list of neighbors, iterate through it to set our closest neighbors
+		bool neighborSet = false;
+		for(uint i = 0; i < neighborhoodList.size(); i++)
 		{
-			for(uint i = 0; i < neighborhoodList.size(); i++)
+			if(!neighborSet && neighborhoodList[i] != NO_NEIGHBOR)
 			{
-				makeAuctionConnectionCall(neighborhoodList[i], true);
+//				cout << "\nneighborhoodlist[i] = " << neighborhoodList[i] << endl;
+				if(makeAuctionConnectionCall(neighborhoodList[i], true))
+				{
+					neighborSet = true;
+				}
 			}
 		}
 
@@ -656,7 +662,7 @@ void Cell::receiveNeighborhoodIdsFromEnvironment(int originId)
 	return;
 }
 
-void Cell::makeAuctionConnectionCall(int toCallCellId, bool makeConnection)
+bool Cell::makeAuctionConnectionCall(int toCallCellId, bool makeConnection)
 {
 	ros::AsyncSpinner spinner(1);	// Uses an asynchronous spinner to account for the blocking service client call
 	spinner.start();
@@ -670,19 +676,17 @@ void Cell::makeAuctionConnectionCall(int toCallCellId, bool makeConnection)
 
 	if (auctionClient.call(auctionService))
 	{
-		if(auctionService.response.acceptOrDecline)
-			cout << "\n Response from neighbor " << toCallCellId << " was " << "true" << "\n";
-		else
-			cout << "\n Response from neighbor " << toCallCellId << " was " << "false" << "\n";
+		bool response = auctionService.response.acceptOrDecline;
+
 //		madeConnection = auctionService.response.acceptOrDecline;
 //		idToBreakConnection = -1;
 		auctionNodeHandle.shutdown();
 		spinner.stop();
-		return;
+		return response;
 	}
 	auctionClient.shutdown();
 	spinner.stop();
-	return;
+	return false;
 }
 
 // Auctioning server
@@ -725,21 +729,14 @@ bool Cell::setAuctionMessage(NewSimulator::Auctioning::Request &request, NewSimu
 //		needNeighbors = true;
 //		response.acceptOrDecline = true;
 
-	int numberOfFunctions = cellFormation.getFunctions().size();
-	cout << "\nSIZE = " << numberOfFunctions << endl;
+	uint numberOfFunctions = cellFormation.getFunctions().size();
+//	cout << "\nSIZE = " << numberOfFunctions << endl;
 
+	if(neighborhoodList.size() < numberOfFunctions * 2)
+	{
+		response.acceptOrDecline = true;
+		return true;
+	}
 	response.acceptOrDecline = false;
-//	if(numberOfFunctions == 1)
-//	{
-//		response.acceptOrDecline = true;
-//	}
-//	if(numberOfFunctions == 2)
-//	{
-//		response.acceptOrDecline = false;
-//	}
-//	if(numberOfFunctions == 3)
-//	{
-//		response.acceptOrDecline = true;
-//	}
-	return true;
+	return false;
 }

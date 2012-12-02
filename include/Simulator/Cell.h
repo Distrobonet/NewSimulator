@@ -144,7 +144,7 @@ class Cell
 		ros::NodeHandle auctionNodeHandle;
 		ros::ServiceClient auctionClient;
 		NewSimulator::Auctioning auctionService;
-		void makeAuctionConnectionCall(int toCallCellId, bool makeConnection);
+		bool makeAuctionConnectionCall(int toCallCellId, bool makeConnection);
 
 		// Auction server client
 		ros::NodeHandle AuctionServerNode;

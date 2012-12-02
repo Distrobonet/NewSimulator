@@ -33,7 +33,6 @@ int main(int argc, char **argv)
     Cell thisCell = Cell(atoi(argv[1]));
 
     // Set formation change, state, and command velocity publishers for this cell
-    cout << "\ncell " << thisCell.getCellID() << " formation change publisher name: " << thisCell.generateFormationPubName(thisCell.getCellID());
     thisCell.formationChangePublisher = thisCell.formationChangePublisherNode.advertise<NewSimulator::FormationMessage>(thisCell.generateFormationPubName(thisCell.getCellID()), 1);
     thisCell.state_pub = thisCell.stateNode.advertise<NewSimulator::StateMessage>(thisCell.generateStateSubMessage(thisCell.getCellID()), 1);
     thisCell.cmd_velPub = thisCell.stateNode.advertise<geometry_msgs::Twist>(thisCell.generateCommandVelocityPubMessage(thisCell.getCellID()), 1);
