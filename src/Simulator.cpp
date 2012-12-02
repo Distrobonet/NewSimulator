@@ -155,9 +155,13 @@ void keyboardInput()
 		clearScreen();
 		cout << "\nKey pressed: " << keyPressed;
 
-		if(keyPressed >= '0' && keyPressed <= '9')
+		if(keyPressed >= '0' && keyPressed <= 'e')
 		{
-			CURRENT_SELECTION = keyPressed-48;	// convert from ascii char to int
+			// convert from ascii char to int
+			if(keyPressed < 'a')
+				CURRENT_SELECTION = keyPressed-48;
+			else
+				CURRENT_SELECTION = keyPressed-87;
 			cout << "   Setting CURRENT_SELECTION to " << CURRENT_SELECTION << endl;
 		}
 		else if(keyPressed == '+')
@@ -184,13 +188,13 @@ void keyboardInput()
 			else
 				cout << "   Can not decrease the radius any more!\n";
 		}
-		else if(keyPressed == 'd')
+		else if(keyPressed == 'k')
 		{
 			SENSOR_ERROR += SENSOR_ERROR_INCREMENT;
 			IS_SENSOR_ERROR_CHANGED = true;
 			cout << "   Increasing sensor error to " << SENSOR_ERROR << endl;
 		}
-		else if(keyPressed == 's')
+		else if(keyPressed == 'j')
 		{
 			if(SENSOR_ERROR >= SENSOR_ERROR_INCREMENT)
 			{
@@ -204,7 +208,7 @@ void keyboardInput()
 				cout << "   Can not decrease the sensor error any more!\n";
 			}
 		}
-		else if(keyPressed == 'v')
+		else if(keyPressed == 'm')
 		{
 			if(COMMUNICATION_ERROR == 100.0f)
 				cout << "   Can not increase the communication error over 100%!\n";
@@ -215,7 +219,7 @@ void keyboardInput()
 				cout << "   Increasing communication error to " << COMMUNICATION_ERROR << "%" << endl;
 			}
 		}
-		else if(keyPressed == 'c')
+		else if(keyPressed == 'n')
 		{
 			if(COMMUNICATION_ERROR >= COMMUNICATION_ERROR_INCREMENT)
 			{
@@ -245,17 +249,22 @@ void displayMenu()
 		<< "PRESET FORMATIONS\n-----------------"            << endl
 		<< "0) f(x) = 0"                                     << endl
 		<< "1) f(x) = x"                                     << endl
-		<< "2) f(x) = |x|"                                   << endl
-		<< "3) f(x) = -0.5 x"                                << endl
-		<< "4) f(x) = -|0.5 x|"                              << endl
-		<< "5) f(x) = -|x|"                                  << endl
-		<< "6) f(x) = 5(x^2)"                                   << endl
-		<< "7) f(x) = x^3"                                   << endl
-		<< "8) f(x) = {sqrt(x),  x >= 0 | -sqrt|x|, x < 0}"  << endl
-		<< "9) f(x) = sin(x)"                        		 << endl << endl
+		<< "2) f(x) = -x"                                     << endl
+		<< "3) f(x) = |x|"                                   << endl
+		<< "4) f(x) = -0.5 x"                                << endl
+		<< "5) f(x) = -|0.5 x|"                              << endl
+		<< "6) f(x) = -|x|"                                  << endl
+		<< "7) f(x) = 5(x^2)"                                << endl
+		<< "8) f(x) = x^3"                                   << endl
+		<< "9) f(x) = {sqrt(x),  x >= 0 | -sqrt|x|, x < 0}"  << endl
+		<< "a) f(x) = 2sin(x)"                        		 << endl
+		<< "b) f(x) = x √3"                                 << endl
+		<< "c) f(x) = -x √3"                                 << endl
+		<< "d) f(x) = Hexagonal Lattice (0, b, c)"           << endl
+		<< "e) f(x) = Square Lattice (1, 2)"                << endl << endl
 		<< "Use - and + to adjust the cell radius"    		 << endl
-		<< "Use s and d to adjust the sensor error"    		 << endl
-		<< "Use c and v to adjust the communication error (0 - 100% message loss)"	 << endl
+		<< "Use j and k to adjust the sensor error"    		 << endl
+		<< "Use n and m to adjust the communication error (0 - 100% message loss)"	 << endl
 		<< "Use ctrl+C to exit."                             << endl << endl
 		<< "Please enter your selection: ";
 }

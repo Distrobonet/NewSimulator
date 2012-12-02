@@ -34,6 +34,7 @@ class Formation
 
 		// Mutators
 		void setFunction(const Function newFunction = DEFAULT_FORMATION_FUNCTION);
+		void addFunction(const Function additionalFunction);
 		void setFunctionFromFormationID(int newFormationId);
 		void setFormationID(int newFormationID);
 		void setRadius(float newRadius);
@@ -44,7 +45,7 @@ class Formation
 
 
 		// Accessors
-		Function getFunction();
+		vector<Function> getFunctions();
 		int getFormationID();
 		float getRadius();
 		float getFormationRelativeOrientation();
@@ -76,7 +77,7 @@ class Formation
 		int seedID;
 		int referenceNbrID;
 		Formation fx(int formationId);
-		Function currentFunction;
+		vector<Function> currentFunctions;
 		int formationID;									// The identifier for the current formation function
 		float radius;										// The desired distance between neighbors
 		float sensorError;

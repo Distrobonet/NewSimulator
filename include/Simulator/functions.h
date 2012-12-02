@@ -11,6 +11,11 @@ float x(const float x)
 {
 	return x;
 }
+// Returns formation function definition f(x) = -x.
+float negX(const float x)
+{
+	return -x;
+}
 // Returns formation function definition f(x) = |x|.
 float absX(const float x)
 {
@@ -52,8 +57,8 @@ float condSqrt(const float x)
 // Returns formation function definition f(x) = sin(x).
 float sine(const float x)
 {
-	return 0.2f * sin(10.0f * x);
-//	return 2 * sin(x);
+//	return 0.2f * sin(10.0f * x);
+	return 2 * sin(x);
 }
 // Returns formation function definition f(x) = x sqrt(3).
 float xRoot3(const float x)

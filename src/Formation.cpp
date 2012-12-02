@@ -47,14 +47,21 @@ Formation::~Formation()
 
 void Formation::setFunction(const Function newFunction)
 {
-	//clear();						// Clears this vector of functions, should be used when we switch to multifunction.
-	//this->push_back(newFunction);	// Adds the new function to this vector.  Will replace the next line.
+	currentFunctions.clear();
+	currentFunctions.push_back(newFunction);
+	if(newFunction == line)
+		cout << "\nFUNCTION DEFAULTED\n";
+}
 
-	currentFunction = newFunction;
+void Formation::addFunction(const Function additionalFunction)
+{
+	currentFunctions.push_back(additionalFunction);
 }
 
 void Formation::setFunctionFromFormationID(int newFormationId)
 {
+	currentFunctions.clear();
+
 	switch(newFormationId)
 	{
 		case 0:
@@ -64,44 +71,54 @@ void Formation::setFunctionFromFormationID(int newFormationId)
 			setFunction(x);
 			break;
 		case 2:
-			setFunction(absX);
+			setFunction(negX);
 			break;
 		case 3:
-			setFunction(negHalfX);
+			setFunction(absX);
 			break;
 		case 4:
-			setFunction(negAbsHalfX);
+			setFunction(negHalfX);
 			break;
 		case 5:
-			setFunction(negAbsX);
+			setFunction(negAbsHalfX);
 			break;
 		case 6:
-			setFunction(parabola);
+			setFunction(negAbsX);
 			break;
 		case 7:
-			setFunction(cubic);
+			setFunction(parabola);
 			break;
 		case 8:
-			setFunction(condSqrt);
+			setFunction(cubic);
 			break;
 		case 9:
-			setFunction(sine);
+			setFunction(condSqrt);
 			break;
 		case 10:
-			setFunction(xRoot3);
+			setFunction(sine);
 			break;
 		case 11:
+			setFunction(xRoot3);
+			break;
+		case 12:
 			setFunction(negXRoot3);
 			break;
+		case 13:
+			setFunction(x);
+			addFunction(negX);
+		case 14:
+			setFunction(line);
+			addFunction(xRoot3);
+			addFunction(negXRoot3);
 		default:
 			setFunction(line);
 			break;
 	}
 }
 
-Function Formation::getFunction()
+vector<Function> Formation::getFunctions()
 {
-	return currentFunction;
+	return currentFunctions;
 }
 
 int Formation::getFormationID()
