@@ -132,8 +132,8 @@ PhysicsVector Environment::getTransform(string tfOriginName, string tfTargetName
 
 	// Get orientation (roll, pitch, yaw)
 	btScalar roll = 0.0, pitch = 0.0, yaw = 0.0;
-//	btMatrix3x3 rotationMatrix(transform.getRotation().asBt());
-	btMatrix3x3 rotationMatrix(transform.getRotation());
+	btMatrix3x3 rotationMatrix(transform.getRotation().asBt());
+//	btMatrix3x3 rotationMatrix(transform.getRotation());
 	rotationMatrix.getEulerYPR(yaw, pitch, roll);
 
 	transformValues.x = x;

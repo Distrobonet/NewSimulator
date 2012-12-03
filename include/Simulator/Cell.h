@@ -108,7 +108,7 @@ class Cell
 		// Simulator formation subscriber - only used by seed cell to get formation from Simulator
 		ros::NodeHandle simulatorFormationNodeHandle;
 		ros::Subscriber simulatorFormationSubscriber;
-		void receiveFormation(const NewSimulator::FormationMessage::ConstPtr &formationMessage);
+		void receiveFormationFromSimulator(const NewSimulator::FormationMessage::ConstPtr &formationMessage);
 
 		// Neighbor formation change subscriber
 		ros::NodeHandle formationChangeSubscriberNode;
@@ -146,7 +146,7 @@ class Cell
 		ros::NodeHandle auctionNodeHandle;
 		ros::ServiceClient auctionClient;
 		NewSimulator::Auctioning auctionService;
-		bool makeAuctionConnectionCall(int toCallCellId, bool makeConnection, int referencePosition);
+		bool makeAuctionConnectionCall(int targetCellId, int newReferencePosition);
 
 		// Auction server client
 		ros::NodeHandle AuctionServerNode;

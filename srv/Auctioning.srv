@@ -1,5 +1,4 @@
-int32 OriginID
-bool makeOrBreakConnection
-int32 referencePosition
+int32 	OriginID
+int32 	referencePosition
 ---
-bool acceptOrDecline
+bool 	acceptOrDeny

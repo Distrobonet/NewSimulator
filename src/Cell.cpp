@@ -17,6 +17,7 @@ Cell::Cell(const int ID)
 	cellFormation.seedID = 3;
 	isFormationChanged = false;
 	isMultiFunction = false;
+	referencePosition = NO_NEIGHBOR;
 
 	commandVelocity.linear.x = 0;
 	commandVelocity.linear.y = 0;
@@ -37,7 +38,7 @@ Cell::Cell(const int ID)
 	// Set the seed cell to subscribe to the Simulator's formation messages
 	if(cellID == cellFormation.getSeedID())
 	{
-		simulatorFormationSubscriber = simulatorFormationNodeHandle.subscribe("seedFormationMessage", 100, &Cell::receiveFormation, this);
+		simulatorFormationSubscriber = simulatorFormationNodeHandle.subscribe("seedFormationMessage", 100, &Cell::receiveFormationFromSimulator, this);
 	}
 	startAuctionServiceServer();
 }
@@ -61,16 +62,11 @@ Cell::~Cell()
 // This is where most of the magic happens
 void Cell::update()
 {
-	ros::Rate loop_rate(10);// This should be 10 in production code
+	ros::Rate loop_rate(10);	// This should be 10 in production code
 
 	while(ros::ok)
 	{
-		// If this cell is not the seed and it has a reference position set
-		if(cellID != cellFormation.seedID && (referencePosition == 0 || referencePosition == 1))
-			updateNeighborhood();
-
-		if(cellID == cellFormation.seedID)
-			updateNeighborhood();
+		updateNeighborhood();
 
 		// If a neighbor published a message to this cell that the formation changed
 		if(isFormationChanged)
@@ -84,21 +80,25 @@ void Cell::update()
 		//cout << "\n**** " << "cell" << cellID << "'s Formation ID: " << cellFormation.formationID << " - Formation count: " << formationCount << " ****\n";
 		if(cellID != cellFormation.seedID && (referencePosition == 0 || referencePosition == 1))
 		{
-			cout << "\n *****" << cellID << " is trying to move" << endl;
-//			receiveNeighborState();
+//			cout << "\n ***** Cell " << cellID << " is trying to move...";
+			receiveNeighborState();
 			moveFunction();
 		}
 
-//		updateCurrentStatus();
 
+//		if(cellID == 2 || cellID == 4)
+//		{
+//			for(uint i = 0; i <  neighborhoodList.size(); i++)
+//			{
+//				cout << "\n *****" << cellID << " neighborList " << i << ": " << neighborhoodList[i] << endl;
+//			}
+//		}
 
-		if(cellID == 2 || cellID == 4)
+		if(cellID == 3)
 		{
-			for(uint i = 0; i <  neighborhoodList.size(); i++)
-			{
-				cout << "\n *****" << cellID << " neighborList " << i << ": " << neighborhoodList[i] << endl;
-			}
+//			cout << "\nCell " << cellID << " OFFICIALLY has left neighbor " << neighborhoodList[0] << " and right neighbor " << neighborhoodList[1];
 		}
+
 
 
 		ros::spinOnce();
@@ -106,8 +106,91 @@ void Cell::update()
 	}
 }
 
+void Cell::updateNeighborhood()
+{
+	/* 1. seed gets proximity list
+	 * 2. seed sets left to closest cell
+	 * 3. seed sets right to 2nd closest cell
+	 * 4. seed sends auction message to closest(left) cell containing LEFT_NEIGHBOR value
+	 * 5. seed sends auction message to second closest(right) cell containing RIGHT_NEIGHBOR value
+	 *
+	 * 1. cell waits till the formation message sent before establishing neighborhood
+	 * 2. cell sets closest nbr (except referenceNbr) to appropriate side (given from last auction message)
+	 */
+
+
+	receiveNeighborhoodIdsFromEnvironment(cellID);
+
+
+	if(possibleNeighborList.size() < 6)
+	{
+		cout << "\nCell " << cellID << " has possible neighborhood list of size " << possibleNeighborList.size();
+		return;
+	}
+
+
+	if(cellID == cellFormation.seedID)
+	{
+		bool leftNeighborSet = false;
+		bool rightNeighborSet = false;
+		for(uint i = 0; i < possibleNeighborList.size(); i++)
+		{
+//			cout << "\nCell " << cellID << " has POSSIBLE neighbors " << possibleNeighborList[i];
+			if(!leftNeighborSet)
+			{
+				if(makeAuctionConnectionCall(possibleNeighborList[i], LEFT_POSITION))
+				{
+					leftNeighborSet = true;
+					neighborhoodList[0] = possibleNeighborList[i];
+//					cout << "\nCell " << cellID << " has left neighbor " << possibleNeighborList[i];
+					continue;
+				}
+			}
+			else if(!rightNeighborSet && leftNeighborSet)
+			{
+				if(makeAuctionConnectionCall(possibleNeighborList[i], RIGHT_POSITION))
+				{
+					rightNeighborSet = true;
+					neighborhoodList[1] = possibleNeighborList[i];
+//					cout << "\nCell " << cellID << " has right neighbor " << possibleNeighborList[i];
+				}
+			}
+		}
+
+		// Output whether the seed set its neighbors for debugging
+//		if(leftNeighborSet && rightNeighborSet)
+//			cout << "\nCell " << cellID << " successfully set its neighbors\n";
+	}
+	else
+	{
+		bool neighborSet = false;
+		// We now have the list of neighbors, iterate through it to set our closest non-reference neighbor
+		for(uint i = 0; i < possibleNeighborList.size(); i++)
+		{
+			if(possibleNeighborList[i] != cellFormation.referenceNbrID && !neighborSet)
+			{
+				if(referencePosition == LEFT_POSITION)
+				{
+					if(makeAuctionConnectionCall(possibleNeighborList[i], RIGHT_POSITION))
+					{
+						neighborhoodList[0] = possibleNeighborList[i];
+						neighborSet = true;
+					}
+				}
+				else {
+					if(makeAuctionConnectionCall(possibleNeighborList[i], LEFT_POSITION))
+					{
+						neighborhoodList[1] = possibleNeighborList[i];
+						neighborSet = true;
+					}
+				}
+			}
+		}
+	}
+}
+
 void Cell::moveFunction() {
-	int referenceIndex = -1;
+	int referenceIndex = NO_NEIGHBOR;
 
 	for(uint i = 0; i < neighborhoodList.size(); i++) {
 		if(neighborhoodList[i] == cellFormation.referenceNbrID)
@@ -119,56 +202,6 @@ void Cell::moveFunction() {
 		applySensorError(referenceIndex);
 		calculateDesiredRelationship(referenceIndex);
 		move(referenceIndex);
-	}
-}
-
-void Cell::updateCurrentStatus() {
-
-	int neighborhoodStatuses = 0;
-	for(int i = 0; i < getNumberOfNeighbors(); i++) {
-		neighborhoodStatuses *= neighborhoodList.at(i);
-	}
-
-	switch (currentStatus) {
-		case WAITING_FOR_FORMATION:
-			if(cellFormation.isValid()) {
-				currentStatus = WAITING_TO_UPDATE;
-				break;
-			}
-			break;
-
-		case WAITING_TO_UPDATE:
-			if((neighborhoodStatuses % 3 != 0) ||
-			   (neighborhoodStatuses % 11 != 0) ||
-			   (neighborhoodStatuses % 13 != 0)) {
-				currentStatus = UPDATING;
-				break;
-			}
-			break;
-
-		case UPDATING:
-//			if(calculateMovement()) {
-				currentStatus = WAITING_TO_UPDATE;
-				break;
-//			}
-			break;
-
-		case WAITING_TO_MOVE:
-			if(neighborhoodStatuses % 7 != 0) {
-				currentStatus = MOVING;
-				break;
-			}
-			break;
-
-		case MOVING:
-//			if(move()) {
-				currentStatus = WAITING_TO_UPDATE;
-				break;
-//			}
-			break;
-
-		default:
-			break;
 	}
 }
 
@@ -282,10 +315,9 @@ void Cell::calculateDesiredRelationship(int neighborIndex)
 
 	// For cells to the left of the seed, flip their radius to use their other desired relationship intersection
 	float radius = cellFormation.getRadius();
-	if(neighborIndex % 2 == 0)
+	if(!referencePosition)
 		radius *= -1;
 
-	// TODO: need to fix this function........
 	PhysicsVector desiredRelationship = cellFormation.getDesiredRelationship(cellFormation.getFunctions()[0], radius,
 			cellFormation.cellFormationRelativePosition, cellFormation.getFormationRelativeOrientation());
 
@@ -323,17 +355,16 @@ NewSimulator::FormationMessage Cell::createFormationChangeMessage()
 	return formationChangeMessage;
 }
 
-// Uses a subscriber to get the formation from Simulator (this is the callback).  Only the seed does this.
-void Cell::receiveFormation(const NewSimulator::FormationMessage::ConstPtr &formationMessage)
+// Uses a subscriber to get the formation from Simulator (this is the callback). Only the seed does this.
+void Cell::receiveFormationFromSimulator(const NewSimulator::FormationMessage::ConstPtr &formationMessage)
 {
 	// If the formation count is higher than ours, then this is a newer formation than we currently have stored
 	if(formationMessage->formation_count > formationCount)
 	{
-
 		cellFormation.setCommunicationError(formationMessage->communication_error);
 
 		if(getCommunicationLostBasedOnError())
-			return;
+		return;
 
 		isFormationChanged = true;
 		cellFormation.radius = formationMessage->radius;
@@ -341,17 +372,35 @@ void Cell::receiveFormation(const NewSimulator::FormationMessage::ConstPtr &form
 		cellFormation.setFunctionFromFormationID(cellFormation.formationID);
 		formationCount = formationMessage->formation_count;
 		cellFormation.seedID = formationMessage->seed_id;
-		cellFormation.referenceNbrID = cellID;
+		cellFormation.setSensorError(formationMessage->sensor_error);
+		cellFormation.setCommunicationError(formationMessage->communication_error);
 
-		if(cellID == cellFormation.seedID)
-		{
-			cellFormation.setSensorError(formationMessage->sensor_error);
-			cellFormation.setCommunicationError(formationMessage->communication_error);
-		}else {
-			cellFormation.communicationError = formationMessage->communication_error;
-		}
+//		 cout << "\nSeed Cell " << cellID << " got new formation: " << formationMessage->formation_id << " from Simulator.\n";
+		return;
+	}
+}
 
-//		cout << "\nSeed Cell " << cellID << " got new formation: " << formationMessage->formation_id << " from Simulator.\n";
+// This cell uses this to get the new formation from a neighbor who is publishing it (this is the callback)
+void Cell::receiveFormationFromNeighbor(const NewSimulator::FormationMessage::ConstPtr &formationMessage)
+{
+	// If the formation count is higher than ours, then this is a newer formation than we currently have stored
+	if(formationMessage->formation_count > formationCount)
+	{
+		cellFormation.communicationError = formationMessage->communication_error;
+
+		if(getCommunicationLostBasedOnError())
+		return;
+
+		isFormationChanged = true;
+
+		cellFormation.radius = formationMessage->radius;
+		cellFormation.formationID = formationMessage->formation_id;
+		cellFormation.setFunctionFromFormationID(cellFormation.formationID);
+		formationCount = formationMessage->formation_count;
+		cellFormation.seedID = formationMessage->seed_id;
+		cellFormation.sensorError = formationMessage->sensor_error;
+
+		 cout << "\nCell " << cellID << " got new formation: " << cellFormation.formationID << " from reference neighbor " << cellFormation.referenceNbrID;
 		return;
 	}
 }
@@ -376,124 +425,6 @@ void Cell::setFormation(Formation formation)
 	cellFormation = formation;
 }
 
-void Cell::updateNeighborhood()
-{
-	/*
-	 *
-	 * 1. seed gets proximity list
-	 * 2. seed sets left to closest cell
-	 * 3. seed sets right to 2nd closest cell
-	 * 4. seed sends auction message to closest(left) cell containing LEFT_NEIGHBOR value
-	 * 5. seed sends auction message to second closest(right) cell containing RIGHT_NEIGHBOR value
-	 *
-	 *
-	 * 1. cell waits till the formation message sent before establishing neighborhood
-	 * 2. cell sets closest nbr (except referenceNbr) to appropriate side (given from last auction message)
-	 *
-	 */
-
-	bool neighborSet = false;
-	receiveNeighborhoodIdsFromEnvironment(cellID);
-
-
-
-	if(cellID == cellFormation.seedID)
-	{
-		bool leftNeighborSet = false;
-		bool rightNeighborSet = false;
-		for(uint i = 0; i < possibleNeighborList.size(); i++)
-		{
-			if(!leftNeighborSet && (count(neighborhoodList.begin(), neighborhoodList.end(), i) == 0))
-			{
-				if(makeAuctionConnectionCall(possibleNeighborList[i], true, LEFT_POSITION))
-				{
-					leftNeighborSet = true;
-					setLeftNeighbor(possibleNeighborList[i]);
-//					cout << "\nCell " << cellID << " has left neighbor " << possibleNeighborList[i] << endl;
-					continue;
-				}
-			}
-			else if(!rightNeighborSet && leftNeighborSet && (count(neighborhoodList.begin(), neighborhoodList.end(), i) == 0))
-			{
-				if(makeAuctionConnectionCall(possibleNeighborList[i], true, RIGHT_POSITION))
-				{
-					rightNeighborSet = true;
-					setRightNeighbor(possibleNeighborList[i]);
-//					cout << "Cell " << cellID << " has right neighbor " << possibleNeighborList[i] << endl;
-				}
-			}
-		}
-
-		// Output whether the seed set its neighbors for debugging
-		if(leftNeighborSet && rightNeighborSet)
-			cout << "\nThe seed successfully set its neighbors\n";
-	}
-	else
-	{
-		// We now have the list of neighbors, iterate through it to set our closest neighbors
-		for(uint i = 0; i < possibleNeighborList.size(); i++)
-		{
-			if(possibleNeighborList[i] != cellFormation.referenceNbrID && !neighborSet && (count(neighborhoodList.begin(), neighborhoodList.end(), i) == 0))
-			{
-				if(referencePosition == LEFT_POSITION)
-				{
-					if(makeAuctionConnectionCall(neighborhoodList[i], true, LEFT_POSITION))
-					{
-						setLeftNeighbor(possibleNeighborList[i]);
-						neighborSet = true;
-					}
-				}
-				else {
-					if(makeAuctionConnectionCall(neighborhoodList[i], true, RIGHT_POSITION))
-					{
-						setRightNeighbor(possibleNeighborList[i]);
-						neighborSet = true;
-					}
-				}
-			}
-		}
-	}
-}
-
-// temp setLeftNeighbor - for 1-dimensional formations
-void Cell::setLeftNeighbor(const int nbr)
-{
-	if (cellID == 0)
-		neighborhoodList[0] = NO_NEIGHBOR;
-//		neighborhoodList.insert(neighborhoodList.begin() + 0, NO_NEIGHBOR);
-	else {
-//		neighborhoodList.insert(neighborhoodList.begin() + 0, nbr);
-		neighborhoodList[0] = nbr;
-
-		// Set up the subscriber callback for new formations between neighbors.  ONLY SUBSCRIBE TO YOUR REFERENCE NEIGHBOR
-		if(cellID > cellFormation.getSeedID())
-		{
-			// This cell is to the right of the seed.  Subscribe to our left neighbor.
-			formationChangeSubscriber = formationChangeSubscriberNode.subscribe(generateFormationPubName(neighborhoodList[0]), 100, &Cell::receiveFormation, this);
-		}
-	}
-}
-
-// temp setRightNeighbor - for 1-dimensional formations
-void Cell::setRightNeighbor(const int nbr)
-{
-	// Temp max number of cells (6)
-	if (cellID == 6)
-		neighborhoodList[1] = NO_NEIGHBOR;
-//		neighborhoodList.insert(neighborhoodList.begin() + 1, -1);
-	else
-	{
-		neighborhoodList[1] = nbr;
-//		neighborhoodList.insert(neighborhoodList.begin() + 1, nbr);
-
-		if(cellID < cellFormation.getSeedID())
-		{
-			// This cell is to the left of the seed.  Subscribe to our right neighbor.
-			formationChangeSubscriber = formationChangeSubscriberNode.subscribe(generateFormationPubName(neighborhoodList[1]), 100, &Cell::receiveFormation, this);
-		}
-	}
-}
-
 State Cell::getState()
 {
 	return cellState;
@@ -503,7 +434,6 @@ void Cell::setState(State state)
 {
 	cellState = state;
 }
-
 
 string Cell::generateFormationPubName(int cellID)
 {
@@ -675,36 +605,39 @@ bool Cell::getCommunicationLostBasedOnError()
 // Outputs all the useful info about this cell for debugging purposes
 void Cell::outputCellInfo()
 {
-////	if(cellID == 4)
-//	{
-//		cout << "\n\nCell stuff:\n"
-//				<< "   cell ID: " << cellID << endl
-//				<< "   isFormationChanged: " << isFormationChanged << endl
-//				<< "   formationCount: " << formationCount << endl
-//				<< "   cell state time step: " << cellState.timeStep << endl
-//				<< "   getNumberOfNeighbors(): " << getNumberOfNeighbors() << endl
-//				<< "Formation stuff:\n"
-//				<< "   cellFormation.formationID: " << cellFormation.formationID << endl
-//				<< "   cellFormation.currentFunction: " << cellFormation.currentFunction << endl
-//				<< "   cellFormation.getRadius: " << cellFormation.getRadius() << endl
-//				<< "   seed ID: " << cellFormation.seedID << endl
-//				<< "   sensorError: " << cellFormation.getSensorError() << endl
-//				<< "   communicationError: " << cellFormation.getCommunicationError() << endl
-//				<< "Left neighbor: " << neighborhoodList[0] << endl
-//				<< "   Actual relationship: " << cellState.actualRelationships[0].x << ", "
-//						<< cellState.actualRelationships[0].y << ", "
-//						<< cellState.actualRelationships[0].z << ", " << endl
-//				<< "   Desired relationship: " << cellState.desiredRelationships[0].x << ", "
-//						<< cellState.desiredRelationships[0].y << ", "
-//						<< cellState.desiredRelationships[0].z << ", " << endl
-//				<< "Right neighbor: " << neighborhoodList[1] << endl
-//				<< "   Actual relationship: " << cellState.actualRelationships[1].x << ", "
-//						<< cellState.actualRelationships[1].y << ", "
-//						<< cellState.actualRelationships[1].z << ", " << endl
-//				<< "   Desired relationship: " << cellState.desiredRelationships[1].x << ", "
-//						<< cellState.desiredRelationships[1].y << ", "
-//						<< cellState.desiredRelationships[1].z << ", " << endl << endl;
-//	}
+//	if(cellID == 4)
+	{
+		cout << "\n\nCell stuff:\n"
+				<< "   cell ID: " << cellID << endl
+				<< "   isFormationChanged: " << isFormationChanged << endl
+				<< "   formationCount: " << formationCount << endl
+				<< "   cell state time step: " << cellState.timeStep << endl
+				<< "   getNumberOfNeighbors(): " << getNumberOfNeighbors() << endl
+				<< "Formation stuff:\n"
+				<< "   cellFormation.formationID: " << cellFormation.formationID << endl;
+		for(uint i = 0; i < cellFormation.currentFunctions.size(); i++)
+		{
+			cout << "   cellFormation.currentFunctions: " << cellFormation.currentFunctions[i] << endl;
+		}
+		cout	<< "   cellFormation.getRadius: " << cellFormation.getRadius() << endl
+				<< "   seed ID: " << cellFormation.seedID << endl
+				<< "   sensorError: " << cellFormation.getSensorError() << endl
+				<< "   communicationError: " << cellFormation.getCommunicationError() << endl
+				<< "Left neighbor: " << neighborhoodList[0] << endl
+				<< "   Actual relationship: " << cellState.actualRelationships[0].x << ", "
+						<< cellState.actualRelationships[0].y << ", "
+						<< cellState.actualRelationships[0].z << ", " << endl
+				<< "   Desired relationship: " << cellState.desiredRelationships[0].x << ", "
+						<< cellState.desiredRelationships[0].y << ", "
+						<< cellState.desiredRelationships[0].z << ", " << endl
+				<< "Right neighbor: " << neighborhoodList[1] << endl
+				<< "   Actual relationship: " << cellState.actualRelationships[1].x << ", "
+						<< cellState.actualRelationships[1].y << ", "
+						<< cellState.actualRelationships[1].z << ", " << endl
+				<< "   Desired relationship: " << cellState.desiredRelationships[1].x << ", "
+						<< cellState.desiredRelationships[1].y << ", "
+						<< cellState.desiredRelationships[1].z << ", " << endl << endl;
+	}
 }
 
 // Uses a service client to get the relationship to your reference neighbor from Environment
@@ -735,35 +668,43 @@ void Cell::receiveNeighborhoodIdsFromEnvironment(int originId)
 	spinner.stop();
 }
 
-bool Cell::makeAuctionConnectionCall(int toCallCellId, bool makeConnection, int referencePosition)
+bool Cell::makeAuctionConnectionCall(int targetCellId, int newReferencePosition)
 {
+//	cout << "\nAbout to attempt auction call...";
 	ros::AsyncSpinner spinner(1);	// Uses an asynchronous spinner to account for the blocking service client call
 	spinner.start();
-	if(toCallCellId != -1){
+	if(targetCellId == NO_NEIGHBOR){
 		return false;
 	}
 	string name = "cell_auctioning_";
-	name = name + boost::lexical_cast<std::string>(toCallCellId);	// add the index to the name string
+	name = name + boost::lexical_cast<std::string>(targetCellId);	// add the index to the name string
 	auctionService.request.OriginID = cellID;
-	auctionService.request.makeOrBreakConnection = makeConnection;
-	auctionService.request.referencePosition = referencePosition;
+	auctionService.request.referencePosition = newReferencePosition;
 
 	auctionClient = auctionNodeHandle.serviceClient<NewSimulator::Auctioning>(name);
 
-//	cout << "\ncrap" << endl;
 	if (auctionClient.call(auctionService))
 	{
-//		cout << "\ncrap2" << endl;
-		bool response = auctionService.response.acceptOrDecline;
+		// **********************************************************************************
+		string responseOutput;
+		if(auctionService.response.acceptOrDeny)
+			responseOutput = "true";
+		else
+			responseOutput = "false";
+//		cout << "\nauction call FROM cell " << cellID << " TO cell " << toCallCellId << " succeeded.  Response: " << responseOutput;
+		// **********************************************************************************
+
+
+		bool response = auctionService.response.acceptOrDeny;
 		if(response)
 		{
 			if(referencePosition == LEFT_POSITION)
 			{
-				neighborhoodList[0] = toCallCellId;
+				neighborhoodList[0] = targetCellId;
 			}
 			else
 			{
-				neighborhoodList[1] = toCallCellId;
+				neighborhoodList[1] = targetCellId;
 			}
 		}
 
@@ -777,7 +718,8 @@ bool Cell::makeAuctionConnectionCall(int toCallCellId, bool makeConnection, int 
 }
 
 // Auctioning server
-void Cell::startAuctionServiceServer() {
+void Cell::startAuctionServiceServer()
+{
 	ros::NodeHandle AuctionServerNode;
 	string name = "cell_auctioning_";
 	name = name + boost::lexical_cast<std::string>(cellID);	// add the index to the name string
@@ -787,58 +729,36 @@ void Cell::startAuctionServiceServer() {
 	ros::spinOnce();
 }
 
-bool Cell::setAuctionResponse(NewSimulator::Auctioning::Request &request, NewSimulator::Auctioning::Response &response){
-//	if(request.makeOrBreakConnection){
-//		if(checkIfNeedNeighbors()){
-//			neighborhoodList.push_back(request.OriginID);
-//			response.acceptOrDecline = true;
-//		}else{
-//			int idToRemove = isCellBetterMatch(request.OriginID);
-//			if(idToRemove != -1){
-//				//The idToRemove is the weakest connection, replacing with the new connection
-//				for(uint i = 0; i < neighborhoodList.size(); i++) {
-//					if(neighborhoodList[i] == idToRemove)
-//						neighborhoodList.erase(neighborhoodList.begin() + i);
-//				}
-//				//Sets id of cell that connection needs to be broken with
-//				idToBreakConnection = idToRemove;
-//				response.acceptOrDecline = true;
-//			}else{
-//				response.acceptOrDecline = false;
-//			}
-//		}
-//	}else{
-//		//Removing neighbor because that neighbor is breaking the connection
-//		for(uint i = 0; i < neighborhoodList.size(); i++) {
-//			if(neighborhoodList[i] == request.OriginID)
-//				neighborhoodList.erase(neighborhoodList.begin() + i);
-//		}
-//		needNeighbors = true;
-//		response.acceptOrDecline = true;
+bool Cell::setAuctionResponse(NewSimulator::Auctioning::Request &request, NewSimulator::Auctioning::Response &response)
+{
+//	// If the cell already contains the requesting cell as a neighbor, respond false
+//	if(count(neighborhoodList.begin(), neighborhoodList.end(), request.OriginID) != 0){
+//		response.acceptOrDeny = false;
+//		return true;
+//	}
 
 
-	uint numberOfFunctions = cellFormation.getFunctions().size();
-//	cout << "\nSIZE = " << numberOfFunctions << endl;
-//	cout << "\nLIST SIZE:  = " << neighborhoodList.size() << endl;
 
-	if(count(neighborhoodList.begin(), neighborhoodList.end(), request.OriginID) != 0){
-		response.acceptOrDecline = false;
+	// If I'm on the requester's left and I've got an empty right neighbor spot,
+	// I'll set him to my right neighbor and subscribe to his formation change requests and set him as my reference neighbor
+	int leftOrRight;
+	if(request.referencePosition == 0)
+		leftOrRight = 1;
+	else
+		leftOrRight = 0;
+
+	if(neighborhoodList[leftOrRight] != NO_NEIGHBOR)
+	{	response.acceptOrDeny = false;
 		return true;
 	}
+	referencePosition = request.referencePosition;
+	neighborhoodList[leftOrRight] = request.OriginID;
 
-	if(numberOfFunctions == 0)
-	{
-		response.acceptOrDecline = true;
-		referencePosition = request.referencePosition;
+//	cout << "\nCell " << cellID << " got an auction request from cell " << request.OriginID << " with referencePosition " << request.referencePosition
+//			<< ".  \n           The requesting cell is now my neighborhoodList[" << leftOrRight << "] neighbor.";
 
-		int leftOrRight = referencePosition;
-		if(leftOrRight == 0)
-			leftOrRight = 1;
-		else
-			leftOrRight = 0;
-		neighborhoodList[leftOrRight] = request.OriginID;
-		return true;
-	}
-	response.acceptOrDecline = false;
+	formationChangeSubscriber = formationChangeSubscriberNode.subscribe(generateFormationPubName(neighborhoodList[leftOrRight]), 100, &Cell::receiveFormationFromNeighbor, this);
+	cellFormation.referenceNbrID = request.OriginID;
+	response.acceptOrDeny = true;
 	return true;
 }
