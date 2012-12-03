@@ -1,4 +1,5 @@
 int32 OriginID
 bool makeOrBreakConnection
+int32 referencePosition
 ---
 bool acceptOrDecline

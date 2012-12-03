@@ -44,6 +44,8 @@ const int NO_NEIGHBOR = -1;
 const float FLOAT_ZERO_APPROXIMATION = 0.001f;
 const float MAX_TRANSLATIONAL_VELOCITY = 0.7f;
 const float MAX_ROTATIONAL_VELOCITY = 0.5f;
+const int LEFT_POSITION = 0;
+const int RIGHT_POSITION = 1;
 
 class Cell
 {
@@ -65,7 +67,7 @@ class Cell
 		Formation getFormation();
 		void setFormation(Formation formation);
 
-		vector<int> updateNeighborhood();
+		void updateNeighborhood();
 		void createNeighborhood();
 		void setLeftNeighbor(const int nbr);
 		void setRightNeighbor(const int nbr);
@@ -144,12 +146,12 @@ class Cell
 		ros::NodeHandle auctionNodeHandle;
 		ros::ServiceClient auctionClient;
 		NewSimulator::Auctioning auctionService;
-		bool makeAuctionConnectionCall(int toCallCellId, bool makeConnection);
+		bool makeAuctionConnectionCall(int toCallCellId, bool makeConnection, int referencePosition);
 
 		// Auction server client
 		ros::NodeHandle AuctionServerNode;
 		ros::ServiceServer auctionServer;
-		bool setAuctionMessage(NewSimulator::Auctioning::Request &request, NewSimulator::Auctioning::Response &response);
+		bool setAuctionResponse(NewSimulator::Auctioning::Request &request, NewSimulator::Auctioning::Response &response);
 		void startAuctionServiceServer();
 
 
@@ -160,6 +162,7 @@ class Cell
 		vector<int> neighborhoodList;
 		int cellID;
 		int currentStatus;
+		int referencePosition;
 
     private:
 		bool isFormationChanged;

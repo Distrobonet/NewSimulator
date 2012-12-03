@@ -76,6 +76,7 @@ class Formation
 		// Member variables
 		int seedID;
 		int referenceNbrID;
+		int referencePosition;
 		Formation fx(int formationId);
 		vector<Function> currentFunctions;
 		int formationID;									// The identifier for the current formation function
