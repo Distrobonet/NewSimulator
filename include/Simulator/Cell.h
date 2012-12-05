@@ -41,6 +41,7 @@ enum Status{
 };
 
 const int NO_NEIGHBOR = -1;
+const int SEED_REFERENCE_POSITION = -2;
 const float FLOAT_ZERO_APPROXIMATION = 0.001f;
 const float MAX_TRANSLATIONAL_VELOCITY = 0.7f;
 const float MAX_ROTATIONAL_VELOCITY = 0.5f;
@@ -54,12 +55,8 @@ class Cell
 		virtual ~Cell();
 
 		void update();
-		void updateCurrentStatus();
-		int getNumberOfNeighbors();
 
-		bool calculateMovement();
 		void move(int neighborIndex);
-		void moveMultiFunction();
 		void moveFunction();
 
 		int getCellID();
@@ -67,20 +64,14 @@ class Cell
 		Formation getFormation();
 		void setFormation(Formation formation);
 
+		void updateSeedNeighborhood();
 		void updateNeighborhood();
-		void createNeighborhood();
-		void setLeftNeighbor(const int nbr);
-		void setRightNeighbor(const int nbr);
-		void establishNeighborhoodCom();
 
 		State getState();
 		void setState(State state);
-		void updateState();
-		void updateState(const NewSimulator::State::Response &incomingState);
 
 		int getCurrentStatus();
 		void setCurrentStatus(int newStatus);
-		void checkNeighborStatus();
 
 		void calculateDesiredRelationship(int neighborIndex);
 		void applySensorError(int neighborIndex);
@@ -158,6 +149,8 @@ class Cell
 	protected:
 		State cellState;
 		Formation cellFormation;
+		int neighborSetCount;
+		bool readyToUpdateNeighborhood;
 		int formationCount;
 		vector<int> neighborhoodList;
 		int cellID;

@@ -1,4 +1,5 @@
 int32 	OriginID
 int32 	referencePosition
+int32 	neighborSetCount
 ---
 bool 	acceptOrDeny
