@@ -29,6 +29,8 @@
 // Actioning service
 #include "../srv_gen/cpp/include/NewSimulator/Auctioning.h"
 
+#include "../msg_gen/cpp/include/NewSimulator/NeighborMap.h"
+
 using namespace std;
 
 enum Status{
@@ -147,6 +149,8 @@ class Cell
 
 
 	protected:
+		vector<NewSimulator::NeighborMap> neighborFormationVector;
+		int mappedIndex;
 		State cellState;
 		Formation cellFormation;
 		int neighborSetCount;

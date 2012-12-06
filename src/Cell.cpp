@@ -72,7 +72,7 @@ void Cell::update()
 			updateSeedNeighborhood();
 
 		// If the non-seed cell has had a reference neighbor set through the auctioning algorithm, set its non-reference neighbor through it too.
-		if(readyToUpdateNeighborhood)
+		if(readyToUpdateNeighborhood && cellFormation.getFunctions().size() == 1)
 		{
 			updateNeighborhood();
 			readyToUpdateNeighborhood = false;
@@ -81,6 +81,11 @@ void Cell::update()
 		// If a neighbor published a message to this cell that the formation changed
 		if(isFormationChanged)
 		{
+			//If multifunction was true and now we are doing a single formation set multifunction to false and resest formation count to start over
+			if(cellFormation.getFunctions().size() == 1 && isMultiFunction){
+				isMultiFunction = false;
+				formationCount = 0;
+			}
 			// Publish the formation change to this cell's non-reference neighbor (cell farthest from seed)
 			formationChangePublisher.publish(createFormationChangeMessage());
 			isFormationChanged = false;
@@ -106,7 +111,7 @@ void Cell::updateSeedNeighborhood()
 	 * 5. seed sends auction message to second closest(right) cell containing RIGHT_NEIGHBOR value
 	 */
 
-	if(cellID == cellFormation.seedID && formationCount == 0)
+	if(cellID == cellFormation.seedID && (formationCount == 0 || cellFormation.getFunctions().size() > 1) && !isMultiFunction)
 	{
 		receiveNeighborhoodIdsFromEnvironment(cellID);
 
@@ -115,17 +120,69 @@ void Cell::updateSeedNeighborhood()
 		if(possibleNeighborList.size() >= 2)
 		{
 //			cout << "\nCell " << cellID << " has POSSIBLE neighbors " << possibleNeighborList[i];
+			NewSimulator::NeighborMap tempMap;
 
 			neighborSetCount += 1;
+			neighborFormationVector.clear();
 
 			makeAuctionConnectionCall(possibleNeighborList[0], LEFT_POSITION);
 			neighborhoodList[0] = possibleNeighborList[0];
+			tempMap.cellID = possibleNeighborList[0];
+			tempMap.formation_index = 0;
+			neighborFormationVector.push_back(tempMap);
 
 			makeAuctionConnectionCall(possibleNeighborList[1], RIGHT_POSITION);
 			neighborhoodList[1] = possibleNeighborList[1];
+			tempMap.cellID = possibleNeighborList[1];
+			tempMap.formation_index = 0;
+			neighborFormationVector.push_back(tempMap);
 
 
-//			cout << "\nCell " << cellID << " with neighborSetCount " << neighborSetCount << " set its neighbors to " << neighborhoodList[0] << ", " << neighborhoodList[1];
+			if(cellFormation.getFunctions().size() == 2)
+			{
+				isMultiFunction = true;
+				makeAuctionConnectionCall(possibleNeighborList[2], LEFT_POSITION);
+				neighborhoodList[2] = possibleNeighborList[2];
+				tempMap.cellID = possibleNeighborList[2];
+				tempMap.formation_index = 1;
+				neighborFormationVector.push_back(tempMap);
+
+				makeAuctionConnectionCall(possibleNeighborList[3], RIGHT_POSITION);
+				neighborhoodList[3] = possibleNeighborList[3];
+				tempMap.cellID = possibleNeighborList[3];
+				tempMap.formation_index = 1;
+				neighborFormationVector.push_back(tempMap);
+			}
+
+			if(cellFormation.getFunctions().size() == 3)
+			{
+				isMultiFunction = true;
+				makeAuctionConnectionCall(possibleNeighborList[2], LEFT_POSITION);
+				neighborhoodList[2] = possibleNeighborList[2];
+				tempMap.cellID = possibleNeighborList[2];
+				tempMap.formation_index = 1;
+				neighborFormationVector.push_back(tempMap);
+
+				makeAuctionConnectionCall(possibleNeighborList[3], RIGHT_POSITION);
+				neighborhoodList[3] = possibleNeighborList[3];
+				tempMap.cellID = possibleNeighborList[3];
+				tempMap.formation_index = 1;
+				neighborFormationVector.push_back(tempMap);
+
+				makeAuctionConnectionCall(possibleNeighborList[4], LEFT_POSITION);
+				neighborhoodList[4] = possibleNeighborList[4];
+				tempMap.cellID = possibleNeighborList[4];
+				tempMap.formation_index = 2;
+				neighborFormationVector.push_back(tempMap);
+
+				makeAuctionConnectionCall(possibleNeighborList[5], RIGHT_POSITION);
+				neighborhoodList[5] = possibleNeighborList[5];
+				tempMap.cellID = possibleNeighborList[5];
+				tempMap.formation_index = 2;
+				neighborFormationVector.push_back(tempMap);
+			}
+
+			//			cout << "\nCell " << cellID << " with neighborSetCount " << neighborSetCount << " set its neighbors to " << neighborhoodList[0] << ", " << neighborhoodList[1];
 		}
 	}
 }
@@ -338,7 +395,16 @@ void Cell::calculateDesiredRelationship(int neighborIndex)
 	if(!referencePosition)
 		radius *= -1;
 
-	PhysicsVector desiredRelationship = cellFormation.getDesiredRelationship(cellFormation.getFunctions()[0], radius,
+	int index = 0;
+	for(uint i = 0; i < neighborFormationVector.size(); i++)
+	{
+		if(neighborFormationVector[i].cellID == cellID)
+			index = neighborFormationVector[i].formation_index;
+	}
+
+//	cout << "\n cell " << cellID << " is using formation index " << index;
+
+	PhysicsVector desiredRelationship = cellFormation.getDesiredRelationship(cellFormation.getFunctions()[index], radius,
 			cellFormation.cellFormationRelativePosition, cellFormation.getFormationRelativeOrientation());
 
 
@@ -354,6 +420,8 @@ void Cell::calculateDesiredRelationship(int neighborIndex)
 NewSimulator::FormationMessage Cell::createFormationChangeMessage()
 {
 	NewSimulator::FormationMessage formationChangeMessage;
+
+	formationChangeMessage.neighbor_map = neighborFormationVector;
 
 	formationChangeMessage.radius = cellFormation.radius;
 	formationChangeMessage.formation_id = cellFormation.formationID;
@@ -384,7 +452,6 @@ void Cell::receiveFormationFromSimulator(const NewSimulator::FormationMessage::C
 		cellFormation.seedID = formationMessage->seed_id;
 		cellFormation.setSensorError(formationMessage->sensor_error);
 		cellFormation.setCommunicationError(formationMessage->communication_error);
-
 		return;
 	}
 }
@@ -408,6 +475,7 @@ void Cell::receiveFormationFromNeighbor(const NewSimulator::FormationMessage::Co
 		formationCount = formationMessage->formation_count;
 		cellFormation.seedID = formationMessage->seed_id;
 		cellFormation.sensorError = formationMessage->sensor_error;
+		neighborFormationVector = formationMessage->neighbor_map;
 
 		return;
 	}

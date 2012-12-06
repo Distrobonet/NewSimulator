@@ -5,5 +5,6 @@ int32 			seed_id
 int32 			reference_nbr_id
 int32 			formation_id
 int32 			formation_count
+NeighborMap[] 	neighbor_map
 float64 		sensor_error
 float64 		communication_error
