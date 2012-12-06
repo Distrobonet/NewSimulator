@@ -260,8 +260,8 @@ void displayMenu()
 		<< "a) f(x) = 2sin(x)"                        		 << endl
 		<< "b) f(x) = x √3"                                 << endl
 		<< "c) f(x) = -x √3"                                 << endl
-		<< "d) f(x) = Hexagonal Lattice (0, b, c)"           << endl
-		<< "e) f(x) = Square Lattice (1, 2)"                << endl << endl
+		<< "d) f(x) = Square Lattice (1, 2)"             	<< endl
+		<< "e) f(x) = Hexagonal Lattice (0, b, c)"           << endl << endl
 		<< "Use - and + to adjust the cell radius"    		 << endl
 		<< "Use j and k to adjust the sensor error"    		 << endl
 		<< "Use n and m to adjust the communication error (0 - 100% message loss)"	 << endl

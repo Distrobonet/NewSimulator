@@ -83,9 +83,11 @@ void Cell::update()
 		{
 			//If multifunction was true and now we are doing a single formation set multifunction to false and resest formation count to start over
 			if(cellFormation.getFunctions().size() == 1 && isMultiFunction){
+				cout<<"setting multi to false"<<endl;
 				isMultiFunction = false;
 				formationCount = 0;
 			}
+
 			// Publish the formation change to this cell's non-reference neighbor (cell farthest from seed)
 			formationChangePublisher.publish(createFormationChangeMessage());
 			isFormationChanged = false;
@@ -156,26 +158,35 @@ void Cell::updateSeedNeighborhood()
 
 			if(cellFormation.getFunctions().size() == 3)
 			{
+				cout<<"Made it here"<<endl;
 				isMultiFunction = true;
-				makeAuctionConnectionCall(possibleNeighborList[2], LEFT_POSITION);
+				while(!makeAuctionConnectionCall(possibleNeighborList[2], LEFT_POSITION)){
+					makeAuctionConnectionCall(possibleNeighborList[2], LEFT_POSITION);
+				}
 				neighborhoodList[2] = possibleNeighborList[2];
 				tempMap.cellID = possibleNeighborList[2];
 				tempMap.formation_index = 1;
 				neighborFormationVector.push_back(tempMap);
 
-				makeAuctionConnectionCall(possibleNeighborList[3], RIGHT_POSITION);
+				while(!makeAuctionConnectionCall(possibleNeighborList[3], RIGHT_POSITION)){
+					makeAuctionConnectionCall(possibleNeighborList[3], RIGHT_POSITION);
+				}
 				neighborhoodList[3] = possibleNeighborList[3];
 				tempMap.cellID = possibleNeighborList[3];
 				tempMap.formation_index = 1;
 				neighborFormationVector.push_back(tempMap);
 
-				makeAuctionConnectionCall(possibleNeighborList[4], LEFT_POSITION);
+				while(!makeAuctionConnectionCall(possibleNeighborList[4], LEFT_POSITION)){
+					makeAuctionConnectionCall(possibleNeighborList[4], LEFT_POSITION);
+				}
 				neighborhoodList[4] = possibleNeighborList[4];
 				tempMap.cellID = possibleNeighborList[4];
 				tempMap.formation_index = 2;
 				neighborFormationVector.push_back(tempMap);
 
-				makeAuctionConnectionCall(possibleNeighborList[5], RIGHT_POSITION);
+				while(!makeAuctionConnectionCall(possibleNeighborList[5], RIGHT_POSITION)){
+					makeAuctionConnectionCall(possibleNeighborList[5], RIGHT_POSITION);
+				}
 				neighborhoodList[5] = possibleNeighborList[5];
 				tempMap.cellID = possibleNeighborList[5];
 				tempMap.formation_index = 2;
@@ -766,7 +777,7 @@ bool Cell::setAuctionResponse(NewSimulator::Auctioning::Request &request, NewSim
 	else
 		leftOrRight = 0;
 
-	if(neighborSetCount >= request.neighborSetCount)
+	if(neighborSetCount >= request.neighborSetCount && request.OriginID != cellFormation.seedID)
 	{
 		response.acceptOrDeny = false;
 		return true;
@@ -774,8 +785,14 @@ bool Cell::setAuctionResponse(NewSimulator::Auctioning::Request &request, NewSim
 
 	neighborSetCount = request.neighborSetCount;
 	referencePosition = request.referencePosition;
-	neighborhoodList[leftOrRight] = request.OriginID;
-	neighborhoodList[referencePosition] = NO_NEIGHBOR;
+	if(request.referencePosition == 0){
+		neighborhoodList[1] = request.OriginID;
+		neighborhoodList[0] = NO_NEIGHBOR;
+	}else
+	{
+		neighborhoodList[0] = request.OriginID;
+		neighborhoodList[1] = NO_NEIGHBOR;
+	}
 
 	formationChangeSubscriber = formationChangeSubscriberNode.subscribe(generateFormationPubName(request.OriginID), 100, &Cell::receiveFormationFromNeighbor, this);
 	cellFormation.referenceNbrID = request.OriginID;

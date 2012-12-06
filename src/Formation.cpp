@@ -48,6 +48,7 @@ Formation::~Formation()
 void Formation::setFunction(const Function newFunction)
 {
 	currentFunctions.clear();
+	currentFunctions.resize(0);
 	currentFunctions.push_back(newFunction);
 }
 
